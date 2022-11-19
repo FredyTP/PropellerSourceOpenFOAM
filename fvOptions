@@ -1,0 +1,47 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2206                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+/*
+This is an example file that shows how to configure the dictionary to
+use propeller Source term in OpenFOAM
+*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+propeller1
+{
+    type            propeller;
+    
+    fields          (U); // Names of fields on which to apply source
+    
+    active          true;
+    
+    propellerModel bladeElementModel;
+    
+    rotorGeometry
+    {
+    
+        radius          0.5;
+        center          (0 0 0);
+        direction       (0 1 1);
+        
+        closestCenter   true;
+    }
+    
+  
+    
+    
+}
+
+
+// ************************************************************************* //
