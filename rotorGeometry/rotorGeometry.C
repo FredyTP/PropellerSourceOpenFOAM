@@ -1,8 +1,24 @@
 #include "rotorGeometry.H"
+#include "cellSet.H"
+
+
 namespace Foam
 {
 
 defineTypeNameAndDebug(rotorGeometry,0);
+
+const Enum
+<
+    rotorGeometry::selectionMode
+>
+rotorGeometry::selectionModeNames_
+({
+    {selectionMode::smGeometry, "geometry"},
+    {selectionMode::smCellSet, "cellSet"},
+});
+
+
+
 
 rotorGeometry::rotorGeometry(
     const fvMesh &mesh,
@@ -17,21 +33,45 @@ bool rotorGeometry::read(const dictionary &dict)
     bool ok = true;
     const auto& coeffs = dict.subDict("rotorGeometry");
 
-    ok &= coeffs.readEntry("radius", radius_);
-    ok &= coeffs.readEntry("center", rotorCenter_);
-    ok &= coeffs.readEntry("direction", rotorDir_);
-    ok &= coeffs.readEntry("closestCenter",isClosestCenter_);
-    
-    if(ok)
-    {
-        Info<<"Radius: "<< radius_<<endl;
-        Info<<"Center: "<< rotorCenter_<<endl;
-        Info<<"Direction: "<< rotorDir_<<endl;
-        Info<<"FindClosestCenter: "<< isClosestCenter_<<endl;
+    ok &= selectionModeNames_.readEntry("selectionMode",coeffs,selMode_);
 
-        this->updateCenter();
-        this->createMeshSelection();
+    switch (selMode_)
+    {
+    case selectionMode::smGeometry:
+
+        ok &= coeffs.readEntry("radius", radius_);
+        ok &= coeffs.readEntry("center", rotorCenter_);
+        ok &= coeffs.readEntry("direction", rotorDir_);
+        ok &= coeffs.readEntry("closestCenter",isClosestCenter_);
+          
+        if(ok)
+        {
+            Info<<"Radius: "<< radius_<<endl;
+            Info<<"Center: "<< rotorCenter_<<endl;
+            Info<<"Direction: "<< rotorDir_<<endl;
+            Info<<"FindClosestCenter: "<< isClosestCenter_<<endl;
+
+            this->updateCenter();
+            this->createMeshSelection();
+        }
+        break;
+
+    case selectionMode::smCellSet:
+        /* code */
+        word zoneName("");
+
+        ok &= coeffs.readEntry("cellSet",zoneName);
+        if(ok)
+        {
+            cells_ = cellSet(mesh_, zoneName).sortedToc();
+        }
+
+        break;
+    
     }
+
+
+
     return ok;
 }
 void rotorGeometry::updateCenter()

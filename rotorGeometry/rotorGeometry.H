@@ -3,6 +3,8 @@
 
 #include "fvMesh.H"
 #include "cuttingPlane.H"
+#include "Enum.H"
+
 
 namespace Foam
 {
@@ -10,7 +12,38 @@ namespace Foam
 class rotorGeometry
 {
 public:
-    TypeName("rotorGeometry");
+    //Public Enumerations
+
+    //INFO: each enum must include a Enum class to map
+    //each enum item to a string, so it can be selected from 
+    //IOdicts
+
+        //- Selection Mode
+        enum selectionMode
+        {
+            smGeometry,
+            smCellSet
+        };
+
+        //- Names for selectionMode
+        static const Enum<selectionMode> selectionModeNames_;
+private:
+    const fvMesh& mesh_;
+
+    selectionMode selMode_;
+    //Selected cells for rotor geometry
+    labelList cells_;
+    
+    //Specified atributes
+    scalar radius_;
+    vector rotorCenter_;
+    vector rotorDir_;
+    bool isClosestCenter_;
+
+    //Parameters obtained after cell selection
+    vector realCenter_;
+public:
+TypeName("rotorGeometry");
 
     //Contructors
         //- Construct from dictionary
@@ -27,21 +60,6 @@ public:
         inline const labelList& cells(){ return cells_; }
         inline const vector& direction(){return rotorDir_;}
         inline const vector& center(){return realCenter_;}
-private:
-    const fvMesh& mesh_;
-
-    //Selected cells for rotor geometry
-    labelList cells_;
-    
-    //Specified atributes
-    scalar radius_;
-    vector rotorCenter_;
-    vector rotorDir_;
-    bool isClosestCenter_;
-
-    //Parameters obtained after cell selection
-    vector realCenter_;
-
 protected:
     //Geometry
 

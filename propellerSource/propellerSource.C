@@ -4,8 +4,8 @@
 #include "addToRunTimeSelectionTable.H"
 #include "fvMatrices.H"
 
-#include "cuttingPlane.H"
 #include "cellSet.H"
+#include "closestNeighbor.H"
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 namespace Foam
@@ -44,6 +44,29 @@ Foam::fv::propellerSource::propellerSource
 {
     read(dict);
 
+    List<FixedList<scalar,2>> input;
+    input.append({1,2});
+    input.append({2,1});
+    input.append({3,7});
+    input.append({4,-4});
+    input.append({5,18});
+
+
+    List<scalar> output;
+    output.append(1);
+    output.append(2);
+    output.append(3);
+    output.append(4);
+    output.append(5);
+
+    closestNeighbor<2> table(input,output);
+
+    Info<<table(1.2,2.5)<<endl;
+    Info<<table(1.5,9.3)<<endl;
+    Info<<table(4.3,20)<<endl;
+    Info<<table(4,-4)<<endl;
+
+
 }
 
 
@@ -60,6 +83,10 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         coeffs_.readEntry("fields", fieldNames_);
         fv::option::resetApplied();
         //propModel_->read(Coeffs_);
+
+
+        
+
         return true;
     }
 
@@ -91,7 +118,8 @@ void Foam::fv::propellerSource::addSup
     forAll(rotorCells,i)
     {
         label celli = rotorCells[i];
-        force[celli]=-10000*rotorGeom_->direction();
+        //force[celli]=-10000*rotorGeom_->direction();
+        force[celli]=vector(0,-1000,0);
     }
     eqn-=force;
 

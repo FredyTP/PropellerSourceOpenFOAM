@@ -12,6 +12,8 @@
 
 #include "propellerModel.H"
 #include "rotorGeometry.H"
+
+#include "irregularInterpolation.H"
 namespace Foam
 {
 namespace fv
