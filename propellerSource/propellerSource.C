@@ -61,10 +61,10 @@ Foam::fv::propellerSource::propellerSource
 
     closestNeighbor<2> table(input,output);
 
-    Info<<table(1.2,2.5)<<endl;
-    Info<<table(1.5,9.3)<<endl;
-    Info<<table(4.3,20)<<endl;
-    Info<<table(4,-4)<<endl;
+    Info<<table.interpolate({1.2,2.5})<<endl;
+    Info<<table.interpolate({1.5,9.3})<<endl;
+    Info<<table.interpolate({4.3,20})<<endl;
+    Info<<table.interpolate({4,-4})<<endl;
 
 
 }

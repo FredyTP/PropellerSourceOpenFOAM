@@ -3,11 +3,12 @@
 namespace Foam
 {
 
+
 template<unsigned int dimension>
 irregularInterpolation<dimension>::irregularInterpolation
 (
-    const List<FixedList<scalar,dimension>>& input,
-    const List<scalar>& output
+    const List<FixedList<scalar,dimension>> input,
+    const List<scalar> output
 ) : 
 input_(input),
 output_(output)

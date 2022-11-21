@@ -8,11 +8,12 @@ template<unsigned int dimension>
 class closestNeighbor
 : public irregularInterpolation<dimension>
 {
-    public:
+
+public:
 
     closestNeighbor(
-        const List<FixedList<scalar,dimension>>& input,
-        const List<scalar>& output
+        const List<FixedList<scalar,dimension>> input,
+        const List<scalar> output
     );
     
     virtual scalar interpolate(FixedList<scalar,dimension> inputValue);

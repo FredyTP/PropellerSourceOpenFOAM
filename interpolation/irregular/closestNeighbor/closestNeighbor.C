@@ -4,21 +4,18 @@
 
 template<unsigned int dimension>
 Foam::closestNeighbor<dimension>::closestNeighbor(
-    const Foam::List<FixedList<scalar,dimension>>& input,
-    const Foam::List<scalar>& output
+    const Foam::List<FixedList<scalar,dimension>> input,
+    const Foam::List<scalar> output
 )
 : irregularInterpolation<dimension>(input,output)
 {
     //initialize some internal process data if required (?)
-    
-
-
-
 }
 
 template<unsigned int dimension>
 Foam::scalar Foam::closestNeighbor<dimension>::interpolate
 (
+
     Foam::FixedList<scalar,dimension> inputValue
 )
 {
