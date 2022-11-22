@@ -30,6 +30,8 @@ rotorGeometry::rotorGeometry(
 
 bool rotorGeometry::read(const dictionary &dict)
 {
+    Info<<"Reading Rotor geometry"<<endl;
+
     bool ok = true;
     const auto& coeffs = dict.subDict("rotorGeometry");
 
@@ -50,9 +52,15 @@ bool rotorGeometry::read(const dictionary &dict)
             Info<<"Center: "<< rotorCenter_<<endl;
             Info<<"Direction: "<< rotorDir_<<endl;
             Info<<"FindClosestCenter: "<< isClosestCenter_<<endl;
-
-            this->updateCenter();
-            this->createMeshSelection();
+            bool selectMesh = coeffs.getOrDefault<bool>("createSelection",true);
+            if(selectMesh)
+            {
+                this->updateCenter();
+                this->createMeshSelection();
+            }
+            else{
+                Info<<"Not creating mesh selection from geometry, use this for debug purpose"<<endl;
+            }
         }
         break;
 

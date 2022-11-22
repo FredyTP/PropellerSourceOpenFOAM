@@ -40,33 +40,10 @@ Foam::fv::propellerSource::propellerSource
 :
     fv::option(name,modelType,dict,mesh),
     propModel_(propellerModel::New(coeffs_)),
-    rotorGeom_(autoPtr<rotorGeometry>::New(mesh,coeffs_))
+    rotorGeom_(autoPtr<rotorGeometry>::New(mesh,coeffs_)),
+    airfoils_(coeffs_.subDict("airfoils"))
 {
     read(dict);
-
-    List<FixedList<scalar,2>> input;
-    input.append({1,2});
-    input.append({2,1});
-    input.append({3,7});
-    input.append({4,-4});
-    input.append({5,18});
-
-
-    List<scalar> output;
-    output.append(1);
-    output.append(2);
-    output.append(3);
-    output.append(4);
-    output.append(5);
-
-    closestNeighbor<2> table(input,output);
-
-    Info<<table.interpolate({1.2,2.5})<<endl;
-    Info<<table.interpolate({1.5,9.3})<<endl;
-    Info<<table.interpolate({4.3,20})<<endl;
-    Info<<table.interpolate({4,-4})<<endl;
-
-
 }
 
 
@@ -75,7 +52,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
     //Reads fv::option and saves propeller content in Coeffs_ dict
     if(fv::option::read(dict))
     {
-        std::cout<<"Reading propeller"<<std::endl;
+        std::cout<<"Reading propeller source"<<std::endl;
         fv::option::resetApplied();
 
         //Read fields names to apply the source, if not present

@@ -12,6 +12,8 @@
 
 #include "propellerModel.H"
 #include "rotorGeometry.H"
+#include "airfoilModel.H"
+#include "airfoilModelList.H"
 
 #include "irregularInterpolation.H"
 namespace Foam
@@ -51,6 +53,7 @@ protected:
     //Propeller model used to compute source terms
     autoPtr<propellerModel> propModel_;
     autoPtr<rotorGeometry> rotorGeom_;
+    airfoilModelList airfoils_;
     labelList cells_;
 
 public:
