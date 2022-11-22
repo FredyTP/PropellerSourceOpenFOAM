@@ -41,7 +41,8 @@ Foam::fv::propellerSource::propellerSource
     fv::option(name,modelType,dict,mesh),
     propModel_(propellerModel::New(coeffs_)),
     rotorGeom_(autoPtr<rotorGeometry>::New(mesh,coeffs_)),
-    airfoils_(coeffs_.subDict("airfoils"))
+    airfoils_(coeffs_.subDict("airfoils")),
+    bladeModel_(airfoils_,coeffs_.subDict("bladeModel"))
 {
     read(dict);
 }

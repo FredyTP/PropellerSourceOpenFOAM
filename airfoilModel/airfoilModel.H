@@ -29,10 +29,10 @@ public:
     airfoilModel(const word name);
     
     
-    const word& airfoilName(){return name_;}
+    const word& airfoilName() const {return name_;}
     
-    virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach)=0;
-    virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach)=0;
+    virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const = 0;
+    virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const = 0;
 
     static Foam::autoPtr<Foam::airfoilModel> New(const word name, const dictionary& dict);
 

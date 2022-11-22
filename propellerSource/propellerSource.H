@@ -16,6 +16,9 @@
 #include "airfoilModelList.H"
 
 #include "irregularInterpolation.H"
+#include "bladeModelDev.H"
+
+
 namespace Foam
 {
 namespace fv
@@ -54,6 +57,7 @@ protected:
     autoPtr<propellerModel> propModel_;
     autoPtr<rotorGeometry> rotorGeom_;
     airfoilModelList airfoils_;
+    Foam::devel::bladeModel bladeModel_;
     labelList cells_;
 
 public:

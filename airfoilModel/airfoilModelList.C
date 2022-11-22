@@ -24,3 +24,15 @@ Foam::airfoilModelList::airfoilModelList(const dictionary& dict)
 
 }
 
+const Foam::airfoilModel* Foam::airfoilModelList::getAirfoil(const word name) const
+{
+    forAll(*this,i)
+    {
+        if(name.compare(this->get(i)->airfoilName())==0)
+        {
+            return this->get(i);
+        }
+    }
+    return nullptr;
+}
+

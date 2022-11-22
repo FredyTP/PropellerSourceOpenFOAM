@@ -39,11 +39,11 @@ bool simpleAirfoil::read(const dictionary& dict)
 
     return ok;
 }
-scalar simpleAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach)
+scalar simpleAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
     return cl0_ + dcl_dalfa_ * alfaRad;
 }
-scalar simpleAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach)
+scalar simpleAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const 
 {
     scalar CL = cl(alfaRad,reynolds,mach);
 
