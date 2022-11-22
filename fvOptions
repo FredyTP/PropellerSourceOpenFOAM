@@ -5,10 +5,6 @@
 |   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
-/*
-This is an example file that shows how to configure the dictionary to
-use propeller Source term in OpenFOAM
-*/
 FoamFile
 {
     version     2.0;
@@ -30,17 +26,45 @@ propeller1
     
     rotorGeometry
     {
-    
+        selectionMode   geometry;
+        
         radius          0.5;
         center          (0 0 0);
         direction       (0 1 1);
         
         closestCenter   true;
+        createSelection false;
     }
-    
-  
-    
-    
+    bladeModel
+    {
+        sections
+        (
+            //(airfoilName ( radialPos[m] chord[m] torsion [º] sweep [º] )
+            (simpleAnalitic (0 0.3 10 0))
+            (simpleAnalitic (1 0.2 10 0))
+            (simpleAnalitic (2 0.15 20 30))           
+        );
+    }
+    airfoils
+    {
+        simpleAnalitic
+        {
+            type        simpleAirfoil;
+            cl0         0;
+            cd0         0.01;
+            cl_alfa     5;
+            K           0.0018;
+        }
+        simpleAnalitic2
+        {
+            type        simpleAirfoil;
+            cl0         0.5;
+            cd0         0.01;
+            cl_alfa     5;
+            K           0.0018;
+        }
+    }
+        
 }
 
 
