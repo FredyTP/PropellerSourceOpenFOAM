@@ -1,6 +1,8 @@
 #ifndef PROPELLER_MODEL_BLADE_ELEMENT_MODEL_ELEMENT_MODEL_H
 #define PROPELLER_MODEL_BLADE_ELEMENT_MODEL_ELEMENT_MODEL_H
 #include "propellerModel.H"
+#include "airfoilModelList.H"
+#include "bladeModelDev.H"
 
 namespace Foam
 {
@@ -9,6 +11,12 @@ class bladeElementModel
 :
     public propellerModel
 {
+protected:
+
+    airfoilModelList airfoils_;
+    Foam::devel::bladeModel bladeModel_;
+    
+    
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");
@@ -30,6 +38,9 @@ public:
 
     //- Destructor
     virtual ~bladeElementModel() = default;
+
+    //-Getter
+    virtual scalar radius() const;
     
 };
 

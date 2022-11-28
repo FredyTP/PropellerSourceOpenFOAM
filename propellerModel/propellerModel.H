@@ -5,7 +5,6 @@
 
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -21,6 +20,9 @@ namespace Foam
 
 class propellerModel
 {
+
+protected:
+
 public:
     TypeName("propellerModel");
 
@@ -60,6 +62,8 @@ public:
 
         virtual ~propellerModel() = default;
 
+    // Abstract functions
+        virtual scalar radius() const = 0;
 };
 
 }

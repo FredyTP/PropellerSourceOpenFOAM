@@ -8,8 +8,8 @@ Foam::autoPtr<Foam::propellerModel> Foam::propellerModel::New
 )
 {
     //Get model Type name (Ex: froudeModel) 
-    //From typeName key from dictionary (propellerModel)
-    const word modelType(dict.get<word>(typeName)); 
+    //From type key from dictionary (propellerModel)
+    const word modelType(dict.get<word>("type")); 
 
     Info<< "    Selecting " << typeName << " " << modelType << endl;
 

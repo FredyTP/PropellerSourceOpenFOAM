@@ -17,17 +17,6 @@ namespace Foam
     }
 }
 
-const Foam::Enum
-<
-    Foam::fv::propellerSource::propellerModelType
->
-Foam::fv::propellerSource::propellerModelTypeNames_
-({
-    {propellerModelType::pmActuatorDisk, "actuatorDisk"},
-    {propellerModelType::pmBladeElement, "bladeElement"},
-    {propellerModelType::pmVortexLaticce, "vortexLaticce"},
-});
-
 // * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * * //
 
 Foam::fv::propellerSource::propellerSource
@@ -39,12 +28,10 @@ Foam::fv::propellerSource::propellerSource
 )
 :
     fv::option(name,modelType,dict,mesh),
-    propModel_(propellerModel::New(coeffs_)),
-    rotorGeom_(autoPtr<rotorGeometry>::New(mesh,coeffs_)),
-    airfoils_(coeffs_.subDict("airfoils")),
-    bladeModel_(airfoils_,coeffs_.subDict("bladeModel"))
+    propellerModel_(),
+    rotorMesh_(mesh_)
 {
-    read(dict);
+    this->read(dict);
 }
 
 
@@ -60,9 +47,28 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         //source won't be apllied
         coeffs_.readEntry("fields", fieldNames_);
         fv::option::resetApplied();
-        //propModel_->read(Coeffs_);
+        
 
+        //- Read geometry data
+        rotorGeometry_.radius = coeffs_.getOrDefault<scalar>("radius", NO_RADIUS);
+        rotorGeometry_.direction = coeffs_.getOrDefault("direction",vector(Zero));
+        rotorGeometry_.center = coeffs_.getOrDefault("center",vector(Zero));
 
+        //- Read propeller Model
+        const dictionary& propellerModelDict = coeffs_.subDict("propellerModel");
+        propellerModel_ = propellerModel::New(propellerModelDict);
+
+        //- If no radius from dict, check on rotor Model
+        if(rotorGeometry_.radius == NO_RADIUS)
+        {
+            rotorGeometry_.radius = propellerModel_->radius();
+        }
+
+        //READ ROTOR MESH
+        const dictionary& rotorMeshDict = coeffs_.subDict("rotorMesh");
+        rotorMesh_.read(rotorMeshDict);
+        rotorMesh_.build(rotorGeometry_);
+        //- Building rotor mesh may or may not modify rotorGeometry
         
 
         return true;
@@ -92,13 +98,13 @@ void Foam::fv::propellerSource::addSup
     );
 
     const scalarField& cellVolume = mesh_.V();
-    const labelList& rotorCells = rotorGeom_->cells();
+    /*const labelList& rotorCells = rotorGeom_->cells();
     forAll(rotorCells,i)
     {
         label celli = rotorCells[i];
         //force[celli]=-10000*rotorGeom_->direction();
         force[celli]=vector(0,-1000,0);
-    }
+    }*/
     eqn-=force;
 
     //If its time to write into files

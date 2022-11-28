@@ -4,12 +4,12 @@
 #include "fvMesh.H"
 #include "cuttingPlane.H"
 #include "Enum.H"
-
+#include "cylindricalCS.H"
 
 namespace Foam
 {
 
-class rotorGeometry
+class rotorDiscrete
 {
 public:
     //Public Enumerations
@@ -31,9 +31,20 @@ private:
     const fvMesh& mesh_;
 
     selectionMode selMode_;
+
     //Selected cells for rotor geometry
     labelList cells_;
-    
+    scalarList area_;
+    scalar diskArea_;
+
+    //COORDINATE SYSTEMS
+    //- Rotor local cylindrical coordinate system (r-theta-z)
+    coordSystem::cylindrical coordSys_;
+    vector psiOrigin_;
+    //- Cell centre positions in local rotor frame
+    //  (Cylindrical r-theta-z)
+    List<point> cylCellCenter;
+
     //Specified atributes
     scalar radius_;
     vector rotorCenter_;
@@ -43,14 +54,14 @@ private:
     //Parameters obtained after cell selection
     vector realCenter_;
 public:
-TypeName("rotorGeometry");
+TypeName("rotorDiscrete");
 
     //Contructors
         //- Construct from dictionary
-        rotorGeometry(const fvMesh& mesh, const dictionary& dict);
+        rotorDiscrete(scalar radius, const fvMesh& mesh, const dictionary& dict);
 
     //Destructor
-        virtual ~rotorGeometry() = default;
+        virtual ~rotorDiscrete() = default;
     //IO
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
@@ -60,6 +71,7 @@ TypeName("rotorGeometry");
         inline const labelList& cells(){ return cells_; }
         inline const vector& direction(){return rotorDir_;}
         inline const vector& center(){return realCenter_;}
+
 protected:
     //Geometry
 
@@ -68,6 +80,8 @@ protected:
         //- Create mesh selection from center
         //and radius
         void createMeshSelection();
+
+        void findArea();
 
 
 

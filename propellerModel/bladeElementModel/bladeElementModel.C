@@ -15,8 +15,16 @@ namespace Foam
 Foam::bladeElementModel::bladeElementModel
 (
     const dictionary& dict
-) : propellerModel(dict,typeName)
+) : 
+    airfoils_(dict.subDict("airfoils")),
+    bladeModel_(airfoils_,dict.subDict("bladeModel")),
+    propellerModel(dict,typeName)
 {
 
     Info<<"Creating blade Element Model"<<endl;
+}
+
+Foam::scalar Foam::bladeElementModel::radius() const
+{
+    return bladeModel_.maxRadius();
 }

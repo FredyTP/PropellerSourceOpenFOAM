@@ -30,6 +30,9 @@ public:
 
     //- Destructor
     virtual ~froudeModel() = default;
+
+    //-Getter
+    virtual scalar radius() const;
     
 };
 

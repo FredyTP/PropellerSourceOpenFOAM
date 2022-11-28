@@ -11,13 +11,13 @@
 #include "volFieldsFwd.H"
 
 #include "propellerModel.H"
-#include "rotorGeometry.H"
 #include "airfoilModel.H"
 #include "airfoilModelList.H"
 
 #include "irregularInterpolation.H"
 #include "bladeModelDev.H"
-
+#include "rotorMesh.H"
+#include "rotorGeometry.H"
 
 namespace Foam
 {
@@ -39,27 +39,14 @@ public:
     //INFO: each enum must include a Enum class to map
     //each enum item to a string, so it can be selected from 
     //IOdicts
-
-        //- Model of propeller used
-        enum propellerModelType
-        {
-            pmActuatorDisk,
-            pmBladeElement,
-            pmVortexLaticce
-        };
-
-        //- Names for propellerModelType
-        static const Enum<propellerModelType> propellerModelTypeNames_;
-
 protected:
 
     //Propeller model used to compute source terms
-    autoPtr<propellerModel> propModel_;
-    autoPtr<rotorGeometry> rotorGeom_;
-    airfoilModelList airfoils_;
-    Foam::devel::bladeModel bladeModel_;
-    labelList cells_;
+    autoPtr<propellerModel> propellerModel_;
+    rotorMesh rotorMesh_;
 
+    //Disk Geometry
+    rotorGeometry rotorGeometry_;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("propeller");
