@@ -21,6 +21,7 @@ rotorMesh::selectionModeNames_
     {selectionMode::smNone, "none"},
     {selectionMode::smGeometry, "geometry"},
     {selectionMode::smCellSet, "cellSet"},
+    {selectionMode::smCellZone, "cellZone"},
 });
 
 
@@ -37,7 +38,7 @@ rotorMesh::rotorMesh
     area_(),
     diskArea_(NO_AREA),
     rotor_(),
-    zoneName_(),
+    cellsName_(),
     findClosestCenter_(false),
     correctGeometry_(false)
 {
@@ -67,10 +68,10 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         this->tryCorrectGeometry(rotorGeometry); //Update data if required
 
         break;
+    case selectionMode::smCellZone :
     case selectionMode::smCellSet :
 
         this->loadMeshSelection(); //Load mesh from cellSet
-
 
         //Find geometry---------
         this->findRotorCenter();
@@ -105,7 +106,7 @@ bool rotorMesh::read(const dictionary &dict)
 
     switch (selMode_)
     {
-    case selectionMode::smGeometry:
+    case selectionMode::smGeometry :
           
         findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
         Info<<"FindClosestCenter: "<< findClosestCenter_<<endl;
@@ -115,17 +116,23 @@ bool rotorMesh::read(const dictionary &dict)
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
 
         break;
-
-    case selectionMode::smCellSet:
-
-        ok &= dict.readEntry("cellSet",zoneName_);
-        Info<< "Reading cellSet from: " << zoneName_<<endl;
+    case selectionMode::smCellZone :
+        ok &= dict.readEntry("cellZone",cellsName_);
+        Info<< "Reading cellSet from: " << cellsName_<<endl;
 
         //If rotorMesh is from cellset geometry may not be provided
         correctGeometry_ = true;
 
         break;
-    case selectionMode::smNone:
+    case selectionMode::smCellSet :
+
+        ok &= dict.readEntry("cellSet",cellsName_);
+        Info<< "Reading cellSet from: " << cellsName_<<endl;
+
+        //If rotorMesh is from cellset geometry may not be provided
+        correctGeometry_ = true;
+
+        break;
     default:
         break;
     }
@@ -203,32 +210,48 @@ void rotorMesh::createMeshSelection()
 }
 void rotorMesh::loadMeshSelection()
 {
-    //cells_ = cellZone(mesh_, zoneName_).sortedToc();
 
-    //LOAD FROM CELLSET
+    switch (selMode_)
+    {    
+    case selectionMode::smCellSet:
+        //- Load from cell Set
+        cells_ = cellSet(mesh_, cellsName_).sortedToc();
+
+        break;
+    case selectionMode::smCellZone:
+    {
+//- LOAD FROM CELLZONE
         Info<< indent
         << "- selecting cells using cellZones "
-        << flatOutput(zoneName_) << nl;
+        << flatOutput(cellsName_) << nl;
 
-    const auto& zones = mesh_.cellZones();
+        const auto& zones = mesh_.cellZones();
 
-    // Also handles groups, multiple zones etc ...
-    label zoneId = zones.findIndex(zoneName_);
+        label zoneId = zones.findIndex(cellsName_);
 
-    if (zoneId == -1)
-    {
-        FatalErrorInFunction
-            << "No matching cellZones: "
-            << zoneName_ << nl
-            << "Valid zones : "
-            << flatOutput(zones.names()) << nl
-            << "Valid groups: "
-            << flatOutput(zones.groupNames())
-            << nl
-            << exit(FatalError);
+        if (zoneId == -1)
+        {
+            FatalErrorInFunction
+                << "No matching cellZones: "
+                << cellsName_ << nl
+                << "Valid zones : "
+                << flatOutput(zones.names()) << nl
+                << "Valid groups: "
+                << flatOutput(zones.groupNames())
+                << nl
+                << exit(FatalError);
+        }
+        //- Find more elegant way, searching for index twice
+        cells_ = zones.selection(cellsName_,true).sortedToc();
+        break;
+    }
+    case selectionMode::smGeometry :
+    case selectionMode::smNone :
+    default:
+        break;
     }
 
-    cells_ = zones.selection(zoneName_,true).sortedToc();
+    
     Info<<"Number of Selected cells: "<<cells_.size()<<endl;
     
 }
@@ -247,7 +270,6 @@ void rotorMesh::computeCellsArea()
     
     const label nInternalFaces = mesh_.nInternalFaces();
     const vectorField& Sf = mesh_.Sf();
-    const scalarField& magSf = mesh_.magSf();
 
 
     // Calculate cell addressing for selected cells
@@ -319,7 +341,7 @@ void rotorMesh::findRotorCenter()
 
 void rotorMesh::findRotorNormal()
 {
-    const scalarField& cellVolume = mesh_.V();
+
     const vectorField& cellCenter = mesh_.C();
     const vector vecAbove(1000,1000,1000);
 
@@ -356,7 +378,6 @@ void rotorMesh::findRotorRadius()
 {
     
     const vectorField& cellCenter = mesh_.C();
-    scalar maxRadius = 0;
     scalar maxRadSqr=0;
     forAll(cells_, i)
     {   

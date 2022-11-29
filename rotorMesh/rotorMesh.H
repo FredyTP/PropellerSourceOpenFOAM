@@ -25,6 +25,7 @@ public:
             smNone,
             smGeometry,
             smCellSet,
+            smCellZone
         };
 
         //- Names for selectionMode
@@ -50,8 +51,8 @@ private:
     //Rotor Geometry
     rotorGeometry rotor_;
 
-    //- Zone name if imported from zone
-    word zoneName_;
+    //- Zone name if imported from zone or cell set
+    word cellsName_;
 
     bool findClosestCenter_;
     bool correctGeometry_;
