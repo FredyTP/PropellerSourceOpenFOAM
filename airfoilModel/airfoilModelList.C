@@ -35,4 +35,8 @@ const Foam::airfoilModel* Foam::airfoilModelList::getAirfoil(const word name) co
     }
     return nullptr;
 }
+const Foam::airfoilModel* Foam::airfoilModelList::getAirfoil(label index) const
+{
+    return this->get(index);
+}
 

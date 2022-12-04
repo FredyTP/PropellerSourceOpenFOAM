@@ -6,7 +6,7 @@
 #include "geometricOneField.H"
 #include "syncTools.H"
 #include "unitConversion.H"
-
+#include "cellBitSet.H"
 namespace Foam
 {
 
@@ -22,6 +22,7 @@ rotorMesh::selectionModeNames_
     {selectionMode::smGeometry, "geometry"},
     {selectionMode::smCellSet, "cellSet"},
     {selectionMode::smCellZone, "cellZone"},
+    {selectionMode::smGeometry2, "geometry2"}
 });
 
 
@@ -52,12 +53,20 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
     switch (selMode_)
     {
     case selectionMode::smGeometry :
+    case selectionMode::smGeometry2 :
 
         rotor_= rotorGeometry; //Use as input data
 
         this->tryUpdateCenter(); 
 
-        this->createMeshSelection(); //Create cell selection from a disk
+        if(selMode_==selectionMode::smGeometry)
+        {
+            this->createMeshSelection(); //Create cell selection from a disk
+        }
+        else
+        {
+            this->createMeshSelectionCilinder();
+        }
 
         this->computeCellsArea();
 
@@ -107,6 +116,7 @@ bool rotorMesh::read(const dictionary &dict)
     switch (selMode_)
     {
     case selectionMode::smGeometry :
+    case selectionMode::smGeometry2 :
           
         findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
         Info<<"FindClosestCenter: "<< findClosestCenter_<<endl;
@@ -116,6 +126,7 @@ bool rotorMesh::read(const dictionary &dict)
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
 
         break;
+
     case selectionMode::smCellZone :
         ok &= dict.readEntry("cellZone",cellsName_);
         Info<< "Reading cellSet from: " << cellsName_<<endl;
@@ -174,6 +185,34 @@ void rotorMesh::tryCorrectGeometry(rotorGeometry& rotorGeometry)
         rotorGeometry.direction = rotor_.direction;
     }
 }
+void rotorMesh::createMeshSelectionCilinder()
+{
+    const vector& rotorDir = rotor_.direction;
+    const vector& rotorCenter = rotor_.center;
+    const scalar& radius = rotor_.radius;
+
+    dictionary diskDict;
+    diskDict.add("name","diskSelection");
+    diskDict.add("type","cellSet");
+    diskDict.add("action","add");
+    diskDict.add("source","cylinderToCell");
+
+    scalar width = 0.01;
+    vector p1 = rotorCenter - width/2*rotorDir;
+    vector p2 = rotorCenter + width/2*rotorDir;
+    diskDict.add("p1",p1);
+    diskDict.add("p2",p2);
+    diskDict.add("radius",radius);
+
+    dictionary selections;
+    selections.add("disk",diskDict);
+
+    bitSet selectedCells
+    (
+        cellBitSet::select(mesh_,selections,true)
+    );
+    cells_ = selectedCells.sortedToc();
+}
 void rotorMesh::createMeshSelection()
 {
 
@@ -205,6 +244,9 @@ void rotorMesh::createMeshSelection()
             cells_.append(celli);
         }
     }
+
+    
+
     Info<<"Number of Selected cells: "<<cells_.size()<<endl;
 
 }

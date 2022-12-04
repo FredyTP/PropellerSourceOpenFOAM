@@ -24,6 +24,7 @@ public:
         {
             smNone,
             smGeometry,
+            smGeometry2,
             smCellSet,
             smCellZone
         };
@@ -74,6 +75,7 @@ TypeName("rotorMesh");
     //Getters
 
         inline const labelList& cells() const { return cells_; }
+        const fvMesh& mesh() const { return mesh_;}
         inline const vector& direction() const {return rotor_.direction;}
         inline const vector& center() const {return rotor_.center;}
         inline scalar radius() const {return rotor_.radius;}
@@ -96,6 +98,7 @@ protected:
         //- Create mesh selection from center
         //and radius
         void createMeshSelection();
+        void createMeshSelectionCilinder();
 
         //- Select cells from specified zone
         void loadMeshSelection();

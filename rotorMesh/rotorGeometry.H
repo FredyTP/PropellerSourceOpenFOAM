@@ -12,11 +12,12 @@ namespace Foam
         scalar radius {NO_RADIUS};
         vector center {0,0,0};
         vector direction {0,0,0};
-
+        vector psiRef {0,0,0};
         bool isValid()
         {
             return ( radius != NO_RADIUS ) &&
-                   ( magSqr(direction) > SMALL);
+                   ( magSqr(direction) > SMALL) &&
+                   ( magSqr(psiRef) > SMALL);
         }
     };
 }

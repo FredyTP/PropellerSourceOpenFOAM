@@ -18,6 +18,12 @@ public:
     
     virtual scalar interpolate(FixedList<scalar,dimension> inputValue);
 
+    static scalar Interpolate
+        (
+            const List<FixedList<scalar,dimension>>& inputList,
+            const List<scalar>& outputList,
+            FixedList<scalar,dimension> inputValue
+        );
 };
 
 //Add template definitions

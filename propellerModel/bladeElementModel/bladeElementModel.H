@@ -1,8 +1,9 @@
-#ifndef PROPELLER_MODEL_BLADE_ELEMENT_MODEL_ELEMENT_MODEL_H
-#define PROPELLER_MODEL_BLADE_ELEMENT_MODEL_ELEMENT_MODEL_H
+#ifndef PROPELLER_PROPELLER_MODEL_BLADE_ELEMENT_MODEL_BLADE_ELEMENT_MODEL
+#define PROPELLER_PROPELLER_MODEL_BLADE_ELEMENT_MODEL_BLADE_ELEMENT_MODEL
 #include "propellerModel.H"
 #include "airfoilModelList.H"
 #include "bladeModelDev.H"
+#include "rotorDiscrete.H"
 
 namespace Foam
 {
@@ -15,7 +16,7 @@ protected:
 
     airfoilModelList airfoils_;
     Foam::devel::bladeModel bladeModel_;
-    
+    rotorDiscrete rotorDiscrete_;
     
 public:
     //Defines the runtime name of this class (IOpurposes?)
@@ -41,10 +42,13 @@ public:
 
     //-Getter
     virtual scalar radius() const;
-    
+
+    virtual void build(const rotorGeometry& rotorGeometry);
+
+    virtual void calculate(volVectorField& force);
 };
 
 }
 
-#endif /* PROPELLER_MODEL_BLADE_ELEMENT_MODEL_ELEMENT_MODEL_H */
+#endif /* PROPELLER_PROPELLER_MODEL_BLADE_ELEMENT_MODEL_BLADE_ELEMENT_MODEL */
 

@@ -17,6 +17,7 @@ public:
     airfoilModelList(const dictionary& dict);
 
     const airfoilModel* getAirfoil(const word name) const;
+    const airfoilModel* getAirfoil(label index) const;
 };
 
 }

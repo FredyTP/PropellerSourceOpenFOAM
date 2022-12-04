@@ -5,6 +5,7 @@
 
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
+#include "rotorMesh.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -22,7 +23,7 @@ class propellerModel
 {
 
 protected:
-
+    const rotorMesh* rotorMesh_;
 public:
     TypeName("propellerModel");
 
@@ -64,6 +65,12 @@ public:
 
     // Abstract functions
         virtual scalar radius() const = 0;
+
+    void setRotorMesh(const rotorMesh* rotorMesh){ rotorMesh_ = rotorMesh;}
+
+    virtual void build(const rotorGeometry& rotorGeometry){}
+
+    virtual void calculate(volVectorField& force){}
 };
 
 }

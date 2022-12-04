@@ -51,3 +51,13 @@ Foam::scalar Foam::closestNeighbor<dimension>::interpolate
     return Foam::irregularInterpolation<dimension>::output_[minIndex];
 }
 
+template<unsigned int dimension>
+Foam::scalar Foam::closestNeighbor<dimension>::Interpolate
+(
+    const List<FixedList<scalar,dimension>>& inputList,
+    const List<scalar>& outputList,
+    FixedList<scalar,dimension> inputValue
+)
+{
+    return 0;
+}

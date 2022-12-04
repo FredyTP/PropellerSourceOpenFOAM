@@ -70,6 +70,8 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         rotorMesh_.build(rotorGeometry_);
         //- Building rotor mesh may or may not modify rotorGeometry
         
+        propellerModel_->setRotorMesh(&rotorMesh_);
+        propellerModel_->build(rotorGeometry_);
 
         return true;
     }
@@ -98,14 +100,10 @@ void Foam::fv::propellerSource::addSup
     );
 
     const scalarField& cellVolume = mesh_.V();
-    /*const labelList& rotorCells = rotorGeom_->cells();
-    forAll(rotorCells,i)
-    {
-        label celli = rotorCells[i];
-        //force[celli]=-10000*rotorGeom_->direction();
-        force[celli]=vector(0,-1000,0);
-    }*/
-    eqn-=force;
+
+    propellerModel_->calculate(force);
+
+    eqn+=force;
 
     //If its time to write into files
     if(mesh_.time().writeTime())
