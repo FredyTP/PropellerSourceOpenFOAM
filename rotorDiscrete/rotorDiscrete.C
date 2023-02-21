@@ -57,11 +57,6 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
     }
 
     volume.write();
-
-
-    
-
-
 }
 bool rotorDiscrete::read(const dictionary &dict)
 {
