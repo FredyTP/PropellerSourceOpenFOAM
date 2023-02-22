@@ -4,12 +4,11 @@
 #include "airfoilModel.H"
 #include "scalar.H"
 #include "dictionary.H"
+#include "polar.H"
+#include "Tuple2.H"
 
 namespace Foam
 {
-
-
-
 
 class polarAirfoil
 : public airfoilModel
@@ -18,8 +17,6 @@ public:
     
     TypeName("polarAirfoil");
 
-
-    polarAirfoil(const word name, scalar cl0,scalar cl_alfa,scalar K,scalar cd0);
     polarAirfoil(const word name, const dictionary& dict);
 
     virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const ;
@@ -27,11 +24,9 @@ public:
 
     bool read(const dictionary& dict);
 private:
+    fileName file_;
 
-    scalar cl0_;
-    scalar dcl_dalfa_;
-    scalar K_;
-    scalar cd0_;
+    List<polar*> polars_;
 
 };
 

@@ -1,5 +1,6 @@
 #include "polarAirfoil.H"
 #include "addToRunTimeSelectionTable.H"
+#include "IFstream.H"
 
 namespace Foam
 {
@@ -11,15 +12,6 @@ namespace Foam
 
     addToRunTimeSelectionTable(airfoilModel,polarAirfoil,dictionary);
 
-polarAirfoil::polarAirfoil(const word name, scalar cl0, scalar cl_alfa, scalar K, scalar cd0)  
-:   airfoilModel(name),
-    cl0_(cl0),
-    dcl_dalfa_(cl_alfa),
-    K_(K),
-    cd0_(cd0)
-{
-
-}
 polarAirfoil::polarAirfoil(const word name, const dictionary& dict)
 :   airfoilModel(name)
 {
@@ -29,25 +21,54 @@ polarAirfoil::polarAirfoil(const word name, const dictionary& dict)
 bool polarAirfoil::read(const dictionary& dict)
 {
 
-    Info<<"Reading simple airfoil data for:" << this->airfoilName() << endl;
+    Info<<"Reading polar airfoil data for: " << this->airfoilName() << endl;
 
     bool ok=true;
-    ok &= dict.readEntry("cl0",cl0_);
-    ok &= dict.readEntry("cd0",cd0_);
-    ok &= dict.readEntry("cl_alfa",dcl_dalfa_);
-    ok &= dict.readEntry("K",K_);
+    ok &= dict.readEntry("file",file_);
+
+    // Filename  - ( Re - Ma)
+    List<Tuple2<word,FixedList<scalar,2>>> polarFiles;
+
+    //Read airfoil data
+    if(!file_.empty())
+    {
+        Info<<"Reading polar data from: "<<file_<<endl;
+        Foam::IFstream is(file_);
+        is  >> polarFiles;
+    }
+
+    //Build airfoil polars
+    forAll(polarFiles,i)
+    {
+        auto polarf = polarFiles[i];
+        fileName polarfile = polarf.first();
+        scalar Re = polarf.second()[0];
+        scalar Ma = polarf.second()[1];
+
+        fileName polarpath = file_;
+        polarpath.replace_name(polarfile);
+        
+        polars_.push_back(new polar("lineal",polarpath,Re,Ma));
+    }
 
     return ok;
 }
 scalar polarAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return cl0_ + dcl_dalfa_ * alfaRad;
+    if(polars_.size>()0)
+    {
+        return polars_[0]->cl(alfaRad);
+    }
+    return 0;
+
 }
 scalar polarAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const 
 {
-    scalar CL = cl(alfaRad,reynolds,mach);
-
-    return cd0_ + K_ * CL* CL;
+    if(polars_.size()>0)
+    {
+        return polars_[0]->cd(alfaRad);
+    }
+    return 0;
 }
 
 

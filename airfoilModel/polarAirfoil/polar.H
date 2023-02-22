@@ -1,27 +1,32 @@
 #ifndef PROPELLER_AIRFOIL_MODEL_POLAR_AIRFOIL_POLAR
 #define PROPELLER_AIRFOIL_MODEL_POLAR_AIRFOIL_POLAR
 
-#include "csvTableReader.H"
-#include "interpolationTable.H"
+#include <string>
+#include "regularInterpolation.H"
+#include "autoPtr.H"
 
-namespace foam
+namespace Foam
 {
 
 class polar
 {
 public:
-    autoPtr<interpolationTable> cl_alfa;
-    autoPtr<interpolationTable> cd_alfa;
+    
+    polar(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re,scalar Ma);
+
+    polar(const word interpolation,fileName filename, scalar Re, scalar Ma);
+
+    scalar cl(scalar alpha);
+    scalar cd(scalar alpha);
+
+    ~polar();
+    
+private:
+    autoPtr<regularInterpolation<1>> cl_alpha;
+    autoPtr<regularInterpolation<1>> cd_alpha;
     scalar reynolds_;
     scalar mach_;
-
-    polar(String interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re,scalar Ma);
-
-    polar(String interpolation,std::string filename, scalar Re, scalar Ma);
-
-private:
-
-}
+};
 
 
 

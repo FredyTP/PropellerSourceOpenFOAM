@@ -60,7 +60,7 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
 }
 bool rotorDiscrete::read(const dictionary &dict)
 {
-    
+    return false;
 }
 
 }

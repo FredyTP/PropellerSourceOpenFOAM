@@ -14,6 +14,12 @@ public:
     interpolationTable(){}
     
     virtual scalar interpolate(FixedList<scalar,dimension> inputValue) = 0;
+    //Definition for single input tables
+    virtual scalar interpolate(scalar input)
+    {
+        return interpolate(FixedList<scalar,1>(input));
+    }
+    
 };
 
 
