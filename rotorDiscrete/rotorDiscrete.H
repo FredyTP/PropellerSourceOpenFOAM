@@ -5,6 +5,7 @@
 #include "cuttingPlane.H"
 #include "Enum.H"
 #include "cylindricalCS.H"
+#include "cartesianCS.H"
 #include "rotorMesh.H"
 #include "rotorGeometry.H"
 
@@ -24,8 +25,14 @@ class rotorDiscrete
 private:
 
     //COORDINATE SYSTEMS
+    // LabCoordinateSystem -> localCartesian -> localCylindrical
+    //- Rotor local cartesian coordinate system (x-y-z)
+    //Angular velocity (w->) is defined to be ( 0 0 w) in the local cartesian system, 
+    //positive counter-clockwise
+    coordSystem::cartesian localCS_;
     //- Rotor local cylindrical coordinate system (r-theta-z)
-    coordSystem::cylindrical coordSys_;
+    //from local cartesian system
+    coordSystem::cylindrical cylCS_;
     vector psiOrigin_;
     rotorGeometry rotorGeometry_;
     //- Cell centre positions in local rotor frame
@@ -49,7 +56,8 @@ TypeName("rotorDiscrete");
 
         void buildCoordinateSystem(const rotorGeometry& geometry);
 
-        const coordSystem::cylindrical& coordSystem() const {return coordSys_;}
+        const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
+        const coordSystem::cartesian& cartesian() const {return localCS_;}
 
         const List<point>& cylPoints() const {return cylPoints_;}
 

@@ -19,11 +19,19 @@ void rotorDiscrete::buildCoordinateSystem(const rotorGeometry& geometry)
 {
     rotorGeometry_ = geometry;
 
-    coordSys_ = coordSystem::cylindrical
+
+    localCS_ = coordSystem::cartesian
                 (
-                    rotorGeometry_.center, 
-                    rotorGeometry_.direction,
-                    rotorGeometry_.psiRef
+                    rotorGeometry_.center,
+                    rotorGeometry_.direction, //z-axis
+                    rotorGeometry_.psiRef    //x-axis
+                );
+
+    cylCS_ = coordSystem::cylindrical
+                (
+                    vector(0,0,0), //centerd to local
+                    vector(0,0,1), //z axis is the same
+                    vector(1,0,0)  //x axis is the same
                 );
 }
 void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
@@ -52,8 +60,11 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
     {
         label celli = cells[i];
         vector cellCenter = mesh.C()[celli];
-        cylPoints_[i] = coordSys_.localPosition(cellCenter);
+        //From global to local cyl position
+        // Global -> local cart -> local cyl
+        cylPoints_[i] = cylCS_.localPosition(localCS_.localPosition(cellCenter));
         volume[celli] = mesh.V()[celli];
+        Info<<cylPoints_[i]<<endl;
     }
 
     volume.write();
