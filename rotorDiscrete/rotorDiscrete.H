@@ -39,6 +39,9 @@ private:
     //  (Cylindrical r-theta-z)
     List<point> cylPoints_;
 
+    //- Rotation tensor from blade local reference to global reference frame
+    List<tensor> localBlade_; 
+
     discreteMode discreteMode_ = discreteMode::dmNone;
 public:
 TypeName("rotorDiscrete");

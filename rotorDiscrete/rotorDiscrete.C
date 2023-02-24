@@ -42,6 +42,7 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
     const auto &mesh = rotorMesh.mesh();
     
     cylPoints_.resize(cells.size());
+    localBlade_.resize(cells.size());
 
 
     volScalarField volume
@@ -63,6 +64,9 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
         //From global to local cyl position
         // Global -> local cart -> local cyl
         cylPoints_[i] = cylCS_.localPosition(localCS_.localPosition(cellCenter));
+        cylPoints_[i].z()=0;
+        
+        localBlade_[i] = cylCS_.R(coordSystem::cylindrical::toCartesian(cylPoints_[i]));
         volume[celli] = mesh.V()[celli];
         Info<<cylPoints_[i]<<endl;
     }

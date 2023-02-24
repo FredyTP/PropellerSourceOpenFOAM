@@ -55,7 +55,7 @@ bool polarAirfoil::read(const dictionary& dict)
 }
 scalar polarAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    if(polars_.size>()0)
+    if(polars_.size()>0)
     {
         return polars_[0]->cl(alfaRad);
     }
