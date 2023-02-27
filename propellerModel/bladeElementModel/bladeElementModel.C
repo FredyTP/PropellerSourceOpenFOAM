@@ -39,35 +39,112 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
 {
     scalar totalLift = 0;
     scalar totalDrag = 0;
+
+    //Puntos de la discretizacion
     const List<vector> cylPoints = rotorDiscrete_.cylPoints();
+    //Tensor de cada punto local to global
+    const List<tensor> bladeCS = rotorDiscrete_.localBladeCS();
+
+    //Velocidad angular
     double rpm = 10000;
-    double omega = rpm*2*3.1416/60;
+    double omega = rpm*Foam::constant::mathematical::piByTwo/60;
+    double pi = Foam::constant::mathematical::pi;
+
+    volScalarField aoaField
+    (
+        IOobject
+        (
+            "propeller:AoA",
+            rotorMesh_->mesh().time().timeName(),
+            rotorMesh_->mesh()
+        ),
+        rotorMesh_->mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
+
     forAll(cylPoints, i)
     {
+        //Get local radius
         scalar radius = cylPoints[i].x();
-        scalar bladeSpeed = omega*radius;
-        scalar alpha = 10 *3.1416/180;
         scalar chord = bladeModel_.chordAtRadius(radius);
-        scalar rho = 1.225;
-        scalar nu = 1e-5;
-        scalar re = rho*bladeSpeed*chord/nu;
-        scalar c = 345;
-        scalar mach = bladeSpeed/c;
-        scalar cl = airfoils_.getAirfoil(0)->cl(alpha,re,mach);
-        scalar cd = airfoils_.getAirfoil(0)->cd(alpha,re,mach);
+        scalar twist = bladeModel_.twistAtRadius(radius);
+        scalar n_blade = 2;
+        scalar average_fact = n_blade / (2 * pi * radius);
 
+        const tensor& bladeTensor = bladeCS[i];
+
+        //Global coordinate vector
+        vector airVel(0,0,0);
+        vector localAirVel = invTransform(bladeTensor,airVel);
+        
+
+        //Get blade velocity
+        vector relativeBladeVel(omega*radius,0,0);
+
+        //Get relative air velocity
+        vector relativeVel = localAirVel + relativeBladeVel;
+
+        //y component is radial, thus "doesn't contribute to aerodinamic forces"
+        relativeVel.y()=0;
+        scalar relativeSpeed = mag(relativeVel);
+
+        Info<<"Rel local vel: "<<relativeSpeed<<endl;
+        //Airspeed angle (positive when speed is from "below" airfoil)
+        scalar phi = atan2(-relativeVel.z(),relativeVel.x());
+        Info<<"Phi: "<<phi<<endl;
+
+        //Get cell area and volum
         scalar area = rotorMesh_->areas()[i];
         label celli = rotorMesh_->cells()[i];
         scalar volume = rotorMesh_->mesh().V()[celli];
-        scalar lift = 0.5 * rho * cl * chord * bladeSpeed * bladeSpeed * area /(2 * 3.1416 * radius);
-        scalar drag = 0.5 * rho * cd * chord * bladeSpeed * bladeSpeed * area /(2 * 3.1416 * radius);
+
+        //Angle of atack
+        scalar AoA = twist - phi;
+       
+        scalar rho = 1.225;
+        scalar nu = 1e-5;
+        scalar re = rho*relativeSpeed*chord/nu;
+        scalar c = 345;
+        scalar mach = relativeSpeed/c;
+
+        scalar cl,cd;
+        if(AoA > pi/2)
+        {
+            scalar aoaEff = AoA - pi/2;
+            //Get cl and cd
+            cl = airfoils_.getAirfoil(0)->cl(aoaEff,re,mach);
+            cd = airfoils_.getAirfoil(0)->cd(aoaEff,re,mach);
+        }
+        else
+        {
+            cl = airfoils_.getAirfoil(0)->cl(AoA,re,mach);
+            cd = airfoils_.getAirfoil(0)->cd(AoA,re,mach);
+        }
+
+        aoaField[celli] = AoA;
+       
+
+        //Calculate aerodinamic forces
+        scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed * area;
+        scalar drag = average_fact * 0.5 * rho * cd * chord * relativeSpeed * relativeSpeed * area;
         
         totalLift += lift;
         totalDrag += drag;
     
+        //Project over normal components
+        vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
+        vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
         
-        force[celli] = -lift * rotorDiscrete_.geometry().direction / volume;
+        //Back to global ref frame
+        vector totalAerForce = normalForce + tangentialForce;
+        totalAerForce = transform(bladeTensor,totalAerForce);
+
+        //Add source term
+        force[celli] = -totalAerForce / volume;
+        
     }
+
+    aoaField.write();
 
     Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;

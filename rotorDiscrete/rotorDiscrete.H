@@ -25,11 +25,7 @@ class rotorDiscrete
 private:
 
     //COORDINATE SYSTEMS
-    // LabCoordinateSystem -> localCartesian -> localCylindrical
-    //- Rotor local cartesian coordinate system (x-y-z)
-    //Angular velocity (w->) is defined to be ( 0 0 w) in the local cartesian system, 
-    //positive counter-clockwise
-    coordSystem::cartesian localCS_;
+    // LabCoordinateSystem -> localCylindrical
     //- Rotor local cylindrical coordinate system (r-theta-z)
     //from local cartesian system
     coordSystem::cylindrical cylCS_;
@@ -60,15 +56,16 @@ TypeName("rotorDiscrete");
         void buildCoordinateSystem(const rotorGeometry& geometry);
 
         const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
-        const coordSystem::cartesian& cartesian() const {return localCS_;}
 
         const List<point>& cylPoints() const {return cylPoints_;}
 
         const rotorGeometry& geometry() const {return rotorGeometry_;}
+        
+        const List<tensor>& localBladeCS() const {return localBlade_;}
     //Getters
 
 protected:
-
+        tensor bladeLocalFromPoint(const point& localPoint) const;
 
 };
 

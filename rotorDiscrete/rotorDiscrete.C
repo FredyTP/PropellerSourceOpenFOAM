@@ -19,22 +19,49 @@ void rotorDiscrete::buildCoordinateSystem(const rotorGeometry& geometry)
 {
     rotorGeometry_ = geometry;
 
-
-    localCS_ = coordSystem::cartesian
-                (
-                    rotorGeometry_.center,
-                    rotorGeometry_.direction, //z-axis
-                    rotorGeometry_.psiRef    //x-axis
-                );
-
     cylCS_ = coordSystem::cylindrical
                 (
-                    vector(0,0,0), //centerd to local
-                    vector(0,0,1), //z axis is the same
-                    vector(1,0,0)  //x axis is the same
+                    rotorGeometry_.center, //centerd to local
+                    rotorGeometry_.direction, //z-axis 
+                    rotorGeometry_.psiRef  //x-axis
                 );
 }
-void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
+tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
+{
+    //z- up, y -outwards from center, x perpendicular y,z (leading edge to trailing edge)
+    point global,origin;
+
+    global = cylCS_.globalPosition(localPoint);
+    origin = cylCS_.origin();
+    
+    tensor rotTensor(cylCS_.R());
+
+    //z-axis
+    const vector ax3 = rotTensor.col<2>(); // == e3 (already normalized)
+
+    //y-axis (radial direction)
+    vector ax2(global - origin);
+
+    ax2.removeCollinear(ax3);
+
+    const scalar magAxis2(mag(ax2));
+
+    // Trap zero size and colinearity
+    if (magAxis2 < SMALL)
+    {
+        return rotTensor;
+    }
+
+    ax2 /= magAxis2;  // normalise
+
+    // Replace with updated local axes
+
+    rotTensor.col<0>(ax2^ax3);
+    rotTensor.col<1>(ax2);
+
+    return rotTensor;
+}
+void rotorDiscrete::fromRotorMesh(const rotorMesh &rotorMesh)
 {
     Info<< "Building rotor Discrete from mesh" <<endl;
     discreteMode_ = discreteMode::dmMesh;
@@ -61,14 +88,16 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh& rotorMesh)
     {
         label celli = cells[i];
         vector cellCenter = mesh.C()[celli];
+
+        //Project points over the disk
         //From global to local cyl position
-        // Global -> local cart -> local cyl
-        cylPoints_[i] = cylCS_.localPosition(localCS_.localPosition(cellCenter));
+        // Global -> local cyl
+        cylPoints_[i] = cylCS_.localPosition(cellCenter);
         cylPoints_[i].z()=0;
         
-        localBlade_[i] = cylCS_.R(coordSystem::cylindrical::toCartesian(cylPoints_[i]));
+        //Not the most efficient way to compute global coords
+        localBlade_[i] = this->bladeLocalFromPoint(cylPoints_[i]);
         volume[celli] = mesh.V()[celli];
-        Info<<cylPoints_[i]<<endl;
     }
 
     volume.write();
