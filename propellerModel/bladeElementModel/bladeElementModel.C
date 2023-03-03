@@ -47,7 +47,7 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
     const List<tensor> bladeCS = rotorDiscrete_.localBladeCS();
 
     //Velocidad angular
-    double rpm = 10000;
+    double rpm = 1000;
     double omega = rpm*Foam::constant::mathematical::twoPi/60;
     double pi = Foam::constant::mathematical::pi;
 
@@ -133,8 +133,10 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         force[celli] = -totalAerForce / volume;
         
     }
-
-    aoaField.write();
+    if(rotorMesh_->mesh().time().writeTime())
+    {
+        aoaField.write();
+    }
 
     Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;
