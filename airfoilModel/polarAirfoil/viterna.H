@@ -2,7 +2,7 @@
 #define PROPELLER_AIRFOIL_MODEL_EXTRAPOLATION_VITERNA_VITERNA
 
 
-#include "extrapolation.H"
+#include "polar.H"
 #include "scalar.H"
 
 namespace Foam
@@ -14,20 +14,26 @@ namespace Foam
 and Drag Coefficients Extrapolation with Viterna Method.
  * Author: Faisal Mahmuddin
 */
-class viterna : public extrapolation
+class viterna : public polar
 {
 public:
+    TypeName("viterna");
+
     struct viterna_data
     {
         scalar alpha_stall_pos; //rad
         scalar alpha_stall_neg; //rad 
         scalar cl_stall_pos;
         scalar cl_stall_neg;
+        scalar cd_stall_pos;
+        scalar cd_stall_neg;
         scalar cd_max;
 
     };
     
-    viterna(const viterna_data& data);
+    viterna(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re,scalar Ma);
+    viterna(const word interpolation, const fileName filename, scalar Re, scalar Ma);
+
     virtual scalar cl(scalar alpha);
     virtual scalar cd(scalar alpha);
 
@@ -62,7 +68,9 @@ private:
     // Coeficientes de la interpolacion
     scalar A1_p,A2_p,B1_p,B2_p; //Positivos
     scalar A1_n,A2_n,B1_n,B2_n; //Negativos
-}
+
+    void setParameters();
+};
 
 }
 #endif /* PROPELLER_AIRFOIL_MODEL_EXTRAPOLATION_VITERNA_VITERNA */

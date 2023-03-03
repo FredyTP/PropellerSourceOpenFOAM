@@ -39,6 +39,7 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
 {
     scalar totalLift = 0;
     scalar totalDrag = 0;
+    scalar totalThrust = 0;
 
     //Puntos de la discretizacion
     const List<vector> cylPoints = rotorDiscrete_.cylPoints();
@@ -47,7 +48,7 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
 
     //Velocidad angular
     double rpm = 10000;
-    double omega = rpm*Foam::constant::mathematical::piByTwo/60;
+    double omega = rpm*Foam::constant::mathematical::twoPi/60;
     double pi = Foam::constant::mathematical::pi;
 
     volScalarField aoaField
@@ -88,10 +89,10 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         relativeVel.y()=0;
         scalar relativeSpeed = mag(relativeVel);
 
-        Info<<"Rel local vel: "<<relativeSpeed<<endl;
+        //Info<<"Rel local vel: "<<relativeSpeed<<endl;
         //Airspeed angle (positive when speed is from "below" airfoil)
         scalar phi = atan2(-relativeVel.z(),relativeVel.x());
-        Info<<"Phi: "<<phi<<endl;
+        //Info<<"Phi: "<<phi<<endl;
 
         //Get cell area and volum
         scalar area = rotorMesh_->areas()[i];
@@ -107,19 +108,8 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         scalar c = 345;
         scalar mach = relativeSpeed/c;
 
-        scalar cl,cd;
-        if(AoA > pi/2)
-        {
-            scalar aoaEff = AoA - pi/2;
-            //Get cl and cd
-            cl = airfoils_.getAirfoil(0)->cl(aoaEff,re,mach);
-            cd = airfoils_.getAirfoil(0)->cd(aoaEff,re,mach);
-        }
-        else
-        {
-            cl = airfoils_.getAirfoil(0)->cl(AoA,re,mach);
-            cd = airfoils_.getAirfoil(0)->cd(AoA,re,mach);
-        }
+        scalar cl = airfoils_.getAirfoil(0)->cl(AoA,re,mach);
+        scalar cd = airfoils_.getAirfoil(0)->cd(AoA,re,mach);
 
         aoaField[celli] = AoA;
        
@@ -134,7 +124,7 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         //Project over normal components
         vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
         vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
-        
+        totalThrust += normalForce.z();
         //Back to global ref frame
         vector totalAerForce = normalForce + tangentialForce;
         totalAerForce = transform(bladeTensor,totalAerForce);
@@ -148,5 +138,6 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
 
     Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;
+    Info<< "Total thrust: "<<totalThrust<<endl;
 
 }

@@ -4,6 +4,9 @@
 #include <string>
 #include "regularInterpolation.H"
 #include "autoPtr.H"
+#include "dictionary.H"
+#include "scalar.H"
+
 
 namespace Foam
 {
@@ -11,16 +14,45 @@ namespace Foam
 class polar
 {
 public:
-    
-    polar(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re,scalar Ma);
+    TypeName("polar");
 
-    polar(const word interpolation,fileName filename, scalar Re, scalar Ma);
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        polar,
+        dictionary,
+        (
+            const word interpolation,
+            const fileName filename,
+            scalar Re,
+            scalar Ma
+        ),
+        (interpolation, filename, Re, Ma)
+    );
 
-    scalar cl(scalar alpha);
-    scalar cd(scalar alpha);
+    polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma);
 
+    polar(const word interpolation, const fileName filename, scalar Re, scalar Ma);
+
+    virtual scalar cl(scalar alpha);
+    virtual scalar cd(scalar alpha);
+
+    scalar reynolds() const;
+    scalar mach() const;
     ~polar();
     
+    static autoPtr<Foam::polar> New(const word modelType,const word interpolation, const fileName filename, scalar Re, scalar Ma);
+
+protected:
+
+    void processData(List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd);
+
+    scalar alpha_min;
+    scalar alpha_max;
+    scalar cl_alpha_min;
+    scalar cl_alpha_max;
+    scalar cd_alpha_max;
+    scalar cd_alpha_min;
 private:
     autoPtr<regularInterpolation<1>> cl_alpha;
     autoPtr<regularInterpolation<1>> cd_alpha;

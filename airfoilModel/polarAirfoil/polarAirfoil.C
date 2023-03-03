@@ -25,6 +25,7 @@ bool polarAirfoil::read(const dictionary& dict)
 
     bool ok=true;
     ok &= dict.readEntry("file",file_);
+    word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
 
     // Filename  - ( Re - Ma)
     List<Tuple2<word,FixedList<scalar,2>>> polarFiles;
@@ -36,7 +37,7 @@ bool polarAirfoil::read(const dictionary& dict)
         Foam::IFstream is(file_);
         is  >> polarFiles;
     }
-
+    polars_.resize(polarFiles.size());
     //Build airfoil polars
     forAll(polarFiles,i)
     {
@@ -47,8 +48,8 @@ bool polarAirfoil::read(const dictionary& dict)
 
         fileName polarpath = file_;
         polarpath.replace_name(polarfile);
-        
-        polars_.push_back(new polar("lineal",polarpath,Re,Ma));
+        auto ptrPolar = polar::New(extrapolation,"lineal",polarpath,Re,Ma);
+        polars_[i]=(ptrPolar.release());
     }
 
     return ok;
