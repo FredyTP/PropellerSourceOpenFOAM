@@ -54,8 +54,8 @@ protected:
     scalar cd_alpha_max;
     scalar cd_alpha_min;
 private:
-    autoPtr<regularInterpolation<1>> cl_alpha;
-    autoPtr<regularInterpolation<1>> cd_alpha;
+    autoPtr<regularInterpolation1D> cl_alpha;
+    autoPtr<regularInterpolation1D> cd_alpha;
     scalar reynolds_;
     scalar mach_;
 };

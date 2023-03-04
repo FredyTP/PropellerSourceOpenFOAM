@@ -23,8 +23,8 @@ polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, Li
 {
     processData(alpha,cl,cd);
 
-    cl_alpha =  autoPtr<regularInterpolation<1>>::NewFrom<linearInterpolation1>(alpha,cl);
-    cd_alpha =  autoPtr<regularInterpolation<1>>::NewFrom<linearInterpolation1>(alpha,cd);
+    cl_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cl);
+    cd_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cd);
     reynolds_ = Re;
     mach_ = Ma;
 
@@ -78,8 +78,8 @@ polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma)
     processData(alpha,cl,cd);
 
     //Create polar interpolations
-    cl_alpha =  autoPtr<regularInterpolation<1>>::NewFrom<linearInterpolation1>(alpha,cl);
-    cd_alpha =  autoPtr<regularInterpolation<1>>::NewFrom<linearInterpolation1>(alpha,cd);
+    cl_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cl);
+    cd_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cd);
 }
 
 scalar polar::cl(scalar alpha)
