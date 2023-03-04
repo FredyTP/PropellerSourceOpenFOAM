@@ -7,16 +7,12 @@
 namespace Foam
 {
 
-template<unsigned int dimension>
+template<label dimension>
 class regularInterpolation 
 : public interpolationTable<dimension>
 {
 protected:
 public:
-
-    //Constructors
-
-        regularInterpolation();
         
     virtual scalar interpolate(FixedList<scalar,dimension> input)=0;
         //Definition for single input tables
@@ -26,6 +22,22 @@ public:
     }
 
 };
+
+class regularInterpolation1D : public interpolationTable<1>
+{
+
+};
+
+class regularInterpolation2D : public interpolationTable<2>
+{
+
+};
+
+class regularInterpolation3D : public interpolationTable<3>
+{
+
+};
+
 
 }
 
