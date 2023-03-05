@@ -7,19 +7,22 @@
 namespace Foam
 {
 
+/**
+ * It is possible to make a N-dimesional regular interpolation
+ * using a 1D array with a N-dimesional index mapping
+ * index = N*i + j;
+ * index = Nx*Ny*i + Nx*j + k; and so on...
+ * 
+ * the number of coefficients can be "easily" obtained in matrix form
+*/
 template<label dimension>
 class regularInterpolation 
 : public interpolationTable<dimension>
 {
 protected:
 public:
-        
+
     virtual scalar interpolate(FixedList<scalar,dimension> input)=0;
-        //Definition for single input tables
-    virtual scalar interpolate(scalar input)
-    {
-        return interpolate(FixedList<scalar,1>(input));
-    }
 
 };
 

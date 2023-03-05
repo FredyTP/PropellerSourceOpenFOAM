@@ -1,0 +1,9 @@
+#ifndef PROPELLER_INTERPOLATION_INTERPOLATED
+#define PROPELLER_INTERPOLATION_INTERPOLATED
+template<class A,class B>
+class interpolated
+{
+    
+}
+
+#endif /* PROPELLER_INTERPOLATION_INTERPOLATED */

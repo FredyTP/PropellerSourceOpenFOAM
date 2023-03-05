@@ -85,7 +85,7 @@ label linearInterpolation1D::FindIndex(scalar input, const List<scalar> &inputs,
         //out of bounds
         return 0;
     }
-    for(int i = 0; i< inputs.size()-1; i++)
+    for(label i = 0; i< inputs.size()-1; i++)
     {
         //If (luckily) there is coincidence
         if(input == inputs[i])
