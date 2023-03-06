@@ -1,0 +1,35 @@
+EXE_INC = \
+    -I$(FOAM_SRC)/finiteVolume/lnInclude \
+    -I$(FOAM_SRC)/fvOptions/lnInclude \
+    -I$(FOAM_SRC)/meshTools/lnInclude \
+    -I$(FOAM_SRC)/sampling/lnInclude \
+    -I$(FOAM_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(FOAM_SRC)/TurbulenceModels/incompressible/lnInclude \
+    -I$(FOAM_SRC)/transportModels \
+    -I$(FOAM_SRC)/transportModels/incompressible/singlePhaseTransportModel \
+    -I$(FOAM_SRC)/surfMesh/lnInclude \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/regular \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/regular/linear \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular/closestNeighbor \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/simpleAirfoil \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/polarAirfoil \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/polarAirfoil/polar \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/bladeModel \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorMesh \
+    
+
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lfvOptions \
+    -lmeshTools \
+    -lsampling \
+    -lturbulenceModels \
+    -lincompressibleTurbulenceModels \
+    -lincompressibleTransportModels \
+    -latmosphericModels

@@ -1,0 +1,20 @@
+rotorSolver.C
+propeller/propellerSource/propellerSource.C
+propeller/rotorDiscrete/rotorDiscrete.C
+propeller/propellerModel/propellerModel.C
+propeller/propellerModel/propellerModelNew.C
+propeller/propellerModel/froudeModel/froudeModel.C
+propeller/propellerModel/bladeElementModel/bladeElementModel.C
+propeller/airfoilModel/airfoilModel.C
+propeller/interpolation/regular/linear/linearInterpolation1D.C
+propeller/interpolation/regular/linear/linearInterpolation2D.C
+propeller/interpolation/regular/linear/linearInterpolation3D.C
+propeller/airfoilModel/simpleAirfoil/simpleAirfoil.C
+propeller/airfoilModel/polarAirfoil/polar/polar.C
+propeller/airfoilModel/polarAirfoil/polar/viterna.C
+propeller/airfoilModel/polarAirfoil/polarAirfoil.C
+propeller/airfoilModel/airfoilModelList.C
+propeller/bladeModel/bladeModelDev.C
+propeller/rotorMesh/rotorMesh.C
+
+EXE = $(FOAM_USER_APPBIN)/rotorSolver
