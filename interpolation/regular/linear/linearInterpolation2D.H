@@ -2,6 +2,8 @@
 #define PROPELLER_INTERPOLATION_REGULAR_LINEAR_LINEAR_INTERPOLATION2D
 #include "regularInterpolation.H"
 #include "linearInterpolation.H"
+#include "linearInterpolation1D.H"
+
 #include "label.H"
 namespace Foam
 {

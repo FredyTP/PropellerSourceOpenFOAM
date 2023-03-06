@@ -1,3 +1,4 @@
+#include "linearInterpolation1D.H"
 #include "linearInterpolation.H"
 
 namespace Foam
@@ -49,7 +50,7 @@ scalar linearInterpolation1D::interpolate(FixedList<scalar, 1> input){
 
 label linearInterpolation1D::findIndex(scalar input,label& i1, label& i2) const
 {
-    return linearInterpolation1D::FindIndex(input,inputs_,i1,i2);
+    return linearInterpolation<scalar,scalar,1>::FindIndex(input,inputs_,i1,i2);
 }
 void linearInterpolation1D::interpolationCoefficients(scalar input, label i1, label i2, scalar &a1, scalar &a2) const
 {
@@ -75,46 +76,7 @@ void linearInterpolation1D::InterpolationCoefficients(scalar input, const List<s
     a2 = (x-x1)/(x2-x1);
 }
 
-label linearInterpolation1D::FindIndex(scalar input, const List<scalar> &inputs, label &i1, label &i2)
-{
-    if(input<inputs[0])
-    {
-        //indexes are both set to closest index
-        i1=0;
-        i2=0;
-        //out of bounds
-        return 0;
-    }
-    for(label i = 0; i< inputs.size()-1; i++)
-    {
-        //If (luckily) there is coincidence
-        if(input == inputs[i])
-        {
-            i1=i;
-            i2=i;
-            return 1;
-        }
 
-        //Between i and i+1
-        if(inputs[i] < input && input< inputs[i+1])
-        {
-            i1=i;
-            i2=i+1;
-            return 1;
-        }
-    }
 
-    if(input==inputs[inputs.size()-1])
-    {
-        i1=inputs.size()-1;
-        i2=i1;
-        return 1;
-    }
-
-    //Outside upper bounds
-    i1=inputs.size()-1;
-    i2=i1;
-    return 0;
-}
 
 }

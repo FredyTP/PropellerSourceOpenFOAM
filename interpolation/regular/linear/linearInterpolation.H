@@ -4,43 +4,11 @@
 #include "List.H"
 #include "scalar.H"
 #include "regularInterpolation.H"
+#include "interpolated.H"
+
 namespace Foam
 {
 
-class linearInterpolation1D 
-: public regularInterpolation1D
-{
-protected:
-    const List<scalar> inputs_;
-    const List<scalar> outputs_;
-public:
-
-    //Constructors
-
-        //- Construct from input and output list
-        linearInterpolation1D
-        (
-            const List<scalar> inputs,
-            const List<scalar> outputs
-        );
-        
-    virtual scalar interpolate(FixedList<scalar,1> input);
-
-    
-protected:
-    /**
-     * @return 0 if out of bounds 1 if succesful
-    */
-    label findIndex(scalar input,label& i1, label& i2) const;
-
-    void interpolationCoefficients(scalar input, label i1, label i2, scalar& a1, scalar &a2) const;
-    
-public:
-   
-    static void InterpolationCoefficients(scalar input,const List<scalar>& inputs, label i1, label i2, scalar& a1, scalar &a2);
-    static label FindIndex(scalar input, const List<scalar>& inputs, label &i1, label &i2);
-    
-};
 
 template<class typeIn, class typeOu, label dim>
 class linearInterpolation
@@ -53,6 +21,33 @@ public:
     typeOu getOutput(FixedList<label,dim> idxs)
     {
         return outputs[index(idxs)];
+    }
+    const typeOu getOutput(label idx) const
+    {
+        return outputs[idx];
+    }
+    const typeOu getOutput(FixedList<label,dim> idxs) const
+    {
+        return outputs[index(idxs)];
+    }
+
+    friend Ostream& operator<<(Ostream& os, const linearInterpolation<typeIn,typeOu,dim>& table)
+    {
+        for(label i=0;i<table.outputs.size();i++)
+        {
+            FixedList<label,dim> idx = table.invIndex(i);
+            os<<"(";
+            for(label j=0;j<dim;j++)
+            {
+                if(j!=0)
+                {
+                    os<<", ";
+                }
+                os<<table.inputs[j][idx[j]];
+            }
+            os<<") -> " <<table.outputs[i]<<endl;
+        }
+        return os;
     }
 private:
 
@@ -140,7 +135,7 @@ public:
         label oLen = outputs.size();
         return len == oLen;
     }
-    label index(FixedList<label,dim> idx)
+    label index(FixedList<label,dim> idx) const
     {
         label p = 0; // i + j*N1 + k*N1*N2 + w*N1*N2*N3 ...
         for(label d = 0 ; d<dim; d++)
@@ -155,17 +150,35 @@ public:
         }
         return p;
     }
+    FixedList<label,dim> invIndex(label index) const 
+    {
+        label p = index; // i + j*N1 + k*N1*N2 + w*N1*N2*N3 ...
+        FixedList<label,dim> idxs;
+        
+        for(label d = dim-1 ; d>=0; --d)
+        {
+            label tam = 1;
+            for(label d2 = 0;d2<d;d2++)
+            {
+                tam*=size[order[d2]];
+            }
+            idxs[order[d]]=p/tam;
+
+            p-= idxs[order[d]]*tam;
+        }
+        return idxs;
+    }
 
     void interpolationList(FixedList<typeIn,dim> input,List<typeIn>& coeff,List<typeOu>& values)
     {
         FixedList<FixedList<label,2>,dim> indexIt;
-        FixedList<label,2> result;
-        FixedList<typeIn,2> delta;
+        FixedList<label,dim> result;
+        FixedList<typeIn,dim> delta;
 
         //Get index and results
         for(label i = 0; i< dim; i++)
         {
-            result[i] = linearInterpolation1D::FindIndex(input[i],inputs[i],indexIt[i][0],indexIt[i][1]);
+            result[i] = linearInterpolation::FindIndex(input[i],inputs[i],indexIt[i][0],indexIt[i][1]);
             if(result[i]==0 || indexIt[i][0]==indexIt[i][1])
             {
                 //<out of bounds> || <coincident>
@@ -173,10 +186,8 @@ public:
             }
             else{
                 delta[i] = (input[i] -inputs[i][indexIt[i][0]])/(inputs[i][indexIt[i][1]]-inputs[i][indexIt[i][0]]);
-
             }
         }
-        Info<<"deltas" <<delta<<endl;
 
         //Resize to fit all coefficients
         label numrow = pow(2,dim);
@@ -193,19 +204,17 @@ public:
         //Init indexes
         for(label i=0;i<numrow;i++)
         {
-
             FixedList<label,dim> idx;
             for(label j=0;j<dim;j++)
             {
                 idx[j]=indexIt[j][z[j]];               
                 scalar sign = z[j]==0? -1: 1;
                 coeff[i]*=(1-z[j]+sign*delta[j]);
-            }
-            Info<<idx<<endl;
+            };
             values[i]=outputs[index(idx)];
 
             //Iterate all permutations in binary secuence
-            for (int k = 0; k < 2; ++k) 
+            for (int k = 0; k < dim; ++k) 
             {
                 if (z[k] != 1) {
                     ++z[k];
@@ -217,6 +226,50 @@ public:
         }
 
     }
+
+    static label FindIndex(scalar input, const List<scalar>& inputs, label &i1, label &i2)
+    {
+        if(input<inputs[0])
+        {
+            //indexes are both set to closest index
+            i1=0;
+            i2=0;
+            //out of bounds
+            return 0;
+        }
+        for(label i = 0; i< inputs.size()-1; i++)
+        {
+            //If (luckily) there is coincidence
+            if(input == inputs[i])
+            {
+                i1=i;
+                i2=i;
+                return 1;
+            }
+
+            //Between i and i+1
+            if(inputs[i] < input && input< inputs[i+1])
+            {
+                i1=i;
+                i2=i+1;
+                return 1;
+            }
+        }
+
+        if(input==inputs[inputs.size()-1])
+        {
+            i1=inputs.size()-1;
+            i2=i1;
+            return 1;
+        }
+
+        //Outside upper bounds
+        i1=inputs.size()-1;
+        i2=i1;
+        return 0;
+
+    }
+    
 };
 
 

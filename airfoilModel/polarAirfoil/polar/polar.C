@@ -1,5 +1,5 @@
 #include "polar.H"
-#include "linearInterpolation.H"
+#include "linearInterpolation1D.H"
 
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"

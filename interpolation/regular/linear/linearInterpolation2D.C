@@ -45,8 +45,8 @@ scalar linearInterpolation2D::interpolate(FixedList<scalar, 2> input)
 
 label linearInterpolation2D::findIndexes(FixedList<scalar, 2> input, label &i1, label &i2, label &j1, label &j2)
 {
-    label r1 = linearInterpolation1D::FindIndex(input[0],inputs1_,i1,i2);
-    label r2 = linearInterpolation1D::FindIndex(input[1],inputs2_,j1,j2);
+    label r1 = linearInterpolation<scalar,scalar,1>::FindIndex(input[0],inputs1_,i1,i2);
+    label r2 = linearInterpolation<scalar,scalar,1>::FindIndex(input[1],inputs2_,j1,j2);
 
     return r1+r2;
 }

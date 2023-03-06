@@ -37,9 +37,9 @@ scalar linearInterpolation3D::interpolate(FixedList<scalar, 3> input)
     y=input[1];
     z=input[2];
 
-    label r0 = linearInterpolation1D::FindIndex(x,inputs1_,i0,i1);
-    label r1 = linearInterpolation1D::FindIndex(y,inputs2_,j0,j1);
-    label r2 = linearInterpolation1D::FindIndex(z,inputs3_,k0,k1);
+    label r0 = linearInterpolation<scalar,scalar,1>::FindIndex(x,inputs1_,i0,i1);
+    label r1 = linearInterpolation<scalar,scalar,1>::FindIndex(y,inputs2_,j0,j1);
+    label r2 = linearInterpolation<scalar,scalar,1>::FindIndex(z,inputs3_,k0,k1);
     
     x0=inputs1_[i0];
     x1=inputs1_[i1];
