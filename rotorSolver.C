@@ -74,13 +74,19 @@ Description
 #include "fvOptions.H"
 #include "linearInterpolation.H"
 #include "interpolated.H"
+#include "csvTable.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
 
+    csvTable<scalar,word> table(true);
+    table.readFile("test.csv");
+
+    Info<<table.col("CL")<<endl;
     interpolated<scalar,scalar,scalar> it;
     
+
     linearInterpolation<scalar,scalar,3> lin({{1,2},{1,2},{1,2}},{0,1,2,3,4,5,6,7},{2,1,0});
     /**
      *  (1 1) -> 1

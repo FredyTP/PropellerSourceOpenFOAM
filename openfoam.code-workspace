@@ -186,7 +186,11 @@
 			"linearInterpolation3D.C": "cpp",
 			"linearInterpolation1D.C": "cpp",
 			"UListIO.C": "cpp",
-			"linearInterpolation2D.C": "cpp"
+			"linearInterpolation2D.C": "cpp",
+			"csvTable.C": "cpp",
+			"OSstream.C": "cpp",
+			"wordIO.C": "cpp",
+			"ensightCells.C": "cpp"
 		}
 	}
 }
