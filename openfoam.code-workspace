@@ -191,7 +191,8 @@
 			"OSstream.C": "cpp",
 			"wordIO.C": "cpp",
 			"ensightCells.C": "cpp",
-			"viterna.C": "cpp"
+			"viterna.C": "cpp",
+			"vktAirfoil.C": "cpp"
 		}
 	}
 }

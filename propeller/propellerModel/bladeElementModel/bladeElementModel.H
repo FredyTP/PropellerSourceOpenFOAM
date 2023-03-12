@@ -4,7 +4,7 @@
 #include "airfoilModelList.H"
 #include "bladeModelDev.H"
 #include "rotorDiscrete.H"
-
+#include "rotorDynamics.H"
 namespace Foam
 {
 
@@ -18,6 +18,7 @@ protected:
     Foam::devel::bladeModel bladeModel_;
     rotorDiscrete rotorDiscrete_;
     
+    rotorDynamics rotorDynamics_;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");

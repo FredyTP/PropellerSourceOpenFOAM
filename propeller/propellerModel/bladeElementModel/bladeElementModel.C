@@ -41,6 +41,7 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
     scalar totalLift = 0;
     scalar totalDrag = 0;
     scalar totalThrust = 0;
+    scalar totalMoment = 0;
 
     //Puntos de la discretizacion
     const List<vector> cylPoints = rotorDiscrete_.cylPoints();
@@ -48,8 +49,8 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
     const List<tensor> bladeCS = rotorDiscrete_.localBladeCS();
 
     //Velocidad angular
-    double rpm = 1000;
-    double omega = rpm*Foam::constant::mathematical::twoPi/60;
+    //double rpm = 1000;
+    double omega = rotorDynamics_.angularVelocity();//rpm*Foam::constant::mathematical::twoPi/60;
     double pi = Foam::constant::mathematical::pi;
 
     volScalarField aoaField
@@ -122,11 +123,12 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         
         totalLift += lift;
         totalDrag += drag;
-    
+        
         //Project over normal components
         vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
         vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
         totalThrust += normalForce.z();
+        totalMoment += tangentialForce.x() * radius;
         //Back to global ref frame
         vector totalAerForce = normalForce + tangentialForce;
         totalAerForce = transform(bladeTensor,totalAerForce);
@@ -140,8 +142,13 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         aoaField.write();
     }
 
+    //TODO: obtain real time step
+    rotorDynamics_.integrate(-totalMoment,0.005);
+
     Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;
     Info<< "Total thrust: "<<totalThrust<<endl;
+    Info<< "Total Moment z: " <<totalMoment<<endl;
+    Info<< "RPM: "<< omega * 30/pi<<endl;
 
 }
