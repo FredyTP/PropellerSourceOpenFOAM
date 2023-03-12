@@ -1,5 +1,5 @@
 #include "polar.H"
-#include "linearInterpolation1D.H"
+#include "linearInterpolation.H"
 
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
@@ -22,9 +22,10 @@ namespace Foam
 polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re, scalar Ma)
 {
     processData(alpha,cl,cd);
-
-    cl_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cl);
-    cd_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cd);
+    FixedList<List<scalar>,1> alphaIn;
+    alphaIn[0]=alpha;
+    cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cl);
+    cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cd);
     reynolds_ = Re;
     mach_ = Ma;
 }
@@ -56,11 +57,11 @@ polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma)
     }
 
     //Data arrays
-    List<scalar> alpha;
+    FixedList<List<scalar>,1> alpha;
     List<scalar> cl;
     List<scalar> cd;
 
-    alpha.resize(data.size());
+    alpha[0].resize(data.size());
     cl.resize(data.size());
     cd.resize(data.size());
 
@@ -68,26 +69,26 @@ polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma)
     forAll(data,i)
     {
         vector vec = data[i].second();
-        alpha[i]=vec[0]*constant::mathematical::pi/180;
+        alpha[0][i]=vec[0]*constant::mathematical::pi/180;
         cl[i]=vec[1];
         cd[i]=vec[2];
     }
 
-    processData(alpha,cl,cd);
+    processData(alpha[0],cl,cd);
 
     //Create polar interpolations
-    cl_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cl);
-    cd_alpha =  autoPtr<regularInterpolation1D>::NewFrom<linearInterpolation1D>(alpha,cd);
+    cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cl);
+    cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cd);
 }
 
 scalar polar::cl(scalar alpha)
 {
-    return cl_alpha->interpolate(alpha);
+    //return cl_alpha->interpolate(alpha);
 }
 
 scalar polar::cd(scalar alpha)
 {
-    return cd_alpha->interpolate(alpha);
+    //return cd_alpha->interpolate(alpha);
 }
 scalar polar::reynolds() const
 {

@@ -1,63 +1,57 @@
 #include "closestNeighbor.H"
+#include "label.H"
 
-
-
-template<unsigned int dimension>
-Foam::closestNeighbor<dimension>::closestNeighbor(
-    const Foam::List<FixedList<scalar,dimension>> input,
-    const Foam::List<scalar> output
-)
-: irregularInterpolation<dimension>(input,output)
+namespace Foam
 {
-    //initialize some internal process data if required (?)
-}
 
-template<unsigned int dimension>
-Foam::scalar Foam::closestNeighbor<dimension>::interpolate
-(
-
-    Foam::FixedList<scalar,dimension> inputValue
-)
-{
-    Foam::scalar minDistanceSq = 1e300;
-    Foam::label minIndex=-1;
-
-    //TODO: extract this to a function of findClosest
-    forAll(Foam::irregularInterpolation<dimension>::input_,i)
+    template <class typeIn, class typeOu, label dim>
+    closestNeighbor<typeIn, typeOu, dim>::closestNeighbor(const List<FixedList<typeIn, dim>> inputs_, const List<typeOu> outputs_)
+    : inputs(inputs_), outputs(outputs_)
     {
-        Foam::scalar sqDist=0;
-        const Foam::FixedList<scalar,dimension>& testPoint = 
-        Foam::irregularInterpolation<dimension>::input_[i];
-
-        //TODO: extract this to a function of compute N-distance
-        forAll(inputValue,j)
+        //initialize some internal process data if required (?)
+        if(inputs.size()!=outputs.size())
         {
-            sqDist+=Foam::sqr(inputValue[j]-testPoint[j]);
-        }
-
-
-        if(sqDist < minDistanceSq)
-        {
-            minDistanceSq=sqDist;
-            minIndex=i;
-        }
-        else if(sqDist == 0.0)
-        {
-            minIndex = i;
-            break;
+            //Error size must be the same
         }
     }
 
-    return Foam::irregularInterpolation<dimension>::output_[minIndex];
+    template <class typeIn, class typeOu, label dim>
+    interpolated<typeIn, typeOu> closestNeighbor<typeIn, typeOu, dim>::interpolate(
+
+        FixedList<typeIn, dim> input)
+    {
+        interpolated<typeIn, typeOu> result;
+
+        scalar minDistanceSq = 1e300;
+        label minIndex = -1;
+
+        // TODO: extract this to a function of findClosest
+        for (label i = 0; i < inputs.size(); ++i)
+        {
+
+            const FixedList<typeIn, dim> &testPoint =
+                inputs[i];
+
+            scalar sqDist = irregularInterpolation<typeIn, typeOu, dim>::SqrDistance(input, testPoint);
+
+            if (sqDist < minDistanceSq)
+            {
+                minDistanceSq = sqDist;
+                minIndex = i;
+            }
+            else if (sqDist == 0.0)
+            {
+                minIndex = i;
+                break;
+            }
+        }
+
+        result.points().resize(1);
+        result.points[0] = outputs[minIndex];
+
+        result.coefficients().resize(1);
+        result.coefficients()[0] = 1;
 }
 
-template<unsigned int dimension>
-Foam::scalar Foam::closestNeighbor<dimension>::Interpolate
-(
-    const List<FixedList<scalar,dimension>>& inputList,
-    const List<scalar>& outputList,
-    FixedList<scalar,dimension> inputValue
-)
-{
-    return 0;
+
 }

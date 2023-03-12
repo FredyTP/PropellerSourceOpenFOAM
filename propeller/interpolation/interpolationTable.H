@@ -3,22 +3,45 @@
 
 #include "scalar.H"
 #include "FixedList.H"
+#include "interpolated.H"
 
 namespace Foam
 {
 
-template<unsigned int dimension>
+/**
+ * Base class for interpolation tables with no specified interpolation algorithm
+ * 
+ * The template parameters are general and can be set to any class that implements defined operators
+ * The required operators depend on the implementation but in general should be defined
+ * typeIn : addition/substraction (+/-), multiplication operator (*), comparation (<) and equality (==)
+ * typeOu : to be able to return interpolation value: addition (+) and multiplication(*)
+ * dim : must be a positive integer
+*/
+template<class typeIn, class typeOu, label dim>
 class interpolationTable
 {
 public:
     interpolationTable(){}
     
-    virtual scalar interpolate(FixedList<scalar,dimension> inputValue) = 0;
+    /**
+     * Return interpolated value from input
+    */
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) = 0;
+
+    /**
+     * @brief returns a list of interpolated coefficients and nodes
+     * 
+     * The reconstructed interpolated value is : coeff_1 * value_1 + coeff_2 * value_2 ...
+    */
+    //virtual void interpolationList(FixedList<typeIn,dim> input,List<typeIn>& coeff,List<typeOu>& values)=0;
+
     //Definition for single input tables
-    scalar interpolate(scalar input)
+    virtual interpolated<typeIn,typeOu> interpolate(typeIn input) 
     {
-        return interpolate(FixedList<scalar,dimension>(input));
+        return interpolate(FixedList<typeIn,dim>(input));
     }
+
+    
     
 };
 

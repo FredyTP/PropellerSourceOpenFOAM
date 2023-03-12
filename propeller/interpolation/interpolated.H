@@ -1,13 +1,14 @@
 #ifndef PROPELLER_INTERPOLATION_INTERPOLATED
 #define PROPELLER_INTERPOLATION_INTERPOLATED
 #include "List.H"
+#include "scalar.H"
 #include <functional>
 
 namespace Foam
 {
 
 
-template<class typeIn,class typeOu,class typeRet>
+template<class typeIn,class typeOu,class typeRet=scalar>
 class interpolated
 {
 private:
@@ -21,7 +22,7 @@ public:
     List<typeIn>& coefficients(){return coeff;}
     List<typeOu>& points(){return nodes;}
 
-    typeRet interpolate(std::function<typeRet(typeIn,typeOu)> aggregate=
+    typeRet value(std::function<typeRet(typeIn,typeOu)> aggregate=
     [](typeIn a, typeOu b){return a*b;})
     {
         typeRet acc = 0;

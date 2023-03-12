@@ -80,36 +80,6 @@ Description
 int main(int argc, char *argv[])
 {
 
-    csvTable<scalar,word> table(true);
-    table.readFile("test.csv");
-
-    Info<<table.col("CL")<<endl;
-    interpolated<scalar,scalar,scalar> it;
-    
-
-    linearInterpolation<scalar,scalar,3> lin({{1,2},{1,2},{1,2}},{0,1,2,3,4,5,6,7},{2,1,0});
-    /**
-     *  (1 1) -> 1
-     *  (2 1) -> 2
-     *  (1 2) -> 3
-     *  (2 2) -> 4
-    */  
-
-    Info<<lin<<endl;
-    List<scalar> out;
-    List<scalar> coeff;
-
-    lin.interpolationList({1.1,1.1,1.1},coeff,out);
-    it.coefficients()=coeff;
-    it.points()=out;
-
-    Info<<"Output nodes: "<<out<<endl;
-    Info<<"Output coeff:" <<coeff<<endl;
-
-
-    Info<<"Interpolated: "<<it.interpolate()<<endl;
-
-    return 0;
     argList::addNote
     (
         "Transient solver for incompressible, turbulent flow,"

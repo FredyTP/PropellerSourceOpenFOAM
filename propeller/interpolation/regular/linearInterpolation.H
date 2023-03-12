@@ -13,8 +13,8 @@ namespace Foam
 template<class typeIn, class typeOu, label dim>
 class linearInterpolation : public regularInterpolation<typeIn,typeOu,dim>
 {
-public:
-    
+private:
+    typedef regularInterpolation<typeIn,typeOu,dim> parent;
 public:
 
     /**
@@ -39,15 +39,16 @@ public:
      *  
     */
     linearInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_) 
-        : regularInterpolation(inputs_,outputs_)
+        : regularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_)
     {
 
     }
     linearInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_,FixedList<label,dim> iterationOrder) 
-        : regularInterpolation(inputs_,outputs_,iterationOrder)
+        : regularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_,iterationOrder)
     {
 
     }
+
     /**
      *                                                                   input  |  output
      *                                                                ---------------------
@@ -69,9 +70,13 @@ public:
         }
     }*/
     
-
-    void interpolationList(FixedList<typeIn,dim> input,List<typeIn>& coeff,List<typeOu>& values)
+    interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input)
     {
+        interpolated<typeIn,typeOu> iReturn;
+        auto& coeff = iReturn.coefficients();
+        auto& values = iReturn.points();
+
+
         FixedList<FixedList<label,2>,dim> indexIt;
         FixedList<label,dim> result;
         FixedList<typeIn,dim> delta;
@@ -79,14 +84,14 @@ public:
         //Get index and results
         for(label i = 0; i< dim; i++)
         {
-            result[i] = linearInterpolation::FindIndex(input[i],inputs[i],indexIt[i][0],indexIt[i][1]);
+            result[i] = regularInterpolation<typeIn,typeOu,dim>::FindIndex(input[i],parent::inputs[i],indexIt[i][0],indexIt[i][1]);
             if(result[i]==0 || indexIt[i][0]==indexIt[i][1])
             {
                 //<out of bounds> || <coincident>
                 delta[i] = 0.5;
             }
             else{
-                delta[i] = (input[i] -inputs[i][indexIt[i][0]])/(inputs[i][indexIt[i][1]]-inputs[i][indexIt[i][0]]);
+                delta[i] = (input[i] - parent::inputs[i][indexIt[i][0]])/(parent::inputs[i][indexIt[i][1]]-parent::inputs[i][indexIt[i][0]]);
             }
         }
 
@@ -112,7 +117,7 @@ public:
                 scalar sign = z[j]==0? -1: 1;
                 coeff[i]*=(1-z[j]+sign*delta[j]);
             };
-            values[i]=outputs[index(idx)];
+            values[i]= parent::outputs[parent::index(idx)];
 
             //Iterate all permutations in binary secuence
             for (int k = 0; k < dim; ++k) 
@@ -125,11 +130,13 @@ public:
                 }
             }
         }
+
+        return iReturn;
     }    
 };
 
 
 }
 
-
 #endif //PROPELLER_INTERPOLATION_REGULAR_LINEAR_LINEARINTERPOLATION
+

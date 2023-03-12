@@ -4,31 +4,28 @@
 
 namespace Foam
 {
-template<unsigned int dimension>
+template<class typeIn, class typeOu, label dim>
 class closestNeighbor
-: public irregularInterpolation<dimension>
+: public irregularInterpolation<typeIn,typeOu,dim>
 {
-
+private:
+    const List<FixedList<typeIn,dim>> inputs;
+    const List<typeOu> outputs;
 public:
 
     closestNeighbor(
-        const List<FixedList<scalar,dimension>> input,
-        const List<scalar> output
+        const List<FixedList<typeIn,dim>> inputs_,
+        const List<typeOu> outputs_
     );
     
-    virtual scalar interpolate(FixedList<scalar,dimension> inputValue);
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input);
 
-    static scalar Interpolate
-        (
-            const List<FixedList<scalar,dimension>>& inputList,
-            const List<scalar>& outputList,
-            FixedList<scalar,dimension> inputValue
-        );
+   
 };
-
+}
 //Add template definitions
 #include "closestNeighbor.C"
 
-}
+
 
 #endif /* PROPELLER_INTERPOLATION_IRREGULAR_CLOSEST_NEIGHBOR_CLOSEST_NEIGHBOR */

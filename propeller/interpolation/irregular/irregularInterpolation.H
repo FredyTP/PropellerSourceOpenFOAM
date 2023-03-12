@@ -5,37 +5,36 @@
 
 #include "List.H"
 #include "scalar.H"
+#include "label.H"
 #include "interpolationTable.H"
 namespace Foam
 {
 
-template<unsigned int dimension>
+template<class typeIn, class typeOu, label dim>
 class irregularInterpolation 
-: public interpolationTable<dimension>
+: public interpolationTable<typeIn,typeOu,dim>
 {
-protected:
-    const List<FixedList<scalar,dimension>> input_;
-    const List<scalar> output_;
 public:
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input)=0;
 
-    //Constructors
+protected:
 
-        //- Construct from input and output list
-        irregularInterpolation
-        (
-            const List<FixedList<scalar,dimension>> input,
-            const List<scalar> output
-        );
+    static typeIn SqrDistance(FixedList<typeIn,dim>& p1, FixedList<typeIn,dim>& p2)
+    {
+        typeIn sqDist= 0;
         
-    virtual scalar interpolate(FixedList<scalar,dimension> input)=0;
+        for(label j = 0 ; j < dim; ++j)
+        {
+            auto d = p2[j]-p1[j];
+            sqDist+= (d*d);
+        }
+        return sqDist;
+    }
 
 };
 
 }
 
-
-
-#include "irregularInterpolation.C"
 
 
 #endif /* PROPELLER_INTERPOLATION_IRREGULAR_IRREGULAR_INTERPOLATION */

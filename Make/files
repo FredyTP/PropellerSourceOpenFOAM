@@ -6,9 +6,6 @@ propeller/propellerModel/propellerModelNew.C
 propeller/propellerModel/froudeModel/froudeModel.C
 propeller/propellerModel/bladeElementModel/bladeElementModel.C
 propeller/airfoilModel/airfoilModel.C
-propeller/interpolation/regular/linear/linearInterpolation1D.C
-propeller/interpolation/regular/linear/linearInterpolation2D.C
-propeller/interpolation/regular/linear/linearInterpolation3D.C
 propeller/airfoilModel/simpleAirfoil/simpleAirfoil.C
 propeller/airfoilModel/polarAirfoil/polar/polar.C
 propeller/airfoilModel/polarAirfoil/polar/viterna.C

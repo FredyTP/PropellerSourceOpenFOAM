@@ -16,14 +16,14 @@ void csvTable<dataType, headerType>::processLine(std::string &line)
     while(getline(ss,value,','))
     {
         dataType cell = convertInput(value);
-        row.push_back(cell);
+        //row.push_back(cell);
     }
     if(row.size()!=nColumn && nColumn>0)
     {
         //Invalid row
         return;
     }
-    table->push_back(row);
+    //table->push_back(row);
     if(nColumn==0)
     {
         nColumn = row.size();
@@ -41,7 +41,7 @@ void csvTable<dataType, headerType>::processHeader(std::string &line)
     while(getline(ss,value,','))
     {
         headerType cell = convertHeader(value);
-        header->push_back(cell);
+        //header->push_back(cell);
     }
     if(nColumn==0)
     {

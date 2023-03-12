@@ -21,7 +21,7 @@ namespace Foam
  * the number of coefficients can be "easily" obtained
 */
 template<class typeIn, class typeOu, label dim>
-class regularInterpolation
+class regularInterpolation : public interpolationTable<typeIn,typeOu,dim>
 {
 
 public:
@@ -31,7 +31,7 @@ public:
      * 
      * The reconstructed interpolated value is : coeff_1 * value_1 + coeff_2 * value_2 ...
     */
-    virtual void interpolationList(FixedList<typeIn,dim> input,List<typeIn>& coeff,List<typeOu>& values)=0;
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input_) = 0;
 
     typeOu getOutput(label idx)
     {
@@ -50,7 +50,7 @@ public:
         return outputs[index(idxs)];
     }
 
-    friend Ostream& operator<<(Ostream& os, const linearInterpolation<typeIn,typeOu,dim>& table)
+    friend Ostream& operator<<(Ostream& os, const regularInterpolation<typeIn,typeOu,dim>& table)
     {
         for(label i=0;i<table.outputs.size();i++)
         {
@@ -76,7 +76,7 @@ protected:
     //Ordered outputs in iterating order
     List<typeOu> outputs;
 
-    //Size of each dimension representing the discretizations of N-dimensional cube
+    //Size of each dimension representing the discretizations of Ns-dimensional cube
     FixedList<label,dim> size;
     //Iteration order in which the dimensions are traveled (0 1 2 3...)
     FixedList<label,dim> order;
@@ -103,6 +103,7 @@ public:
      *   (3 3)  ->   x9         (3 3)  ->   x9
      *  
     */
+
     regularInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_) 
         : inputs(inputs_), outputs(outputs_)
     {
@@ -188,7 +189,7 @@ public:
         return idxs;
     }
 
-    static label FindIndex(TypeIn input, const List<TypeIn>& inputs, label &i1, label &i2)
+    static label FindIndex(typeIn input, const List<typeIn>& inputs, label &i1, label &i2)
     {
         if(input<inputs[0])
         {
@@ -235,24 +236,6 @@ public:
 
 
 
-
-class regularInterpolation1D : public interpolationTable<1>
-{
-
-};
-
-class regularInterpolation2D : public interpolationTable<2>
-{
-
-};
-
-class regularInterpolation3D : public interpolationTable<3>
-{
-
-};
-
-
 }
-
 
 #endif /* PROPELLER_INTERPOLATION_REGULAR_REGULAR_INTERPOLATION */

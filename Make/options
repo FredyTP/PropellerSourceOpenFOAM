@@ -13,7 +13,6 @@ EXE_INC = \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/regular \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/regular/linear \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular/closestNeighbor \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/simpleAirfoil \
