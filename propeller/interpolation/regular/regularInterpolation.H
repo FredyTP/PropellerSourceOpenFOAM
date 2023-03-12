@@ -188,10 +188,53 @@ public:
         return idxs;
     }
 
+    static label FindIndex(TypeIn input, const List<TypeIn>& inputs, label &i1, label &i2)
+    {
+        if(input<inputs[0])
+        {
+            //indexes are both set to closest index
+            i1=0;
+            i2=0;
+            //out of bounds
+            return 0;
+        }
+        for(label i = 0; i< inputs.size()-1; i++)
+        {
+            //If (luckily) there is coincidence
+            if(input == inputs[i])
+            {
+                i1=i;
+                i2=i;
+                return 1;
+            }
+
+            //Between i and i+1
+            if(inputs[i] < input && input< inputs[i+1])
+            {
+                i1=i;
+                i2=i+1;
+                return 1;
+            }
+        }
+
+        if(input==inputs[inputs.size()-1])
+        {
+            i1=inputs.size()-1;
+            i2=i1;
+            return 1;
+        }
+
+        //Outside upper bounds
+        i1=inputs.size()-1;
+        i2=i1;
+        return 0;
+
+    }
+
 };
 
 
-}
+
 
 class regularInterpolation1D : public interpolationTable<1>
 {
@@ -211,8 +254,5 @@ class regularInterpolation3D : public interpolationTable<3>
 
 }
 
-
-
-#include "regularInterpolation.C"
 
 #endif /* PROPELLER_INTERPOLATION_REGULAR_REGULAR_INTERPOLATION */
