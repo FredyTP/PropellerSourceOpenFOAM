@@ -83,12 +83,12 @@ polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma)
 
 scalar polar::cl(scalar alpha)
 {
-    //return cl_alpha->interpolate(alpha);
+    return cl_alpha->interpolate({alpha}).value();
 }
 
 scalar polar::cd(scalar alpha)
 {
-    //return cd_alpha->interpolate(alpha);
+    return cd_alpha->interpolate({alpha}).value();
 }
 scalar polar::reynolds() const
 {

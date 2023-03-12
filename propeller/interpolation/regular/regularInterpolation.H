@@ -81,7 +81,24 @@ protected:
     //Iteration order in which the dimensions are traveled (0 1 2 3...)
     FixedList<label,dim> order;
 public:
+    regularInterpolation()
+    {
+        
+    }
 
+    void setData(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_)
+    {
+        inputs = inputs_;
+        outputs = outputs_;
+        for(label i = 0; i < dim; i++)
+        {
+            order[i]=i;
+        }
+        if(!checkSize())
+        {
+            Info<<"interpolation sizes are inconsistent"<<endl;
+        }
+    }
     /**
      *  Create interpolation class from ordered inputs and outputs ->  
      *  input: ((1 2 3)  (1 2 3)) output: (1 2 3 4 5 6 7 8 9)

@@ -1,4 +1,5 @@
 #include "bladeElementModel.H"
+#include "bladeSection.H"
 #include "addToRunTimeSelectionTable.H"
 
 
@@ -67,8 +68,9 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
     {
         //Get local radius
         scalar radius = cylPoints[i].x();
-        scalar chord = bladeModel_.chordAtRadius(radius);
-        scalar twist = bladeModel_.twistAtRadius(radius);
+        auto bladeSec = bladeModel_.sectionAtRadius(radius);
+        scalar chord = bladeSec.chord();
+        scalar twist = bladeSec.twist();
         scalar n_blade = 2;
         scalar average_fact = n_blade / (2 * pi * radius);
 
@@ -108,8 +110,8 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         scalar c = 345;
         scalar mach = relativeSpeed/c;
 
-        scalar cl = airfoils_.getAirfoil(0)->cl(AoA,re,mach);
-        scalar cd = airfoils_.getAirfoil(0)->cd(AoA,re,mach);
+        scalar cl = bladeSec.cl(AoA,re,mach);
+        scalar cd = bladeSec.cd(AoA,re,mach);
 
         aoaField[celli] = AoA;
        

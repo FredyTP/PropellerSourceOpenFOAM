@@ -8,15 +8,12 @@ Foam::devel::bladeModel::bladeModel
     const airfoilModelList& airfoilList,
     const dictionary& dict
 )
-:
-    airfoils_(),
-    radius_(),
-    chord_(),
-    twistAngle_(),
-    sweepAngle_()
 {
 
     List<Tuple2<word,FixedList<scalar,4>>> sections;
+    
+    List<bladeSection> bladeSections;
+    List<scalar> radius;
 
     adimensional_ = dict.getOrDefault<bool>("adimensional",false);
     fName_=dict.getOrDefault<fileName>("file","");
@@ -35,32 +32,31 @@ Foam::devel::bladeModel::bladeModel
     if(sections.size())
     {
         Info <<"   Building blade ... " << endl;
-        airfoils_.setSize(sections.size());
-        radius_.setSize(sections.size());
-        chord_.setSize(sections.size());
-        twistAngle_.setSize(sections.size());
-        sweepAngle_.setSize(sections.size());
+        bladeSections.setSize(sections.size());
+        radius.setSize(sections.size());
 
         forAll(sections,i)
         {
             //Check for airfoil exist
-            airfoils_[i] = airfoilList.getAirfoil(sections[i].first());
+            bladeSections[i].airfoil = airfoilList.getAirfoil(sections[i].first());
 
             //Check radius is incresing  radius[i]>radius[i-1]!!
-            radius_[i] = sections[i].second()[0];
-            chord_[i] = sections[i].second()[1];
-            twistAngle_[i] = degToRad(sections[i].second()[2]);
-            sweepAngle_[i] = degToRad(sections[i].second()[3]);
+            radius[i] = bladeSections[i].radius = sections[i].second()[0];
+
+            bladeSections[i].chord = sections[i].second()[1];
+            bladeSections[i].twistAngle = degToRad(sections[i].second()[2]);
+            bladeSections[i].sweepAngle = degToRad(sections[i].second()[3]);
         }
 
         if(!adimensional_)
         {
-            maxRadius_ = radius_[radius_.size()-1];
+            maxRadius_ = bladeSections[bladeSections.size()-1].radius;
         }
         else
         {
             maxRadius_ = NO_RADIUS;
         }
+        sections_.setData({radius},bladeSections);
 
     }
     else
@@ -71,6 +67,12 @@ Foam::devel::bladeModel::bladeModel
     }
 }
 
+Foam::interpolatedBladeSection Foam::devel::bladeModel::sectionAtRadius(scalar radius) 
+{
+    auto sec = sections_.interpolate({radius});
+    return interpolatedBladeSection(sec);
+}
+
 void Foam::devel::bladeModel::setMaxRadius(scalar radius)
 {
     if(!adimensional_)
@@ -78,6 +80,7 @@ void Foam::devel::bladeModel::setMaxRadius(scalar radius)
         maxRadius_=radius;
     }
 }
+/*
 Foam::scalar Foam::devel::bladeModel::chordAtRadius(Foam::scalar radius) const
 {
     //TODO: optimize those functions
@@ -126,7 +129,7 @@ Foam::scalar Foam::devel::bladeModel::sweepAtRadius(Foam::scalar radius) const
         return 0;
     }
     return Foam::interpolateXY<Foam::scalar>(radius,radius_,sweepAngle_);
-}
+}*/
 
 Foam::scalar Foam::devel::bladeModel::maxRadius() const
 {

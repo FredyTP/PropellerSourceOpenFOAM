@@ -190,7 +190,8 @@
 			"csvTable.C": "cpp",
 			"OSstream.C": "cpp",
 			"wordIO.C": "cpp",
-			"ensightCells.C": "cpp"
+			"ensightCells.C": "cpp",
+			"viterna.C": "cpp"
 		}
 	}
 }

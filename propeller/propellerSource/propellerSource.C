@@ -99,7 +99,7 @@ void Foam::fv::propellerSource::addSup
         dimensionedVector(eqn.dimensions()/dimVolume, Zero)
     );
 
-    const scalarField& cellVolume = mesh_.V();
+    //const scalarField& cellVolume = mesh_.V();
 
     propellerModel_->calculate(force);
 

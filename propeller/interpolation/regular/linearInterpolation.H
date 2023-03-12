@@ -17,6 +17,11 @@ private:
     typedef regularInterpolation<typeIn,typeOu,dim> parent;
 public:
 
+    linearInterpolation()
+    {
+        
+    }
+    
     /**
      *  Create interpolation class from ordered inputs and outputs ->  
      *  input: ((1 2 3)  (1 2 3)) output: (1 2 3 4 5 6 7 8 9)
@@ -38,6 +43,7 @@ public:
      *   (3 3)  ->   x9         (3 3)  ->   x9
      *  
     */
+
     linearInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_) 
         : regularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_)
     {

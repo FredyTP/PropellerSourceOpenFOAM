@@ -1,9 +1,9 @@
 #ifndef PROPELLER_BLADE_MODEL_BLADE_MODEL_DEV
 #define PROPELLER_BLADE_MODEL_BLADE_MODEL_DEV
 
-
+#include "linearInterpolation.H"
 #include "airfoilModelList.H"
-
+#include "bladeSection.H"
 #include "scalar.H"
 #include "label.H"
 #include "List.H"
@@ -28,19 +28,7 @@ protected:
         //------------BLADE SECTIONS-----------//
 
         //- Airfoil of each section
-        List<const airfoilModel*> airfoils_;
-
-        //- Radius where the section is located in [m]
-        List<scalar> radius_;
-
-        //- Chort of each section in [m]
-        List<scalar> chord_;        
-
-        //- Twisted angle of each section in [rad]
-        List<scalar> twistAngle_;
-
-        //- Sweep angle of each section in [rad]
-        List<scalar> sweepAngle_;  
+        linearInterpolation<scalar,bladeSection,1> sections_;
 
         //- If radius is adimensional
         bool adimensional_ = false;
@@ -58,9 +46,11 @@ public:
 
     bladeModel(const airfoilModelList& airfoilList, const dictionary& dict);
 
-    scalar chordAtRadius(scalar radius) const;
+
+    interpolatedBladeSection sectionAtRadius(scalar radius);
+    /*scalar chordAtRadius(scalar radius) const;
     scalar twistAtRadius(scalar radius) const;
-    scalar sweepAtRadius(scalar radius) const;
+    scalar sweepAtRadius(scalar radius) const;*/
 
     scalar maxRadius() const;
 

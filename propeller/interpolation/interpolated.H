@@ -11,7 +11,7 @@ namespace Foam
 template<class typeIn,class typeOu,class typeRet=scalar>
 class interpolated
 {
-private:
+protected:
     List<typeIn> coeff;
     List<typeOu> nodes;
 public:
