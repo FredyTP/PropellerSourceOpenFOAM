@@ -67,14 +67,11 @@ public:
      *                                                                 (1 2 2)  ->   x7
      *                                                                 (2 2 2)  ->   x8
     */
-    /*linearInterpolation(List<FixedList<typeIn,dim>> inputs_, List<typeOu> outputs_,FixedList<label,dim> size) 
-        : inputs(inputs_), outputs(outputs_), order({0,1,2})
+    linearInterpolation(List<FixedList<typeIn,dim>> inputs_, List<typeOu> outputs_,bool raw) 
+        : regularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_,raw)
     {
-        if(!checkSize())
-        {
-            Info<<"interpolation sizes are inconsistent"<<endl;
-        }
-    }*/
+
+    }
     
     interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input)
     {

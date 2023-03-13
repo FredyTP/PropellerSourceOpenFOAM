@@ -49,7 +49,15 @@ public:
     {
         return outputs[index(idxs)];
     }
-
+    scalar getOutputSize() const
+    {
+        scalar tam = 1;
+        for(label d =0; d<dim;d++)
+        {
+            tam *=size[d];
+        }
+        return tam;
+    }
     friend Ostream& operator<<(Ostream& os, const regularInterpolation<typeIn,typeOu,dim>& table)
     {
         for(label i=0;i<table.outputs.size();i++)
@@ -154,14 +162,77 @@ public:
      *                                                                 (1 2 2)  ->   x7
      *                                                                 (2 2 2)  ->   x8
     */
-    /*linearInterpolation(List<FixedList<typeIn,dim>> inputs_, List<typeOu> outputs_,FixedList<label,dim> size) 
-        : inputs(inputs_), outputs(outputs_), order({0,1,2})
+    /*regularInterpolation(List<FixedList<typeIn,dim>> inputs_, List<typeOu> outputs_,bool raw) 
     {
-        if(!checkSize())
-        {
-            Info<<"interpolation sizes are inconsistent"<<endl;
-        }
+        this->setRawData(inputs_,outputs_);
     }*/
+    void setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
+    {
+        for(label i = 0; i < dim; i++)
+        {
+            order[i]=i;
+        }
+        //Find all diferent variables
+        for(label i = 0; i < inputs_.size(); i++)
+        {
+            for(label d=0; d< dim; d++)
+            {
+                bool contains = false;
+                //Check if that input already been processed
+                for(int c = 0; c <inputs[d].size(); ++c)
+                {
+                    if(inputs[d][c]==inputs_[i][d])
+                    {
+                        contains=true;
+                        break;
+                    }
+                }
+                if(!contains)
+                {
+                    inputs[d].push_back(inputs_[i][d]);
+                }
+            }
+        }
+
+        Info<<"Unsorted inputs"<<endl;
+        for(label d=0; d< dim; d++)
+        {
+            Info<<inputs[d]<<endl;
+        }
+        
+        //Sort arrays
+        Info<< "Sorted inputs"<<endl;
+        for(label d=0; d< dim; d++)
+        {
+            std::sort(inputs[d].begin(),inputs[d].end());
+            size[d]=inputs[d].size();
+            Info<<inputs[d]<<endl;
+        }
+
+        outputs.resize(this->getOutputSize());
+        
+        //Fill outputs in place
+        for(label i = 0 ; i< outputs_.size();i++)
+        {
+            FixedList<label,dim> idx;
+            for(label d = 0; d<dim;d++)
+            {
+                
+                for(label j = 0; j < inputs[d].size(); j++)
+                {
+                    if(inputs[d][j]==inputs_[i][d])
+                    {
+                        idx[d]=j;
+                    }
+                }
+            }
+            outputs[this->index(idx)]=outputs_[i];
+        }
+        
+        Info<<"Outputs: "<<endl;
+        Info<<outputs<<endl;
+        //Fill gaps with linear interpolation
+    }
     bool checkSize()
     {
         for(label i = 0; i< dim; i++)

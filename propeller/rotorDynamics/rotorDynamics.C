@@ -36,7 +36,7 @@ Foam::autoPtr<Foam::rotorDynamics> rotorDynamics::New(const dictionary &dict)
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<Foam::airfoilModel>(ctorPtr(dict));
+    return autoPtr<Foam::rotorDynamics>(ctorPtr(dict));
 }
 
 }

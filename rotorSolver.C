@@ -79,6 +79,18 @@ Description
 
 int main(int argc, char *argv[])
 {
+    csvTable<scalar,word> reader(true);
+
+    reader.readFile("test.csv");
+    Info<<reader<<endl;
+
+    List<scalar> outputs;
+    List<List<scalar>> inputs;
+
+    inputs = reader.col2(0);
+    outputs = reader.col(1);
+    linearInterpolation<scalar,scalar,1> lin;
+    lin.setRawData(inputs,outputs);
 
     argList::addNote
     (

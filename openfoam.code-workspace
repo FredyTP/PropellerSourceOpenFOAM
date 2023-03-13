@@ -196,7 +196,8 @@
 			"rotorDynamics.C": "cpp",
 			"fixedSpeed.C": "cpp",
 			"fixedPower.C": "cpp",
-			"thermodynamicConstants.C": "cpp"
+			"thermodynamicConstants.C": "cpp",
+			"ranges": "cpp"
 		}
 	}
 }

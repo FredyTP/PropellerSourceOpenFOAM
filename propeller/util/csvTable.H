@@ -33,6 +33,9 @@ public:
     List<dataType> col(label coli);
     List<dataType> col(headerType headerName);
 
+    List<List<dataType>> col2(label coli);
+    List<List<dataType>> col2(headerType headerName);
+
     csvTable(bool hasHeader_=false,label skipLines_ = 0);
     ~csvTable();
 
