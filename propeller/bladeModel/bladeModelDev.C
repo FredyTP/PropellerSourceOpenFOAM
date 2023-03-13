@@ -135,3 +135,4 @@ Foam::scalar Foam::devel::bladeModel::maxRadius() const
 {
     return maxRadius_;
 }
+

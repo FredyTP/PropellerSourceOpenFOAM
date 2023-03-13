@@ -49,9 +49,9 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
     const List<tensor> bladeCS = rotorDiscrete_.localBladeCS();
 
     //Velocidad angular
-    //double rpm = 1000;
-    double omega = rotorDynamics_.angularVelocity();//rpm*Foam::constant::mathematical::twoPi/60;
+    double rpm = 1000;
     double pi = Foam::constant::mathematical::pi;
+    double omega = rpm*pi/30;
 
     volScalarField aoaField
     (
@@ -143,7 +143,7 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
     }
 
     //TODO: obtain real time step
-    rotorDynamics_.integrate(-totalMoment,0.005);
+    //rotorDynamics_.integrate(-totalMoment,0.005);
 
     Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;

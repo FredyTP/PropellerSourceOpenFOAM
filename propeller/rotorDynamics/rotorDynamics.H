@@ -2,6 +2,10 @@
 #define PROPELLER_ROTOR_DYNAMICS_ROTOR_DYNAMICS
 
 #include "scalar.H"
+#include "dictionary.H"
+#include "mathematicalConstants.H"
+#include "autoPtr.H"
+#include "runTimeSelectionTables.H"
 
 namespace Foam
 {
@@ -9,30 +13,55 @@ namespace Foam
 class rotorDynamics
 {
 public:
-    rotorDynamics()
-    {
+    TypeName("rotorDynamics");
 
-    }
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        rotorDynamics,
+        dictionary,
+        (
+            const dictionary& dict
+        ),
+        (dict)
+    );
 
-    /**
-     * Integrates for delta t to obtain new angular velocity
-     * Positive moment is clockwise
-     * Simple order 1 algorithm used
-    */
-    virtual void integrate(scalar aeroMoment,scalar dt)
-    {
-        scalar dwdt = (aeroMoment + par)/Izz;
-        omega += dwdt*dt;
-    }
+    rotorDynamics();
+
+    virtual void integrate(scalar aeroMoment,scalar dt) = 0;
+
+
+    static Foam::autoPtr<Foam::rotorDynamics> New(const dictionary& dict);
 
     scalar angularVelocity() const
     {
-        return omega;
+        return omega_;
     }
-private:
-    scalar omega=10; // rad/s
-    scalar par=200; // Nm
-    scalar Izz = 1;// kgm
+    scalar rpm() const
+    {
+        return omega_ * 30.0/Foam::constant::mathematical::pi;
+    }
+    /**
+     * Engine torque
+    */
+    scalar torque() const
+    {
+        return torque_;
+    }
+
+    /**
+     * 
+    */
+    scalar power() const
+    {
+        return torque_*omega_;
+    }
+
+protected:
+    scalar omega_; // rad/s
+    scalar torque_; // Nm
+    scalar inertia_;// kgm
+    scalar viscousDisipation_; //kgm/s
 };
 
 }

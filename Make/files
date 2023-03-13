@@ -13,5 +13,8 @@ propeller/airfoilModel/polarAirfoil/polarAirfoil.C
 propeller/airfoilModel/airfoilModelList.C
 propeller/bladeModel/bladeModelDev.C
 propeller/rotorMesh/rotorMesh.C
+propeller/rotorDynamics/rotorDynamics.C
+propeller/rotorDynamics/fixedPower.C
+propeller/rotorDynamics/fixedSpeed.C
 
 EXE = $(FOAM_USER_APPBIN)/rotorSolver

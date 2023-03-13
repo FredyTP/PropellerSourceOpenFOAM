@@ -192,7 +192,11 @@
 			"wordIO.C": "cpp",
 			"ensightCells.C": "cpp",
 			"viterna.C": "cpp",
-			"vktAirfoil.C": "cpp"
+			"vktAirfoil.C": "cpp",
+			"rotorDynamics.C": "cpp",
+			"fixedSpeed.C": "cpp",
+			"fixedPower.C": "cpp",
+			"thermodynamicConstants.C": "cpp"
 		}
 	}
 }
