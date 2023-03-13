@@ -6,7 +6,7 @@
 #include "dictionary.H"
 #include "polar.H"
 #include "Tuple2.H"
-
+#include "interpolationTable.H"
 namespace Foam
 {
 
@@ -19,14 +19,16 @@ public:
 
     polarAirfoil(const word name, const dictionary& dict);
 
-    virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const ;
-    virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const ;
+    virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const;
+    virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const;
 
     bool read(const dictionary& dict);
 private:
     fileName file_;
 
-    List<polar*> polars_;
+    typedef interpolationTable<scalar,polar*,2> polarTable;
+    List<autoPtr<polar>> polars_;
+    autoPtr<polarTable> polarInterpolated;
 
 };
 

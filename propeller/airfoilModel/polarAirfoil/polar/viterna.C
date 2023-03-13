@@ -25,7 +25,7 @@ viterna::viterna(const word interpolation, const fileName filename, scalar Re, s
     setParameters();
 }
 
-scalar viterna::cl(scalar alpha)
+scalar viterna::cl(scalar alpha) const
 {
     using namespace Foam::constant::mathematical;
     //alpha in rads between [-pi, pi]
@@ -48,7 +48,7 @@ scalar viterna::cl(scalar alpha)
         
 }
 
-scalar viterna::cd(scalar alpha)
+scalar viterna::cd(scalar alpha) const
 {
     using namespace Foam::constant::mathematical;
     //alpha in rads between [-pi, pi]
@@ -70,38 +70,39 @@ scalar viterna::cd(scalar alpha)
     }
 }
 
-scalar viterna::calcA1(scalar cd_max)
+scalar viterna::calcA1(scalar cd_max) const
 {
     return cd_max/2;
 }
-scalar viterna::calcA2(scalar cd_max, scalar cl_stall, scalar alpha_stall)
+scalar viterna::calcA2(scalar cd_max, scalar cl_stall, scalar alpha_stall) const
 {
     return (cl_stall - cd_max*sin(alpha_stall)*cos(alpha_stall))
             *sin(alpha_stall)/pow(cos(alpha_stall),2);
 }
-scalar viterna::calcB1(scalar cd_max)
+scalar viterna::calcB1(scalar cd_max) const
 {
     return cd_max;
 }
-scalar viterna::calcB2(scalar cd_max, scalar cd_stall, scalar alpha_stall){
+scalar viterna::calcB2(scalar cd_max, scalar cd_stall, scalar alpha_stall) const
+{
     return (cd_stall - cd_max * pow(sin(alpha_stall),2)) / (cos(alpha_stall));
 }
 
-scalar viterna::viterna_cl(scalar A1, scalar A2, scalar alpha)
+scalar viterna::viterna_cl(scalar A1, scalar A2, scalar alpha) const
 {
     return A1*sin(2*alpha)+A2*(pow(cos(alpha),2))/sin(alpha);
 }
 
-scalar viterna::viterna_cd(scalar B1, scalar B2, scalar alpha)
+scalar viterna::viterna_cd(scalar B1, scalar B2, scalar alpha) const
 {
     return B1*pow(sin(alpha),2) + B2*cos(alpha);
 }
 
-scalar viterna::flat_plate_cl(scalar cl_max_flat_plate, scalar alpha)
+scalar viterna::flat_plate_cl(scalar cl_max_flat_plate, scalar alpha) const
 {
     return 2*abs(cl_max_flat_plate)*sin(alpha)*cos(alpha);
 }
-scalar viterna::flat_plate_cd(scalar cd_max_flat_plate, scalar alpha)
+scalar viterna::flat_plate_cd(scalar cd_max_flat_plate, scalar alpha) const
 {
     return 2*cd_max_flat_plate * pow(sin(alpha),2);
 }

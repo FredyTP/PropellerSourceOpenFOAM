@@ -81,12 +81,12 @@ polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma)
     cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cd);
 }
 
-scalar polar::cl(scalar alpha)
+scalar polar::cl(scalar alpha) const
 {
     return cl_alpha->interpolate({alpha}).value();
 }
 
-scalar polar::cd(scalar alpha)
+scalar polar::cd(scalar alpha) const
 {
     return cd_alpha->interpolate({alpha}).value();
 }

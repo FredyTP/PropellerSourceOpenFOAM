@@ -33,6 +33,9 @@ public:
     List<dataType> col(label coli);
     List<dataType> col(headerType headerName);
 
+    /**
+     * Returns a column as list of list for compatibility
+    */
     List<List<dataType>> col2(label coli);
     List<List<dataType>> col2(headerType headerName);
 

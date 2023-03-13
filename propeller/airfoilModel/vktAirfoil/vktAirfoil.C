@@ -43,7 +43,7 @@ scalar vktAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
     return cl0_ + dcl_dalfa_ * alfaRad;
 }
-scalar vktAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const 
+scalar vktAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const
 {
     scalar CL = cl(alfaRad,reynolds,mach);
 

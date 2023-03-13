@@ -34,17 +34,17 @@ public:
     viterna(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re,scalar Ma);
     viterna(const word interpolation, const fileName filename, scalar Re, scalar Ma);
 
-    virtual scalar cl(scalar alpha);
-    virtual scalar cd(scalar alpha);
+    virtual scalar cl(scalar alpha) const;
+    virtual scalar cd(scalar alpha) const;
 
 
 private:
 
     // - Coefficient functions
-    scalar calcA1(scalar cd_max);
-    scalar calcA2(scalar cd_max, scalar cl_stall, scalar alpha_stall);
-    scalar calcB1(scalar cd_max);
-    scalar calcB2(scalar cd_max, scalar cd_stall,scalar alpha_stall);
+    scalar calcA1(scalar cd_max) const;
+    scalar calcA2(scalar cd_max, scalar cl_stall, scalar alpha_stall) const;
+    scalar calcB1(scalar cd_max) const;
+    scalar calcB2(scalar cd_max, scalar cd_stall,scalar alpha_stall) const;
 
 
     // -Viterna extrapolation
@@ -52,16 +52,16 @@ private:
      * Performs viterna extrapolation function for cl
      * @param alpha angle between alpha_stall - pi
     */
-    scalar viterna_cl(scalar A1, scalar A2, scalar alpha);
+    scalar viterna_cl(scalar A1, scalar A2, scalar alpha) const;
     /**
      * Performs viterna extrapolation function for cd
      * @param alpha angle between alpha_stall - pi
     */
-    scalar viterna_cd(scalar B1, scalar B2, scalar alpha);
+    scalar viterna_cd(scalar B1, scalar B2, scalar alpha) const;
 
     // -Flat plate extrapolation
-    scalar flat_plate_cl(scalar cl_max_flat_plate,scalar alpha);
-    scalar flat_plate_cd(scalar cd_max_flat_plate,scalar alpha);
+    scalar flat_plate_cl(scalar cl_max_flat_plate,scalar alpha) const;
+    scalar flat_plate_cd(scalar cd_max_flat_plate,scalar alpha) const;
 
     viterna_data data_;
 

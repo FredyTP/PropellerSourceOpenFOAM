@@ -31,7 +31,7 @@ public:
      * 
      * The reconstructed interpolated value is : coeff_1 * value_1 + coeff_2 * value_2 ...
     */
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input_) = 0;
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input_) const = 0;
 
     typeOu getOutput(label idx)
     {
@@ -58,7 +58,7 @@ public:
         }
         return tam;
     }
-    friend Ostream& operator<<(Ostream& os, const regularInterpolation<typeIn,typeOu,dim>& table)
+    friend Ostream& operator<<(Ostream& os, const regularInterpolation<typeIn,typeOu,dim>& table) 
     {
         for(label i=0;i<table.outputs.size();i++)
         {
@@ -162,10 +162,6 @@ public:
      *                                                                 (1 2 2)  ->   x7
      *                                                                 (2 2 2)  ->   x8
     */
-    /*regularInterpolation(List<FixedList<typeIn,dim>> inputs_, List<typeOu> outputs_,bool raw) 
-    {
-        this->setRawData(inputs_,outputs_);
-    }*/
     void setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
     {
         for(label i = 0; i < dim; i++)
@@ -194,19 +190,14 @@ public:
             }
         }
 
-        Info<<"Unsorted inputs"<<endl;
-        for(label d=0; d< dim; d++)
-        {
-            Info<<inputs[d]<<endl;
-        }
+       
         
         //Sort arrays
-        Info<< "Sorted inputs"<<endl;
+
         for(label d=0; d< dim; d++)
         {
             std::sort(inputs[d].begin(),inputs[d].end());
             size[d]=inputs[d].size();
-            Info<<inputs[d]<<endl;
         }
 
         outputs.resize(this->getOutputSize());
@@ -229,8 +220,6 @@ public:
             outputs[this->index(idx)]=outputs_[i];
         }
         
-        Info<<"Outputs: "<<endl;
-        Info<<outputs<<endl;
         //Fill gaps with linear interpolation
     }
     bool checkSize()

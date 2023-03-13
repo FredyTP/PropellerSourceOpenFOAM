@@ -15,11 +15,11 @@ class irregularInterpolation
 : public interpolationTable<typeIn,typeOu,dim>
 {
 public:
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input)=0;
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const=0;
 
 protected:
 
-    static typeIn SqrDistance(FixedList<typeIn,dim>& p1, FixedList<typeIn,dim>& p2)
+    static typeIn SqrDistance(FixedList<typeIn,dim>& p1, FixedList<typeIn,dim>& p2) 
     {
         typeIn sqDist= 0;
         

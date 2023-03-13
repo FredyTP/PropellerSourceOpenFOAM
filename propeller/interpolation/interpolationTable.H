@@ -26,7 +26,7 @@ public:
     /**
      * Return interpolated value from input
     */
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) = 0;
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const = 0;
 
     /**
      * @brief returns a list of interpolated coefficients and nodes
@@ -36,10 +36,12 @@ public:
     //virtual void interpolationList(FixedList<typeIn,dim> input,List<typeIn>& coeff,List<typeOu>& values)=0;
 
     //Definition for single input tables
-    virtual interpolated<typeIn,typeOu> interpolate(typeIn input) 
+    virtual interpolated<typeIn,typeOu> interpolate(typeIn input) const 
     {
         return interpolate(FixedList<typeIn,dim>(input));
     }
+
+    virtual void setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) = 0;
 
     
     

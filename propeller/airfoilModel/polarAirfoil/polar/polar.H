@@ -34,8 +34,8 @@ public:
 
     polar(const word interpolation, const fileName filename, scalar Re, scalar Ma);
 
-    virtual scalar cl(scalar alpha);
-    virtual scalar cd(scalar alpha);
+    virtual scalar cl(scalar alpha) const;
+    virtual scalar cd(scalar alpha) const;
 
     scalar reynolds() const;
     scalar mach() const;

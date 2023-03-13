@@ -18,7 +18,7 @@ public:
         const List<typeOu> outputs_
     );
     
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input);
+    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const;
 
    
 };

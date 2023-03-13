@@ -1,6 +1,7 @@
 #include "polarAirfoil.H"
 #include "addToRunTimeSelectionTable.H"
 #include "IFstream.H"
+#include "linearInterpolation.H"
 
 namespace Foam
 {
@@ -17,6 +18,28 @@ polarAirfoil::polarAirfoil(const word name, const dictionary& dict)
 {
     this->read(dict);
 }
+
+/*
+bool polarAirfoil::readTable(const dictionary& dict)
+{
+    Info<<"Reading polar airfoil data for: " << this->airfoilName() << endl;
+    bool ok=true;
+    ok &= dict.readEntry("file",file_);
+    word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
+    //Read airfoil data
+    if(!file_.empty())
+    {
+        Info<<"Reading polar data from: "<<file_<<endl;
+        csvTable<scalar,word> csv(true);
+        csv.readFile(file_);
+
+        auto Re = csv.col2("Re");
+        auto cl = csv.col("Cl");
+        auto cd = csv.col("Cd");
+        auto aoa = csv.col("AoA")
+        
+    }
+}*/
 
 bool polarAirfoil::read(const dictionary& dict)
 {
@@ -49,27 +72,31 @@ bool polarAirfoil::read(const dictionary& dict)
         fileName polarpath = file_;
         polarpath.replace_name(polarfile);
         auto ptrPolar = polar::New(extrapolation,"lineal",polarpath,Re,Ma);
-        polars_[i]=(ptrPolar.release());
+        polars_[i].reset(ptrPolar.release());
     }
+
+    //Create list to create interpolation table
+    List<polar*> polarList(polars_.size());
+    List<List<scalar>> ReMa(polars_.size());
+    forAll(polars_,i)
+    {
+        polarList[i]=polars_[i].get();
+        ReMa[i].setSize(2);
+        ReMa[i][0]=polars_[i]->reynolds();
+        ReMa[i][1]=polars_[i]->mach();
+    }
+    polarInterpolated = autoPtr<interpolationTable<scalar,polar*,2>>::NewFrom<linearInterpolation<scalar,polar*,2>>();
+    polarInterpolated->setRawData(ReMa,polarList);
 
     return ok;
 }
 scalar polarAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    if(polars_.size()>0)
-    {
-        return polars_[0]->cl(alfaRad);
-    }
-    return 0;
-
+    return polarInterpolated->interpolate({reynolds,mach}).value([=](scalar val,polar* p){return val*p->cl(alfaRad);});
 }
-scalar polarAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const 
+scalar polarAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    if(polars_.size()>0)
-    {
-        return polars_[0]->cd(alfaRad);
-    }
-    return 0;
+    return polarInterpolated->interpolate({reynolds,mach}).value([=](scalar val,polar* p){return val*p->cd(alfaRad);});
 }
 
 

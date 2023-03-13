@@ -73,7 +73,7 @@ public:
 
     }
     
-    interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input)
+    interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
     {
         interpolated<typeIn,typeOu> iReturn;
         auto& coeff = iReturn.coefficients();

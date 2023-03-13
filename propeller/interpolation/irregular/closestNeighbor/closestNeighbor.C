@@ -18,7 +18,7 @@ namespace Foam
     template <class typeIn, class typeOu, label dim>
     interpolated<typeIn, typeOu> closestNeighbor<typeIn, typeOu, dim>::interpolate(
 
-        FixedList<typeIn, dim> input)
+        FixedList<typeIn, dim> input) const
     {
         interpolated<typeIn, typeOu> result;
 
