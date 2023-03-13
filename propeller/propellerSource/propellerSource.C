@@ -100,8 +100,9 @@ void Foam::fv::propellerSource::addSup
     );
 
     //const scalarField& cellVolume = mesh_.V();
+    const vectorField& Uin(eqn.psi().primitiveField());
 
-    propellerModel_->calculate(force);
+    propellerModel_->calculate(Uin,force);
 
     eqn+=force;
 

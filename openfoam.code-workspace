@@ -197,7 +197,8 @@
 			"fixedSpeed.C": "cpp",
 			"fixedPower.C": "cpp",
 			"thermodynamicConstants.C": "cpp",
-			"ranges": "cpp"
+			"ranges": "cpp",
+			"bladeModel.C": "cpp"
 		}
 	}
 }

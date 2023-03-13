@@ -36,13 +36,12 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
     rotorDiscrete_.fromRotorMesh(*rotorMesh_);
 }
 
-void Foam::bladeElementModel::calculate(volVectorField& force)
+void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& force)
 {
     scalar totalLift = 0;
     scalar totalDrag = 0;
     scalar totalThrust = 0;
     scalar totalMoment = 0;
-
     //Puntos de la discretizacion
     const List<vector> cylPoints = rotorDiscrete_.cylPoints();
     //Tensor de cada punto local to global
@@ -75,10 +74,16 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         scalar n_blade = 2;
         scalar average_fact = n_blade / (2 * pi * radius);
 
+        //Get cell area and volum
+        scalar area = rotorMesh_->areas()[i];
+        label celli = rotorMesh_->cells()[i];
+        scalar volume = rotorMesh_->mesh().V()[celli];
+        
+        //Local rotation tensor
         const tensor& bladeTensor = bladeCS[i];
 
         //Global coordinate vector
-        vector airVel(0,0,0);
+        vector airVel = U[celli];
         vector localAirVel = invTransform(bladeTensor,airVel);
         
 
@@ -97,10 +102,7 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
         scalar phi = atan2(-relativeVel.z(),relativeVel.x());
         //Info<<"Phi: "<<phi<<endl;
 
-        //Get cell area and volum
-        scalar area = rotorMesh_->areas()[i];
-        label celli = rotorMesh_->cells()[i];
-        scalar volume = rotorMesh_->mesh().V()[celli];
+        
 
         //Angle of atack
         scalar AoA = twist - phi;
@@ -150,5 +152,8 @@ void Foam::bladeElementModel::calculate(volVectorField& force)
     Info<< "Total thrust: "<<totalThrust<<endl;
     Info<< "Total Moment z: " <<totalMoment<<endl;
     Info<< "RPM: "<< omega * 30/pi<<endl;
+    Info<< "Max AoA: "<< max(aoaField) * 180/pi<<endl;
+    Info<< "Min AoA: "<< min(aoaField) * 180/pi<<endl;
+    Info<< "Max Vel: "<<max(U)<<endl;
 
 }

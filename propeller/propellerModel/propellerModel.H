@@ -70,7 +70,7 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry){}
 
-    virtual void calculate(volVectorField& force){}
+    virtual void calculate(const vectorField& U,volVectorField& force){}
 };
 
 }
