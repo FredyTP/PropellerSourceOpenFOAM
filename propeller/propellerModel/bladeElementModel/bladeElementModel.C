@@ -51,7 +51,7 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
     double rpm = 1000;
     double pi = Foam::constant::mathematical::pi;
     double omega = rpm*pi/30;
-
+    
     volScalarField aoaField
     (
         IOobject
@@ -146,12 +146,15 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
 
     //TODO: obtain real time step
     //rotorDynamics_.integrate(-totalMoment,0.005);
+    double power = totalMoment * omega;
 
     Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;
     Info<< "Total thrust: "<<totalThrust<<endl;
+    Info<< "Total power:" <<power <<endl;
     Info<< "Total Moment z: " <<totalMoment<<endl;
     Info<< "RPM: "<< omega * 30/pi<<endl;
+    Info<< "Rad/s" <<omega<<endl;
     Info<< "Max AoA: "<< max(aoaField) * 180/pi<<endl;
     Info<< "Min AoA: "<< min(aoaField) * 180/pi<<endl;
     Info<< "Max Vel: "<<max(U)<<endl;
