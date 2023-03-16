@@ -73,7 +73,7 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         //Find "new" geometry --
         this->findRotorCenter();
         this->findRotorRadius();
-        this->findRotorNormal();
+        this->findRotorNormal(rotorGeometry);
         this->tryCorrectGeometry(rotorGeometry); //Update data if required
 
         break;
@@ -84,7 +84,7 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
 
         //Find geometry---------
         this->findRotorCenter();
-        this->findRotorNormal();
+        this->findRotorNormal(rotorGeometry);
         this->findRotorRadius();
 
         this->computeCellsArea(); //
@@ -381,11 +381,17 @@ void rotorMesh::findRotorCenter()
     Info << "Volume avg rotor Center: "<<newCenter<<endl;
 }
 
-void rotorMesh::findRotorNormal()
+void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
 {
 
     const vectorField& cellCenter = mesh_.C();
-    const vector vecAbove(1000,1000,1000);
+
+    vector vecAbove(1000,1000,1000);
+
+    if(rotorGeometry.direction != vector())
+    {
+        vecAbove=rotorGeometry.direction;
+    }
 
     vector newNormal(Zero);
     

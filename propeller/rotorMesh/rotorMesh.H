@@ -107,7 +107,7 @@ protected:
         //(find Center, find normal, find radius)
         void findRotorCenter();
 
-        void findRotorNormal();
+        void findRotorNormal(rotorGeometry& rotorGeometry);
 
         void findRotorRadius();
 
@@ -116,9 +116,6 @@ protected:
         void computeCellsArea();
 
         void tryCorrectGeometry(rotorGeometry& rotorGeometry);
-
-
-
 };
 
 
