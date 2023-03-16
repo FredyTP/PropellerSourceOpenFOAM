@@ -14,7 +14,7 @@ namespace Foam
 
 class rotorDiscrete
 {
-
+public:
     enum discreteMode
     {
         dmNone,
@@ -63,6 +63,8 @@ TypeName("rotorDiscrete");
         
         const List<tensor>& localBladeCS() const {return localBlade_;}
     //Getters
+
+        discreteMode mode() const {return discreteMode_;}
 
 protected:
         tensor bladeLocalFromPoint(const point& localPoint) const;
