@@ -24,17 +24,16 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    pisoFoamerror
+    simpleFoam
 
 Group
     grpIncompressibleSolvers
 
 Description
-    Transient solver for incompressible, turbulent flow, using the PISO
-    algorithm.
+    Steady-state solver for incompressible, turbulent flows.
 
     \heading Solver details
-    The solver uses the PISO algorithm to solve the continuity equation:
+    The solver uses the SIMPLE algorithm to solve the continuity equation:
 
         \f[
             \div \vec{U} = 0
@@ -43,8 +42,8 @@ Description
     and momentum equation:
 
         \f[
-            \ddt{\vec{U}} + \div \left( \vec{U} \vec{U} \right) - \div \gvec{R}
-          = - \grad p
+            \div \left( \vec{U} \vec{U} \right) - \div \gvec{R}
+          = - \grad p + \vec{S}_U
         \f]
 
     Where:
@@ -52,11 +51,8 @@ Description
         \vec{U} | Velocity
         p       | Pressure
         \vec{R} | Stress tensor
+        \vec{S}_U | Momentum source
     \endvartable
-
-    Sub-models include:
-    - turbulence modelling, i.e. laminar, RAS or LES
-    - run-time selectable MRF and finite volume options, e.g. explicit porosity
 
     \heading Required fields
     \plaintable
@@ -70,32 +66,16 @@ Description
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
-#include "pisoControl.H"
+#include "simpleControl.H"
 #include "fvOptions.H"
-#include "linearInterpolation.H"
-#include "interpolated.H"
-#include "csvTable.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
-    csvTable<scalar,word> reader(true);
-
-    reader.readFile("test.csv");
-    Info<<reader<<endl;
-
-    List<scalar> outputs;
-    List<List<scalar>> inputs;
-
-    inputs = reader.col2(0);
-    outputs = reader.col(1);
-    linearInterpolation<scalar,scalar,1> lin;
-    lin.setRawData(inputs,outputs);
-
     argList::addNote
     (
-        "Transient solver for incompressible, turbulent flow,"
-        " using the PISO algorithm."
+        "Steady-state solver for incompressible, turbulent flows."
     );
 
     #include "postProcess.H"
@@ -114,31 +94,22 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
-    while (runTime.loop())
+    while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "CourantNo.H"
-
-        // Pressure-velocity PISO corrector
+        // --- Pressure-velocity SIMPLE corrector
         {
             #include "UEqn.H"
-
-            // --- PISO loop
-            while (piso.correct())
-            {
-                #include "pEqn.H"
-            }
+            #include "pEqn.H"
         }
 
         laminarTransport.correct();
         turbulence->correct();
-        
+
         runTime.write();
 
         runTime.printExecutionTime(Info);
-
-        
     }
 
     Info<< "End\n" << endl;
