@@ -19,6 +19,7 @@
 #include "rotorMesh.H"
 #include "rotorGeometry.H"
 
+#include "velocitySampler.H"
 namespace Foam
 {
 namespace fv
@@ -47,6 +48,9 @@ protected:
 
     //Disk Geometry
     rotorGeometry rotorGeometry_;
+
+    //Velocity sampler for model
+    autoPtr<velocitySampler> velSampler_;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("propeller");
@@ -105,33 +109,5 @@ public:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #endif //PROPELLER_SOURCE
+
