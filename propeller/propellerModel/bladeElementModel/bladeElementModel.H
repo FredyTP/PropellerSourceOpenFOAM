@@ -4,7 +4,7 @@
 #include "airfoilModelList.H"
 #include "bladeModelDev.H"
 #include "rotorDiscrete.H"
-
+#include "velocitySampler.H"
 namespace Foam
 {
 
@@ -17,7 +17,6 @@ protected:
     airfoilModelList airfoils_;
     Foam::devel::bladeModel bladeModel_;
     rotorDiscrete rotorDiscrete_;
-    
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");
@@ -45,7 +44,12 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry);
 
-    virtual void calculate(const vectorField& U,volVectorField& force);
+/**
+ * Temporal vel sampler, change in the future
+*/
+    virtual void calculate(const volVectorField& U,volVectorField& force, const velocitySampler* velSampler);
+
+    virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
 };
 
 }

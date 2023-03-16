@@ -34,6 +34,9 @@ public:
     //-Getter
     virtual scalar radius() const;
     
+    virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
+private:
+    rotorDiscrete rotorDiscrete_;
 };
 
 }

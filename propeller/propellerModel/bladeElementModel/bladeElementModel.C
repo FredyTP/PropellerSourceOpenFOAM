@@ -21,8 +21,8 @@ Foam::bladeElementModel::bladeElementModel
     bladeModel_(airfoils_,dict.subDict("bladeModel")),
     propellerModel(dict,typeName)
 {
-
     Info<<"Creating blade Element Model"<<endl;
+    
 }
 
 Foam::scalar Foam::bladeElementModel::radius() const
@@ -34,9 +34,12 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
     rotorDiscrete_.fromRotorMesh(*rotorMesh_);
+
+    
 }
 
-void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& force)
+
+void Foam::bladeElementModel::calculate(const volVectorField& U,volVectorField& force, const velocitySampler* velSampler)
 {
     scalar totalLift = 0;
     scalar totalDrag = 0;
@@ -52,6 +55,8 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
     double pi = Foam::constant::mathematical::pi;
     double omega = rpm*pi/30;
     
+    List<scalar> aoaList(cylPoints.size());
+
     volScalarField aoaField
     (
         IOobject
@@ -79,11 +84,12 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
         label celli = rotorMesh_->cells()[i];
         scalar volume = rotorMesh_->mesh().V()[celli];
         
+        
         //Local rotation tensor
         const tensor& bladeTensor = bladeCS[i];
 
         //Global coordinate vector
-        vector airVel = U[celli];
+        vector airVel = velSampler->sampleVelocityAt(U,i);
         vector localAirVel = invTransform(bladeTensor,airVel);
         
 
@@ -106,7 +112,7 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
 
         //Angle of atack
         scalar AoA = twist - phi;
-       
+
         scalar rho = 1.225;
         scalar nu = 1e-5;
         scalar re = rho*relativeSpeed*chord/nu;
@@ -117,6 +123,7 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
         scalar cd = bladeSec.cd(AoA,re,mach);
 
         aoaField[celli] = AoA;
+        aoaList[i]=AoA;
        
 
         //Calculate aerodinamic forces
@@ -155,8 +162,8 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
     Info<< "Total Moment z: " <<totalMoment<<endl;
     Info<< "RPM: "<< omega * 30/pi<<endl;
     Info<< "Rad/s" <<omega<<endl;
-    Info<< "Max AoA: "<< max(aoaField) * 180/pi<<endl;
-    Info<< "Min AoA: "<< min(aoaField) * 180/pi<<endl;
+    Info<< "Max AoA: "<< max(aoaList) * 180/pi<<endl;
+    Info<< "Min AoA: "<< min(aoaList) * 180/pi<<endl;
     Info<< "Max Vel: "<<max(U)<<endl;
 
 }

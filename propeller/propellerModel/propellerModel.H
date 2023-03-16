@@ -6,6 +6,8 @@
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
 #include "rotorMesh.H"
+#include "rotorDiscrete.H"
+#include "velocitySampler.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -70,7 +72,9 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry){}
 
-    virtual void calculate(const vectorField& U,volVectorField& force){}
+    virtual void calculate(const volVectorField& U,volVectorField& force, const velocitySampler* velSampler){}
+
+    virtual const rotorDiscrete& rDiscrete() = 0;
 };
 
 }
