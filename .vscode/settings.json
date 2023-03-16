@@ -147,6 +147,10 @@
         "Enum.C": "cpp",
         "ZoneMesh.C": "cpp",
         "distribution.C": "cpp",
-        "List.C": "cpp"
+        "List.C": "cpp",
+        "fixedPower.C": "cpp",
+        "velocitySampler.C": "cpp",
+        "polarAirfoil.C": "cpp",
+        "fixedVelocity.C": "cpp"
     },
 }

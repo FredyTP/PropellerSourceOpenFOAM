@@ -17,4 +17,8 @@ propeller/rotorDynamics/rotorDynamics.C
 propeller/rotorDynamics/fixedPower.C
 propeller/rotorDynamics/fixedSpeed.C
 
+propeller/velocitySampler/velocitySampler.C
+propeller/velocitySampler/fixedVelocity.C
+propeller/velocitySampler/offsetSampler.C
+
 EXE = $(FOAM_USER_APPBIN)/rotorSolver
