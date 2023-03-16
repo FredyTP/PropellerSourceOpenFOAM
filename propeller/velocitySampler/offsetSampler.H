@@ -5,7 +5,7 @@
 #include "rotorDiscrete.H"
 #include "rotorMesh.H"
 #include "dictionary.H"
-
+#include "cellPointWeight.H"
 namespace Foam
 {
 class offsetSampler : public velocitySampler
@@ -25,6 +25,7 @@ private:
     bool atCellCenter;
     List<label> cellToSample;
     List<point> posToSample;
+    List<autoPtr<cellPointWeight>> cellWeights;
 };
 
 }

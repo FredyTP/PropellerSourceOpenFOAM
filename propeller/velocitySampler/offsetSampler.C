@@ -16,8 +16,8 @@ offsetSampler::offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscre
 
 bool offsetSampler::read(const dictionary &dict)
 {
-    offset = dict.getOrDefault<bool>("offset",0);
-    if(abs(offset)<=SMALL)
+    offset = dict.getOrDefault<scalar>("offset",0.0);
+    if(std::abs(offset)<=SMALL)
     {
         offset=0.0;
     }
@@ -27,7 +27,7 @@ bool offsetSampler::read(const dictionary &dict)
     Info<< "sample atCellCenter = "<<atCellCenter<<endl;
 
     this->build();
-    
+
     return true;
 }
  
@@ -47,8 +47,12 @@ vector offsetSampler::sampleVelocityAt(const volVectorField &U, label i) const
     {
         //TODO:
         //This can be further improved finding cellweights when building
+        //Update:
+        //Using cellweights still extreme slow because the constructor
+        //Interpolate on every cell face
+        //This function should return a reference to a vectorField
         interpolationCellPoint<vector> interp(U);
-        return interp.interpolate(posToSample[i],cellToSample[i]);
+        return interp.interpolate(*(cellWeights[i].get()));
     }
 }
 bool offsetSampler::build()
@@ -62,7 +66,11 @@ bool offsetSampler::build()
     }
     const List<point>& cylPoints = rDiscrete->cylPoints();
     cellToSample.resize(cylPoints.size());
-    posToSample.resize(cylPoints.size());
+    if(!atCellCenter)
+    {
+        cellWeights.resize(cylPoints.size());
+    }
+
 
     //Iterate over all discretization points
     forAll(cylPoints, i)
@@ -72,9 +80,13 @@ bool offsetSampler::build()
 
         //Add the offset normal to the geometry
         rPoint += rDiscrete->geometry().direction * offset;
-        posToSample[i] = rPoint;
         //Find the cell where the point is and set to the list
         cellToSample[i] = rMesh->mesh().findCell(rPoint); 
+
+        if(!atCellCenter)
+        {
+            cellWeights[i] = autoPtr<cellPointWeight>::New(rMesh->mesh(),rPoint,cellToSample[i]);
+        }
     }
 
     return true;
