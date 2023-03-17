@@ -77,6 +77,8 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
                    dict.subDict("velocitySampler"),
                    &propellerModel_->rDiscrete(), 
                    &rotorMesh_);
+
+        velSampler_->writeSampled(name_);
     
 
         return true;
@@ -108,7 +110,7 @@ void Foam::fv::propellerSource::addSup
     //const scalarField& cellVolume = mesh_.V();
     const volVectorField& Uin(eqn.psi());
 
-    propellerModel_->calculate(Uin,force,velSampler_.get());
+    propellerModel_->calculate(velSampler_->sampleVelocity(Uin),force);
 
     eqn+=force;
 
