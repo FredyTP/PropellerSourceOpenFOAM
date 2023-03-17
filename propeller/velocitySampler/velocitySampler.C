@@ -7,7 +7,23 @@ namespace Foam
     defineTypeNameAndDebug(velocitySampler,0);
     defineRunTimeSelectionTable(velocitySampler, dictionary);
 
-    autoPtr<velocitySampler> velocitySampler::New(const dictionary &dict,const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_)
+    void velocitySampler::writeSampled(const word& name)
+    {
+        volScalarField sampled
+            (
+                IOobject
+                (
+                    name + ":sampledCells",
+                    rMesh->mesh().time().timeName(),
+                    rMesh->mesh()
+                ),
+                rMesh->mesh(),
+                dimensionedScalar(dimless, Zero)
+        );
+        sampled.write();
+    }
+
+    autoPtr<velocitySampler> velocitySampler::New(const dictionary &dict, const rotorDiscrete *rDiscrete_, const rotorMesh *rMesh_)
     {
         //Get model Type name (Ex: fixedVelocity) 
         //From type key from dictionary (propellerModel)
@@ -34,8 +50,9 @@ namespace Foam
     }
 
     velocitySampler::velocitySampler(const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_)
-        : rDiscrete(rDiscrete_),rMesh(rMesh_)
+        : rDiscrete(rDiscrete_), rMesh(rMesh_), sampledVel(rDiscrete->size(),{0,0,0})
     {
+        
     }
 
 

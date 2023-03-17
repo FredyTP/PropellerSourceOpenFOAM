@@ -25,12 +25,12 @@ public:
     );
 
     /**
-     * Return sampled velocity by rotor ordered cell at index i (rotor cells goes from 0 to N)
+     * Return sampled velocities on rotor ordered cells positions(rotor cells goes from 0 to N)
      * Do not get confused by celli which usually means fvmesh cell index
     */
-    virtual vector sampleVelocityAt(const volVectorField& U,label i) const = 0;
+    virtual const vectorField& sampleVelocity(const volVectorField& U) = 0;
 
-
+    virtual void writeSampled(const word& name);
     
     static autoPtr<velocitySampler> New(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_);
 
@@ -38,6 +38,7 @@ protected:
     velocitySampler(const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_);
     const rotorMesh* rMesh;
     const rotorDiscrete* rDiscrete;
+    vectorField sampledVel;
 };
 
 

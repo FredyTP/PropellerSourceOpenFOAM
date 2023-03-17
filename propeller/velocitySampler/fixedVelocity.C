@@ -35,12 +35,18 @@ bool fixedVelocity::read(const dictionary &dict)
     }
 
     Info<< "rotor input velocity = "<<velocity<<endl;
+
+    forAll(this->sampledVel,i)
+    {
+        this->sampledVel[i]=velocity;
+    }
     return ok;
     
 }
 
-vector fixedVelocity::sampleVelocityAt(const volVectorField &U, label i) const
+const vectorField& fixedVelocity::sampleVelocity(const volVectorField& U)
 {
-    return velocity;
+    return this->sampledVel;
 }
+
 }

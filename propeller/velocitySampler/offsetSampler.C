@@ -31,17 +31,23 @@ bool offsetSampler::read(const dictionary &dict)
     return true;
 }
  
-vector offsetSampler::sampleVelocityAt(const volVectorField &U, label i) const
+const vectorField& offsetSampler::sampleVelocity(const volVectorField& U) 
 {
     //If no offset and rotorDiscrete is equal to rotorMesh
     //Then the correspondence is cell to cell
     if(offset == 0.0 && rDiscrete->mode() == rotorDiscrete::dmMesh)
     {
-        return U.primitiveField()[rMesh->cells()[i]];
+        forAll(this->sampledVel,i)
+        {
+            this->sampledVel[i]=U.primitiveField()[rMesh->cells()[i]];
+        }    
     }
     else if(atCellCenter)
     {
-        return U.primitiveField()[cellToSample[i]];
+        forAll(this->sampledVel,i)
+        {
+            this->sampledVel[i]=U.primitiveField()[cellToSample[i]];
+        }     
     }
     else
     {
@@ -52,8 +58,13 @@ vector offsetSampler::sampleVelocityAt(const volVectorField &U, label i) const
         //Interpolate on every cell face
         //This function should return a reference to a vectorField
         interpolationCellPoint<vector> interp(U);
-        return interp.interpolate(*(cellWeights[i].get()));
+        forAll(this->sampledVel,i)
+        {
+            this->sampledVel[i]=interp.interpolate(*(cellWeights[i].get()));
+        }        
     }
+
+    return this->sampledVel;
 }
 bool offsetSampler::build()
 {
@@ -90,6 +101,27 @@ bool offsetSampler::build()
     }
 
     return true;
+}
+
+void offsetSampler::writeSampled(const word& name)
+{
+    volScalarField sampled
+        (
+            IOobject
+            (
+                name + ":sampledCells",
+                rMesh->mesh().time().timeName(),
+                rMesh->mesh()
+            ),
+            rMesh->mesh(),
+            dimensionedScalar(dimless, Zero)
+    );
+
+    forAll(cellToSample,i)
+    {
+        sampled[cellToSample[i]]=1.0;
+    }
+    sampled.write();
 }
 }
 

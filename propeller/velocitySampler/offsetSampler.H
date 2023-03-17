@@ -17,9 +17,11 @@ public:
 
     bool read(const dictionary& dict);
 
-    vector sampleVelocityAt(const volVectorField& U,label i) const;
+    virtual const vectorField& sampleVelocity(const volVectorField& U);
 
     bool build();
+
+    void writeSampled(const word& name);
 private:
     scalar offset;
     bool atCellCenter;

@@ -15,7 +15,7 @@ public:
 
     bool read(const dictionary& dict);
 
-    vector sampleVelocityAt(const volVectorField& U,label i) const;
+    virtual const vectorField& sampleVelocity(const volVectorField& U);
 
 private:
 
