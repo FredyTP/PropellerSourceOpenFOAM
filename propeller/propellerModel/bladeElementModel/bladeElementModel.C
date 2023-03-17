@@ -39,7 +39,7 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 }
 
 
-void Foam::bladeElementModel::calculate(const volVectorField& U,volVectorField& force, const velocitySampler* velSampler)
+void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& force)
 {
     scalar totalLift = 0;
     scalar totalDrag = 0;
@@ -89,7 +89,7 @@ void Foam::bladeElementModel::calculate(const volVectorField& U,volVectorField& 
         const tensor& bladeTensor = bladeCS[i];
 
         //Global coordinate vector
-        vector airVel = velSampler->sampleVelocityAt(U,i);
+        vector airVel = U[i];
         vector localAirVel = invTransform(bladeTensor,airVel);
         
 

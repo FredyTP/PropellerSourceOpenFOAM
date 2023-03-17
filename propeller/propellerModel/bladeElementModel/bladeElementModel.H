@@ -47,7 +47,7 @@ public:
 /**
  * Temporal vel sampler, change in the future
 */
-    virtual void calculate(const volVectorField& U,volVectorField& force, const velocitySampler* velSampler);
+    virtual void calculate(const vectorField& U,volVectorField& force);
 
     virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
 };
