@@ -17,9 +17,10 @@ class rotorDiscrete
 public:
     enum discreteMode
     {
-        dmNone,
-        dmMesh,
-        dmUniform
+        dmNone, //No discrete mode yet, discretization is empty
+        dmMesh, //Discretization from mesh centers
+        dmPolar, //Polar discretization from radial and azimutal vectors
+        dmUniform, //Uniformly distributed points
     };
 
 private:
@@ -62,6 +63,8 @@ TypeName("rotorDiscrete");
         const rotorGeometry& geometry() const {return rotorGeometry_;}
         
         const List<tensor>& localBladeCS() const {return localBlade_;}
+
+        label size() const {return cylPoints_.size();}
     //Getters
 
         discreteMode mode() const {return discreteMode_;}
