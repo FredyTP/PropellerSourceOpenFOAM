@@ -71,8 +71,11 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         //- Building rotor mesh may or may not modify rotorGeometry
         
         propellerModel_->setRotorMesh(&rotorMesh_);
+
+        //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
 
+        //Create velocitySampler for specified rotor discrete and mesh
         velSampler_ = velocitySampler::New(
                    dict.subDict("velocitySampler"),
                    &propellerModel_->rDiscrete(), 

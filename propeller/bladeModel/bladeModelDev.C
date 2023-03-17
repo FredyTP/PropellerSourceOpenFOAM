@@ -15,7 +15,7 @@ Foam::devel::bladeModel::bladeModel
     List<bladeSection> bladeSections;
     List<scalar> radius;
 
-    adimensional_ = dict.getOrDefault<bool>("adimensional",false);
+    adimensional_ = dict.getOrDefault<bool>("adimensionalRadius",false);
     fName_=dict.getOrDefault<fileName>("file","");
     if(!fName_.empty())
     {
@@ -69,16 +69,17 @@ Foam::devel::bladeModel::bladeModel
 
 Foam::interpolatedBladeSection Foam::devel::bladeModel::sectionAtRadius(scalar radius) 
 {
+    if(adimensional_)
+    {
+        radius/=(maxRadius_+VSMALL);
+    }
     auto sec = sections_.interpolate({radius});
     return interpolatedBladeSection(sec);
 }
 
 void Foam::devel::bladeModel::setMaxRadius(scalar radius)
 {
-    if(!adimensional_)
-    {
-        maxRadius_=radius;
-    }
+    maxRadius_=radius;
 }
 /*
 Foam::scalar Foam::devel::bladeModel::chordAtRadius(Foam::scalar radius) const

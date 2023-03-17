@@ -35,17 +35,13 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
     rotorDiscrete_.fromRotorMesh(*rotorMesh_);
 
-    
+    bladeModel_.setMaxRadius(rotorGeometry.radius);
 }
 
 
 Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& force)
 {
     propellerResult result;
-    scalar totalLift = 0;
-    scalar totalDrag = 0;
-    scalar totalThrust = 0;
-    scalar totalMoment = 0;
     //Puntos de la discretizacion
     const List<vector> cylPoints = rotorDiscrete_.cylPoints();
     //Tensor de cada punto local to global
@@ -136,8 +132,6 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,vo
         scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed * area;
         scalar drag = average_fact * 0.5 * rho * cd * chord * relativeSpeed * relativeSpeed * area;
         
-        totalLift += lift;
-        totalDrag += drag;
         
         //Project over normal components
         vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
