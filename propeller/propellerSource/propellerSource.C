@@ -79,7 +79,9 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
                    &rotorMesh_);
 
         velSampler_->writeSampled(name_);
-    
+
+        propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
+        propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
 
         return true;
     }
@@ -110,8 +112,11 @@ void Foam::fv::propellerSource::addSup
     //const scalarField& cellVolume = mesh_.V();
     const volVectorField& Uin(eqn.psi());
 
-    propellerModel_->calculate(velSampler_->sampleVelocity(Uin),force);
+    propellerResult result;
+    result = propellerModel_->calculate(velSampler_->sampleVelocity(Uin),force);
 
+    result.info(name_);
+    //Add source term to the equation
     eqn+=force;
 
     //If its time to write into files
@@ -122,3 +127,4 @@ void Foam::fv::propellerSource::addSup
     }
     
 }
+

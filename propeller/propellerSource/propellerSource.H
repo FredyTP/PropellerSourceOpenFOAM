@@ -44,6 +44,8 @@ protected:
 
     //Propeller model used to compute source terms
     autoPtr<propellerModel> propellerModel_;
+
+    //Associated fvMesh and equivalent area on disk
     rotorMesh rotorMesh_;
 
     //Disk Geometry
