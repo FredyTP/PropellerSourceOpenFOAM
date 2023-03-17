@@ -76,6 +76,11 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,vo
         scalar radius = cylPoints[i].x();
         auto bladeSec = bladeModel_.sectionAtRadius(radius);
         scalar chord = bladeSec.chord();
+
+        if(chord == 0)
+        {
+             continue;
+        }
         scalar twist = bladeSec.twist();
         scalar n_blade = 2;
         scalar average_fact = n_blade / (2 * pi * radius);

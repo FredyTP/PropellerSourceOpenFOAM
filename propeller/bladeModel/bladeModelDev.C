@@ -57,7 +57,7 @@ Foam::devel::bladeModel::bladeModel
             maxRadius_ = NO_RADIUS;
         }
         sections_.setData({radius},bladeSections);
-
+        sections_.setExtrapolationMode(extrapolationMode::emZero);
     }
     else
     {
