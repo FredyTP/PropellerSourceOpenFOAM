@@ -88,9 +88,25 @@ public:
         for(label i = 0; i< dim; i++)
         {
             result[i] = regularInterpolation<typeIn,typeOu,dim>::FindIndex(input[i],parent::inputs[i],indexIt[i][0],indexIt[i][1]);
-            if(result[i]==0 || indexIt[i][0]==indexIt[i][1])
+            //<out of bounds>
+            if(result[i]==0)
+            {                
+                switch (this->exMode)
+                {
+                case extrapolationMode::emConstant :
+                    delta[i] = 0.5;
+                    break;
+                case extrapolationMode::emZero :
+                    delta[i] = 0;
+                    break;
+                default:
+                    break;
+                }
+                
+            }
+            //<coincident>
+            else if(indexIt[i][0]==indexIt[i][1])
             {
-                //<out of bounds> || <coincident>
                 delta[i] = 0.5;
             }
             else{
@@ -118,7 +134,14 @@ public:
             {
                 idx[j]=indexIt[j][z[j]];               
                 scalar sign = z[j]==0? -1: 1;
-                coeff[i]*=(1-z[j]+sign*delta[j]);
+                if(result[j]==0)
+                {
+                    coeff[i] *= delta[j];
+                }
+                else
+                {
+                    coeff[i]*=(1-z[j]+sign*delta[j]);
+                }
             };
             values[i]= parent::outputs[parent::index(idx)];
 

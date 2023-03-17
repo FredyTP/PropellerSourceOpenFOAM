@@ -8,6 +8,13 @@
 namespace Foam
 {
 
+
+enum extrapolationMode
+{
+    emConstant = 0,
+    emZero,
+    emExtrapolate, //not in use
+};
 /**
  * Base class for interpolation tables with no specified interpolation algorithm
  * 
@@ -20,7 +27,13 @@ namespace Foam
 template<class typeIn, class typeOu, label dim>
 class interpolationTable
 {
+protected:
+    extrapolationMode exMode = extrapolationMode::emConstant;
 public:
+
+    void setExtrapolationMode(extrapolationMode mode) {exMode = mode;}
+
+    
     interpolationTable(){}
     
     /**
