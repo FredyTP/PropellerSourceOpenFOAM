@@ -29,7 +29,7 @@ public:
             const dictionary& dict
         );
 
-                //- No copy construct
+            //- No copy construct
         bladeElementModel(const bladeElementModel&) = delete;
 
         //- No copy assignment
@@ -44,10 +44,7 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry);
 
-/**
- * Temporal vel sampler, change in the future
-*/
-    virtual void calculate(const vectorField& U,volVectorField& force);
+    virtual propellerResult calculate(const vectorField& U,volVectorField& force);
 
     virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
 };

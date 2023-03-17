@@ -17,7 +17,27 @@ namespace Foam
                          Class propellerModel Declaration
 \*---------------------------------------------------------------------------*/
 
+class propellerResult
+{
+    public:
+    vector force {0,0,0}; //x: y: z: thrust in local coordinates
+    scalar torque {0}; //Aerodynamic torque on rotor axis
+    scalar power {0}; //Power needed to rotate the propeller
+    scalar J{0}; // refV / (n*D)
+    scalar eta{0}; // Thrust* refV / power
 
+    inline scalar& thrust() {return force.z();}
+    void info(word name)
+    {
+        Info<<name<<" result:"<<endl;
+        Info<<"\tThrust = "<<thrust()<<endl;
+        Info<<"\tTorque = "<<torque<<endl;
+        Info<<"\tPower = "<<power<<endl;
+        Info<<"\tJ = "<<J<<endl;
+        Info<<"\tEta = "<<eta<<endl;
+    }
+
+};
 
 
 class propellerModel
@@ -25,6 +45,8 @@ class propellerModel
 
 protected:
     const rotorMesh* rotorMesh_;
+    scalar refV=1; //Refence velocity for adimensional
+    scalar refRho=1; //Reference density 
 public:
     TypeName("propellerModel");
 
@@ -71,9 +93,12 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry){}
 
-    virtual void calculate(const vectorField& U, volVectorField& force){}
+    virtual propellerResult calculate(const vectorField& U, volVectorField& force){return propellerResult();}
 
     virtual const rotorDiscrete& rDiscrete() = 0;
+
+    void setRefV(scalar v){refV=v;}
+    void setRefRho(scalar rho){refRho = rho;}
 };
 
 }

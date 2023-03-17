@@ -39,8 +39,9 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 }
 
 
-void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& force)
+Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& force)
 {
+    propellerResult result;
     scalar totalLift = 0;
     scalar totalDrag = 0;
     scalar totalThrust = 0;
@@ -113,7 +114,7 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
         //Angle of atack
         scalar AoA = twist - phi;
 
-        scalar rho = 1.225;
+        scalar rho = this->refRho;
         scalar nu = 1e-5;
         scalar re = rho*relativeSpeed*chord/nu;
         scalar c = 345;
@@ -136,10 +137,13 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
         //Project over normal components
         vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
         vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
-        totalThrust += normalForce.z();
-        totalMoment += tangentialForce.x() * radius;
-        //Back to global ref frame
+        
         vector totalAerForce = normalForce + tangentialForce;
+
+        result.force += totalAerForce;
+        result.torque += (tangentialForce.x() * radius);
+
+        //Back to global ref frame
         totalAerForce = transform(bladeTensor,totalAerForce);
 
         //Add source term
@@ -153,17 +157,20 @@ void Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& for
 
     //TODO: obtain real time step
     //rotorDynamics_.integrate(-totalMoment,0.005);
-    double power = totalMoment * omega;
+    result.power = result.torque * omega;
+    result.eta=result.force.z() * this->refV / result.power;
+    result.J = this->refV/(omega*rotorDiscrete_.geometry().radius);
 
-    Info<< "Total Lift: "<<totalLift<<endl;
+    /*Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;
     Info<< "Total thrust: "<<totalThrust<<endl;
     Info<< "Total power:" <<power <<endl;
     Info<< "Total Moment z: " <<totalMoment<<endl;
     Info<< "RPM: "<< omega * 30/pi<<endl;
-    Info<< "Rad/s" <<omega<<endl;
+    Info<< "Rad/s: " <<omega<<endl;
     Info<< "Max AoA: "<< max(aoaList) * 180/pi<<endl;
     Info<< "Min AoA: "<< min(aoaList) * 180/pi<<endl;
-    Info<< "Max Vel: "<<max(U)<<endl;
+    Info<< "Max Sampled Vel: "<<max(U)<<endl;*/
+    return result;
 
 }
