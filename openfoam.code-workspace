@@ -201,7 +201,15 @@
 			"bladeModel.C": "cpp",
 			"velocitySampler.C": "cpp",
 			"fixedVelocity.C": "cpp",
-			"offsetSampler.C": "cpp"
+			"offsetSampler.C": "cpp",
+			"NURBS3DCurve.C": "cpp",
+			"cellPointWeight.C": "cpp",
+			"interpolationCellPoint.C": "cpp",
+			"turbulentFluidThermoModel.C": "cpp",
+			"volPointInterpolation.C": "cpp",
+			"volPointInterpolate.C": "cpp",
+			"treeDataCell.C": "cpp",
+			"indexedOctree.C": "cpp"
 		}
 	}
 }
