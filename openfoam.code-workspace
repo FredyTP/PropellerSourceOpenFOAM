@@ -9,7 +9,7 @@
 			"path": "."
 		},
 		{
-			"path": "../../../openfoam/src/fvOptions/sources/derived/rotorDiskSource"
+			"path": "../../../openfoam-develop/src/fvOptions/sources/derived/rotorDiskSource"
 		}
 	],
 	"settings": {
@@ -209,7 +209,8 @@
 			"volPointInterpolation.C": "cpp",
 			"volPointInterpolate.C": "cpp",
 			"treeDataCell.C": "cpp",
-			"indexedOctree.C": "cpp"
+			"indexedOctree.C": "cpp",
+			"inverseDistance.C": "cpp"
 		}
 	}
 }
