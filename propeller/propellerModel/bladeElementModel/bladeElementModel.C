@@ -131,8 +131,10 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,vo
         //Calculate aerodinamic forces
         scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed * area;
         scalar drag = average_fact * 0.5 * rho * cd * chord * relativeSpeed * relativeSpeed * area;
-        
-        
+
+
+        //Open foam code is not decomposing Lift and drag
+        //from wind axis to blade axis
         //Project over normal components
         vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
         vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
