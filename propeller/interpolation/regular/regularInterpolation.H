@@ -162,7 +162,7 @@ public:
      *                                                                 (1 2 2)  ->   x7
      *                                                                 (2 2 2)  ->   x8
     */
-    void setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
+    bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
     {
         for(label i = 0; i < dim; i++)
         {
@@ -220,6 +220,7 @@ public:
             outputs[this->index(idx)]=outputs_[i];
         }
         
+        return true;
         //Fill gaps with linear interpolation
     }
     bool checkSize()

@@ -19,7 +19,7 @@ public:
 
 protected:
 
-    static typeIn SqrDistance(FixedList<typeIn,dim>& p1, FixedList<typeIn,dim>& p2) 
+    static typeIn SqrDistance(const FixedList<typeIn,dim>& p1, const FixedList<typeIn,dim>& p2) 
     {
         typeIn sqDist= 0;
         

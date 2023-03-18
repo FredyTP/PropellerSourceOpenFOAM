@@ -54,7 +54,16 @@ public:
         return interpolate(FixedList<typeIn,dim>(input));
     }
 
-    virtual void setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) = 0;
+    /**
+     * Set interpolation data from a set of raw points (x1 y1 z1 ...) => (o1)
+     *                                                 (x2 y2 z2 ...) => (o1)
+     *                                                        .            .
+     *                                                        .            .
+     *                                                        .            .
+     * If data set is not correct, return false
+     * if could be fit, return true
+    */                                                         
+    virtual bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) = 0;
 
     
     
