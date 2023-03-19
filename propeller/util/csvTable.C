@@ -111,7 +111,7 @@ template <class dataType, class headerType>
 List<dataType> csvTable<dataType, headerType>::col(label coli)
 {
     List<dataType> column(0);
-    if(coli>(*table)[0].size())
+    if(coli>=(*table)[0].size())
     {
         return column;
     }
