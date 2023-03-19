@@ -39,7 +39,7 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 }
 
 
-Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,volVectorField& force)
+Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,scalar angularVelocity, volVectorField& force)
 {
     propellerResult result;
     //Puntos de la discretizacion
@@ -48,9 +48,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,vo
     const List<tensor> bladeCS = rotorDiscrete_.localBladeCS();
 
     //Velocidad angular
-    double rpm = 1000;
-    double pi = Foam::constant::mathematical::pi;
-    double omega = rpm*pi/30;
+    scalar pi = Foam::constant::mathematical::pi;
+    const scalar omega = angularVelocity;
     
     List<scalar> aoaList(cylPoints.size());
 
@@ -156,8 +155,6 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,vo
         aoaField.write();
     }
 
-    //TODO: obtain real time step
-    //rotorDynamics_.integrate(-totalMoment,0.005);
     result.power = result.torque * omega;
     result.eta=result.force.z() * this->refV / result.power;
     result.J = this->refV/(omega*rotorDiscrete_.geometry().radius);

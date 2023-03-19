@@ -93,7 +93,7 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry){}
 
-    virtual propellerResult calculate(const vectorField& U, volVectorField& force){return propellerResult();}
+    virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force){return propellerResult();}
 
     virtual const rotorDiscrete& rDiscrete() = 0;
 

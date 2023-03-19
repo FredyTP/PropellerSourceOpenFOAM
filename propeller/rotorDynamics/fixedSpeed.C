@@ -11,11 +11,24 @@ namespace Foam
 
     addToRunTimeSelectionTable(rotorDynamics,fixedSpeed,dictionary);
 
-fixedSpeed::fixedSpeed(const dictionary &dict)
-{
+    fixedSpeed::fixedSpeed(const dictionary &dict)
+    {
+        bool isRpm = false;
+        scalar rpm;
+        isRpm = dict.readIfPresent("rpm",rpm);
+
+        if(isRpm)
+        {
+            omega_ = rpmToRad_s(rpm);
+        }
+        else
+        {
+            dict.readEntry("angularRate",omega_);
+        }
+        
+
+    }
 
 
 }
 
-
-}

@@ -17,9 +17,26 @@ namespace Foam
 
     fixedPower::fixedPower(const dictionary &dict)
     {
+        bool isRpm = false;
+        scalar rpm;
+        isRpm = dict.readIfPresent("rpm",rpm);
+
+        if(isRpm)
+        {
+            omega_ = rpmToRad_s(rpm);
+        }
+        else
+        {
+            omega_ = dict.getOrDefault<scalar>("angularRate",0.0);
+        }
+
+        inertia_ = dict.getOrDefault<scalar>("angularRate",0.0);
+        torque_ = dict.getOrDefault<scalar>("torque",0.0);
+
+        //TODO: finish this ...
 
 
-}
+    }
 
 
 }

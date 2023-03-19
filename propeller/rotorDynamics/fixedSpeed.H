@@ -18,6 +18,7 @@ public:
 
     virtual void integrate(scalar aeroMoment,scalar dt)
     {
+        Info<<"time step: "<<dt<<endl;
         torque_  = (-aeroMoment + omega_ * viscousDisipation_);
     }
 private:

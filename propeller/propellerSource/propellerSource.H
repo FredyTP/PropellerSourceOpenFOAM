@@ -14,12 +14,13 @@
 #include "airfoilModel.H"
 #include "airfoilModelList.H"
 
-#include "irregularInterpolation.H"
 #include "bladeModelDev.H"
 #include "rotorMesh.H"
 #include "rotorGeometry.H"
 
 #include "velocitySampler.H"
+#include "rotorDynamics.H"
+
 namespace Foam
 {
 namespace fv
@@ -53,8 +54,11 @@ protected:
 
     //Velocity sampler for model
     autoPtr<velocitySampler> velSampler_;
+
+    //Rotor dynamics control
+    autoPtr<rotorDynamics> dynamics_;
 public:
-    //Defines the runtime name of this class (IOpurposes?)
+    //Defines the runtime name of this class
     TypeName("propeller");
 
     // Constructors

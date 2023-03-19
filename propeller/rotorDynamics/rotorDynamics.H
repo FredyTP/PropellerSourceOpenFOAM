@@ -39,7 +39,7 @@ public:
     }
     scalar rpm() const
     {
-        return omega_ * 30.0/Foam::constant::mathematical::pi;
+        return rad_sToRpm(omega_);
     }
     /**
      * Engine torque
@@ -57,13 +57,20 @@ public:
         return torque_*omega_;
     }
 
+    inline static scalar rpmToRad_s(scalar rpm){ return rpm * rpmToRadFactor;}
+    inline static scalar rad_sToRpm(scalar rad_s){ return rad_s * radToRpmFactor;}
 protected:
     scalar omega_; // rad/s
     scalar torque_; // Nm
     scalar inertia_;// kgm
     scalar viscousDisipation_; //kgm/s
+
+    static constexpr scalar rpmToRadFactor = Foam::constant::mathematical::pi/30.0;
+    static constexpr scalar radToRpmFactor = 30.0/Foam::constant::mathematical::pi;
 };
 
 }
 
 #endif /* PROPELLER_ROTOR_DYNAMICS_ROTOR_DYNAMICS */
+
+

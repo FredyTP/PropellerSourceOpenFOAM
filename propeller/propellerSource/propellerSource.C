@@ -41,50 +41,62 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
     if(fv::option::read(dict))
     {
         std::cout<<"Reading propeller source"<<std::endl;
+
+        /*---------FV OPTIONS RELATED STUFF--------*/
         fv::option::resetApplied();
 
         //Read fields names to apply the source, if not present
         //source won't be apllied
         coeffs_.readEntry("fields", fieldNames_);
         fv::option::resetApplied();
-        
+        /*-----------------------------------------*/
 
-        //- Read geometry data
+
+        /*----------READ USER SPECIFIED ROTOR GEOMETRY---------------*/
+        //- Read geometry data, SET TO EMPTY VALUE IF NOT PRESENT
         rotorGeometry_.radius = coeffs_.getOrDefault<scalar>("radius", NO_RADIUS);
         rotorGeometry_.direction = coeffs_.getOrDefault("direction",vector(Zero));
         rotorGeometry_.center = coeffs_.getOrDefault("center",vector(Zero));
+        rotorGeometry_.psiRef = coeffs_.getOrDefault("psiRef",vector(Zero));
 
+        /*----------READ USER DESIRED ROTOR MODEL(BEMT ...)---------------*/
         //- Read propeller Model
         const dictionary& propellerModelDict = coeffs_.subDict("propellerModel");
         propellerModel_ = propellerModel::New(propellerModelDict);
 
+        /*---------IF NO RADIUS SPECIFIED CHECK FROM MODEL DATA---------------*/
         //- If no radius from dict, check on rotor Model
         if(rotorGeometry_.radius == NO_RADIUS)
         {
             rotorGeometry_.radius = propellerModel_->radius();
         }
 
-        //READ ROTOR MESH
+        /*----------READ FV ROTOR MESH CONFIG---------------*/
         const dictionary& rotorMeshDict = coeffs_.subDict("rotorMesh");
         rotorMesh_.read(rotorMeshDict);
-        rotorMesh_.build(rotorGeometry_);
-        //- Building rotor mesh may or may not modify rotorGeometry
-        
-        propellerModel_->setRotorMesh(&rotorMesh_);
 
+        /*-----BUILD MESH AND UPDATE PROVIDED ROTOR GEOMETRY-----*/
+        rotorMesh_.build(rotorGeometry_);  //- Building rotor mesh may or may not modify rotorGeometry
+       
+        /*-----SET THE FV MESH TO THE ROTOR MODEL-----*/
+        propellerModel_->setRotorMesh(&rotorMesh_);
         //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
+        //Set reference properties for aerodynamic forces and adim variables
+        propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
+        propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
 
+        /*-----CREATE VELOCITY SAMPLING METHOD-----*/
         //Create velocitySampler for specified rotor discrete and mesh
         velSampler_ = velocitySampler::New(
                    dict.subDict("velocitySampler"),
                    &propellerModel_->rDiscrete(), 
                    &rotorMesh_);
+        velSampler_->writeSampled(name_); //Write to file sampling location
 
-        velSampler_->writeSampled(name_);
-
-        propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
-        propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
+        
+        /*----CREATE ROTOR DYNAMICS----*/
+        dynamics_ = rotorDynamics::New(dict.subDict("dynamics"));
 
         return true;
     }
@@ -112,12 +124,17 @@ void Foam::fv::propellerSource::addSup
         dimensionedVector(eqn.dimensions()/dimVolume, Zero)
     );
 
-    //const scalarField& cellVolume = mesh_.V();
     const volVectorField& Uin(eqn.psi());
 
     propellerResult result;
-    result = propellerModel_->calculate(velSampler_->sampleVelocity(Uin),force);
+    result = propellerModel_->calculate
+        (
+            velSampler_->sampleVelocity(Uin),
+            dynamics_->angularVelocity(),
+            force
+        );
 
+    dynamics_->integrate(result.torque,mesh_.time().deltaTValue());
     result.info(name_);
     //Add source term to the equation
     eqn+=force;
