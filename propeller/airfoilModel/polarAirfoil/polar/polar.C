@@ -8,6 +8,7 @@
 #include "vector.H"
 #include "csvTableReader.H"
 #include "mathematicalConstants.H"
+#include "csvTable.H"
 
 namespace Foam
 {
@@ -24,6 +25,10 @@ polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, Li
     processData(alpha,cl,cd);
     FixedList<List<scalar>,1> alphaIn;
     alphaIn[0]=alpha;
+    forAll(alphaIn[0],i)
+    {
+        alphaIn[0][i] *= constant::mathematical::pi/180;
+    }
     cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cl);
     cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cd);
     reynolds_ = Re;
@@ -124,8 +129,32 @@ void polar::processData(List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd)
 
 autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, const fileName filename, scalar Re, scalar Ma)
 {
-    Info<< "    Selecting " << typeName << " " << modelType << endl;
+    //Find class contructor in tables
+    auto* ctorPtr = dictionaryConstructorTable(modelType);
 
+    if (!ctorPtr)
+    {
+        /*FatalIOErrorInLookup
+        (
+            "polar",
+            typeName,
+            modelType,
+            *dictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);*/
+    }
+    csvTable<scalar,word> csvReader(true);
+    csvReader.readFile(filename);
+
+    List<scalar> aoa,cl,cd;
+    aoa = csvReader.col("AoA");
+    cl = csvReader.col("CL");
+    cd = csvReader.col("CD");
+
+    return autoPtr<Foam::polar>(ctorPtr(interpolation,aoa,cl,cd,Re,Ma));
+}
+
+autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd, scalar Re, scalar Ma)
+{
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);
 
@@ -140,7 +169,10 @@ autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, 
         ) << exit(FatalIOError);*/
     }
 
-    return autoPtr<Foam::polar>(ctorPtr(interpolation,filename,Re,Ma));
+    return autoPtr<Foam::polar>(ctorPtr(interpolation,alpha,cl,cd,Re,Ma));
 }
 
+
 }
+
+

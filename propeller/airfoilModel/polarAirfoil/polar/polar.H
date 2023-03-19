@@ -23,11 +23,13 @@ public:
         dictionary,
         (
             const word interpolation,
-            const fileName filename,
+            List<scalar>& alpha,
+            List<scalar>& cl,
+            List<scalar>& cd,
             scalar Re,
             scalar Ma
         ),
-        (interpolation, filename, Re, Ma)
+        (interpolation, alpha,cl,cd, Re, Ma)
     );
 
     polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma);
@@ -42,7 +44,7 @@ public:
     ~polar();
     
     static autoPtr<Foam::polar> New(const word modelType,const word interpolation, const fileName filename, scalar Re, scalar Ma);
-
+    static autoPtr<Foam::polar> New(const word modelType,const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma);
 protected:
 
     void processData(List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd);

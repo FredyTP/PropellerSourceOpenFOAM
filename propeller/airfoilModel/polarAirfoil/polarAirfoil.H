@@ -23,6 +23,19 @@ public:
     virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const;
 
     bool read(const dictionary& dict);
+    bool readFromPolars(word extrapolation);
+
+    /**
+     * Requierements: 
+     * - have columns named AoA, CL, CD, Re, Ma
+     * - have all AoA sorted in ascending order
+     * - have all AoA points for same Re & Ma together
+     * 
+     * note:
+     * - No need to have same AoA for every Mach / Re
+     * - Data points dont have to be structured but it's recommended
+    */
+    bool readFromCSV(word extrapolation);
 private:
     fileName file_;
 

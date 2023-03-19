@@ -210,7 +210,11 @@
 			"volPointInterpolate.C": "cpp",
 			"treeDataCell.C": "cpp",
 			"indexedOctree.C": "cpp",
-			"inverseDistance.C": "cpp"
+			"inverseDistance.C": "cpp",
+			"polyMeshInitMesh.C": "cpp",
+			"surfaceInterpolation.C": "cpp",
+			"Time.C": "cpp",
+			"CloudSubModelBase.C": "cpp"
 		}
 	}
 }
