@@ -7,6 +7,9 @@
 #include "syncTools.H"
 #include "unitConversion.H"
 #include "cellBitSet.H"
+#include "cartesianCS.H"
+#include "delaunayTriangulation.H"
+
 namespace Foam
 {
 
@@ -87,7 +90,11 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         this->findRotorNormal(rotorGeometry);
         this->findRotorRadius();
 
+        Info<<"Proyected Area : "<<endl;
         this->computeCellsArea(); //
+
+        Info<<"Voronoi Area: "<<endl;
+        this->computeCellsAreaVoronoid();
 
         this->tryCorrectGeometry(rotorGeometry); //Use geometry as output
     break;
@@ -358,6 +365,103 @@ void rotorMesh::computeCellsArea()
 
 }
 
+void rotorMesh::computeCellsAreaVoronoid()
+{
+    const vectorField& cellCenter = mesh_.C();
+    const scalar radius = rotor_.radius;
+    scalar idealArea = constant::mathematical::pi * radius * radius;
+    
+    //set area size
+    area_.resize(cells_.size());
+
+    area_= 0.0;
+    diskArea_ = 0.0;
+    //MODIFY ROTOR DISCRETE TO WORK ON LOCAL COORD SYSTEM
+    auto cs = coordSystem::cartesian
+            (
+                rotor_.center, //centerd to local
+                rotor_.direction, //z-axis 
+                rotor_.psiRef  //x-axis
+            );
+    //Find cells centers
+    List<point> centers(cells_.size());
+    forAll(cells_,i)
+    {
+        label celli = cells_[i];
+        centers[i] = cs.localPosition(cellCenter[celli]);
+        centers[i].z() = 0; //proyect over plane
+    }
+
+    List<List<label>> voroCells;
+    List<point> vertex;
+
+    List<label> idx(centers.size());
+    std::iota(idx.begin(), idx.end(), 0);
+    std::sort(idx.begin(),idx.end(),[&centers](label a, label b)
+    {
+        return centers[a].x()<centers[b].x();
+    });
+    
+    List<point> sortedCenter(centers.size());
+    forAll(centers,i)
+    {
+        sortedCenter[i]=centers[idx[i]];
+    }
+    delaunayTriangulation::Voronoid
+    (
+        sortedCenter,
+        vertex,
+        voroCells,
+        delaunayTriangulation::circularRegion(radius),
+        delaunayTriangulation::intersectCircle(radius)
+    );
+
+    forAll(voroCells,i)
+    {
+        auto& poli = voroCells[i];
+        if(poli.size()>2)
+        {
+            scalar area = 0.0;
+
+            label j = poli.size() - 1;
+            for (label i = 0; i < poli.size(); i++)
+            {
+                area += (vertex[poli[j]].x() + vertex[poli[i]].x()) * (vertex[poli[j]].y() - vertex[poli[i]].y());
+                j = i;
+            }
+            area_[idx[i]] = std::abs(area / 2.0);
+           
+        }
+        else
+        {
+            Info<<"ERROR BUILDING VORONOID MESH"<<endl;
+        }
+
+    }
+
+    forAll(area_,i)
+    {
+        diskArea_ += area_[i];
+    }
+
+    volScalarField areainfo
+    (
+        IOobject
+        (
+            "rotorDisk:area",
+            mesh_.time().timeName(),
+            mesh_
+        ),
+        mesh_,
+        dimensionedScalar(dimArea, Zero)
+    );
+    UIndirectList<scalar>(areainfo.primitiveField(), cells_) = area_;
+
+    areainfo.write();
+    Info<< "Ideal disk area: " << idealArea<<endl;
+    Info<< "Disk Area: " << diskArea_ << endl;    
+
+}
 
 void rotorMesh::findRotorCenter()
 {

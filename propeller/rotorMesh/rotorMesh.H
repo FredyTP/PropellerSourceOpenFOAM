@@ -114,6 +114,7 @@ protected:
 
         //- Compute cell area for selected cells
         void computeCellsArea();
+        void computeCellsAreaVoronoid();
 
         void tryCorrectGeometry(rotorGeometry& rotorGeometry);
 };
