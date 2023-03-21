@@ -142,9 +142,7 @@ static int VoronoidFromTri
 )
 {
 
-
    orto.resize(tri.size());
-   scalar radius = 0.25;
    /*Compute orto centers*/
    for(label i=0;i <tri.size();i++)
    {
