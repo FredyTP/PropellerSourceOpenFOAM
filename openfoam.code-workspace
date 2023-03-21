@@ -214,7 +214,23 @@
 			"polyMeshInitMesh.C": "cpp",
 			"surfaceInterpolation.C": "cpp",
 			"Time.C": "cpp",
-			"CloudSubModelBase.C": "cpp"
+			"CloudSubModelBase.C": "cpp",
+			"triSurfaceTools.C": "cpp",
+			"triSurface.C": "cpp",
+			"PrimitivePatch.C": "cpp",
+			"enrichedPatch.C": "cpp",
+			"geompack.C": "cpp",
+			"sigFpe.C": "cpp",
+			"cv2DControls.C": "cpp",
+			"DelaunayMeshTools.C": "cpp",
+			"DelaunayMeshToolsTemplates.C": "cpp",
+			"DelaunayMesh.C": "cpp",
+			"sigSegv.C": "cpp",
+			"ILList.C": "cpp",
+			"solutionControl.C": "cpp",
+			"IOobjectList.C": "cpp",
+			"PtrList.C": "cpp",
+			"GeometricField.C": "cpp"
 		}
 	}
 }
