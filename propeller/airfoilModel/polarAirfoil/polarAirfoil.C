@@ -59,6 +59,16 @@ bool polarAirfoil::read(const dictionary& dict)
     else
     {
         dict.readEntry("csv",file_);
+        List<word> columnNames;
+        dict.readIfPresent("col",columnNames);
+        //Change first N names used
+        forAll(columnNames,i)
+        {
+            if(i<colNames.size())
+            {
+                colNames[i]=columnNames[i];
+            }
+        }
         ok = this->readFromCSV(extrapolation);
     }
     
@@ -121,11 +131,11 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     csvReader.readFile(file_);
 
     List<scalar> aoa,cl,cd,ma,re;
-    aoa = csvReader.col("AoA");
-    cl = csvReader.col("CL");
-    cd = csvReader.col("CD");
-    ma = csvReader.col("Ma");
-    re = csvReader.col("Re");
+    aoa = csvReader.col(aoaName());
+    cl = csvReader.col(clName());
+    cd = csvReader.col(cdName());
+    re = csvReader.col(reName());
+    ma = csvReader.col(maName());
 
     label len = aoa.size();
 
@@ -133,6 +143,9 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     if(len == 0 || len != cl.size() || len != cd.size())
     {   
         FatalErrorInFunction
+        << "Cannot find some " 
+        << colNames 
+        << " columns."
         << exit(FatalIOError);
     }
 

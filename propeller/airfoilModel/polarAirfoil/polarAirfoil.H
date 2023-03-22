@@ -27,7 +27,7 @@ public:
 
     /**
      * Requierements: 
-     * - have columns named AoA, CL, CD, Re, Ma
+     * - have columns named AoA, CL, CD, Re, Ma or specify names
      * - have all AoA sorted in ascending order
      * - have all AoA points for same Re & Ma together
      * 
@@ -36,12 +36,22 @@ public:
      * - Data points dont have to be structured but it's recommended
     */
     bool readFromCSV(word extrapolation);
+
+protected:
+    inline word aoaName() const  {return colNames[0];}
+    inline word clName() const {return colNames[1];}
+    inline word cdName() const {return colNames[2];}
+    inline word reName() const {return colNames[3];}
+    inline word maName() const {return colNames[4];}
+
 private:
     fileName file_;
 
     typedef interpolationTable<scalar,polar*,2> polarTable;
     List<autoPtr<polar>> polars_;
     autoPtr<polarTable> polarInterpolated;
+
+    FixedList<word,5> colNames{"AoA","CL","CD","Re","Ma"};
 
 };
 
