@@ -35,7 +35,7 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
     rotorDiscrete_.fromRotorMesh(*rotorMesh_);
 
-    bladeModel_.setMaxRadius(rotorGeometry.radius);
+    bladeModel_.setMaxRadius(rotorGeometry.radius());
 }
 
 
@@ -156,8 +156,15 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     }
 
     result.power = result.torque * omega;
-    result.eta=result.force.z() * this->refV / result.power;
-    result.J = this->refV/(omega*rotorDiscrete_.geometry().radius);
+    if(result.power == 0)
+    {
+        result.eta = 0;
+    }
+    else
+    {
+        result.eta=result.force.z() * this->refV / result.power;
+    }
+    result.J = this->refV/(omega*rotorDiscrete_.geometry().radius());
 
     /*Info<< "Total Lift: "<<totalLift<<endl;
     Info<< "Total Drag: "<<totalDrag<<endl;

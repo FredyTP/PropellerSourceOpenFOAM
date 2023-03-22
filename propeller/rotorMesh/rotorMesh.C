@@ -51,6 +51,8 @@ rotorMesh::rotorMesh
 
 void rotorMesh::build(rotorGeometry& rotorGeometry)
 {
+    // Fix rotor center specification
+    //Provide geometry data if not data specified or ask for correction
     this->clear();
 
     switch (selMode_)
@@ -71,11 +73,16 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
             this->createMeshSelectionCilinder();
         }
 
-        this->computeCellsArea();
+        Info<<"Proyected Area : "<<endl;
+        this->computeCellsArea(); //
+
+        Info<<"Voronoi Area: "<<endl;
+        this->computeCellsAreaVoronoid();
 
         //Find "new" geometry --
-        this->findRotorCenter();
         this->findRotorRadius();
+        //Dont find rotor center because already selected cells from spec or aprox center
+        //this->findRotorCenter();
         this->findRotorNormal(rotorGeometry);
         this->tryCorrectGeometry(rotorGeometry); //Update data if required
 
@@ -139,7 +146,7 @@ bool rotorMesh::read(const dictionary &dict)
         Info<< "Reading cellSet from: " << cellsName_<<endl;
 
         //If rotorMesh is from cellset geometry may not be provided
-        correctGeometry_ = true;
+        correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
 
         break;
     case selectionMode::smCellSet :
@@ -148,7 +155,7 @@ bool rotorMesh::read(const dictionary &dict)
         Info<< "Reading cellSet from: " << cellsName_<<endl;
 
         //If rotorMesh is from cellset geometry may not be provided
-        correctGeometry_ = true;
+        correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
 
         break;
     default:
@@ -167,7 +174,7 @@ void rotorMesh::tryUpdateCenter()
         //Use closest cell centroid to center the plane used
         //to find rotor geometry, usually provides better results
         //in an oriented mesh
-        vector oldCenter = rotor_.center;
+        vector oldCenter = rotor_.center();
         label centercell = mesh_.findCell(oldCenter);
         if(centercell == -1)
         {
@@ -175,10 +182,10 @@ void rotorMesh::tryUpdateCenter()
             Info << "Rotor center is outside of mesh" << endl;
             return;
         }
-        rotor_.center = mesh_.C()[centercell];
+        rotor_.setCenter(mesh_.C()[centercell]);
 
 
-        Info << "Using rotor center: " << rotor_.center
+        Info << "Using rotor center: " << rotor_.center()
             << " instead of: " << oldCenter 
             << endl;
     }
@@ -187,16 +194,16 @@ void rotorMesh::tryCorrectGeometry(rotorGeometry& rotorGeometry)
 {
     if(correctGeometry_)
     {
-        rotorGeometry.radius = rotor_.radius;
-        rotorGeometry.center = rotor_.center;
-        rotorGeometry.direction = rotor_.direction;
+        rotorGeometry.setRadius(rotor_.radius());
+        rotorGeometry.setCenter(rotor_.center());
+        rotorGeometry.setDirection(rotor_.direction());
     }
 }
 void rotorMesh::createMeshSelectionCilinder()
 {
-    const vector& rotorDir = rotor_.direction;
-    const vector& rotorCenter = rotor_.center;
-    const scalar& radius = rotor_.radius;
+    const vector& rotorDir = rotor_.direction();
+    const vector& rotorCenter = rotor_.center();
+    const scalar& radius = rotor_.radius();
 
     dictionary diskDict;
     diskDict.add("name","diskSelection");
@@ -223,9 +230,9 @@ void rotorMesh::createMeshSelectionCilinder()
 void rotorMesh::createMeshSelection()
 {
 
-    const vector& rotorDir = rotor_.direction;
-    const vector& rotorCenter = rotor_.center;
-    const scalar& radius = rotor_.radius;
+    const vector& rotorDir = rotor_.direction();
+    const vector& rotorCenter = rotor_.center();
+    const scalar& radius = rotor_.radius();
     //TODO: Find better or improve algorithm to select rotor cells
     plane rotorPlane(rotorCenter,rotorDir);
 
@@ -306,8 +313,8 @@ void rotorMesh::loadMeshSelection()
 }
 void rotorMesh::computeCellsArea()
 {
-    const vector& rotorDir = rotor_.direction;
-    const scalar& radius = rotor_.radius;
+    const vector& rotorDir = rotor_.direction();
+    const scalar& radius = rotor_.radius();
 
     scalar idealArea = constant::mathematical::pi * radius * radius;
     
@@ -368,7 +375,7 @@ void rotorMesh::computeCellsArea()
 void rotorMesh::computeCellsAreaVoronoid()
 {
     const vectorField& cellCenter = mesh_.C();
-    const scalar radius = rotor_.radius;
+    const scalar radius = rotor_.radius();
     scalar idealArea = constant::mathematical::pi * radius * radius;
     
     //set area size
@@ -379,9 +386,9 @@ void rotorMesh::computeCellsAreaVoronoid()
     //MODIFY ROTOR DISCRETE TO WORK ON LOCAL COORD SYSTEM
     auto cs = coordSystem::cartesian
             (
-                rotor_.center, //centerd to local
-                rotor_.direction, //z-axis 
-                rotor_.psiRef  //x-axis
+                rotor_.center(), //centerd to local
+                rotor_.direction(), //z-axis 
+                rotor_.psiRef()  //x-axis
             );
     //Find cells centers
     List<point> centers(cells_.size());
@@ -480,7 +487,7 @@ void rotorMesh::findRotorCenter()
 
     newCenter /= volume;
 
-    rotor_.center = newCenter;
+    rotor_.setCenter(newCenter);
 
     Info << "Volume avg rotor Center: "<<newCenter<<endl;
 }
@@ -492,9 +499,10 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
 
     vector vecAbove(1000,1000,1000);
 
-    if(rotorGeometry.direction != vector())
+    //If direction is a valid vector
+    if(rotorGeometry.direction() != vector())
     {
-        vecAbove=rotorGeometry.direction;
+        vecAbove=rotorGeometry.direction();
     }
 
     vector newNormal(Zero);
@@ -502,12 +510,12 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
     forAll(cells_, i)
     {   
         label celli = cells_[i];
-        vector vecA = cellCenter[celli]-rotor_.center;
+        vector vecA = cellCenter[celli]-rotor_.center();
     
         forAll(cells_, j)
         {
             label cellj = cells_[j];
-            vector vecB = cellCenter[cellj]-rotor_.center;
+            vector vecB = cellCenter[cellj]-rotor_.center();
 
             vector probe = (vecA ^ vecB);
             if((probe & vecAbove) < 0)
@@ -521,7 +529,7 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
 
     newNormal.normalise();
 
-    rotor_.direction = newNormal;
+    rotor_.setDirection(newNormal);
 
     Info << "Volume avg rotor Direction: "<<newNormal<<endl;
 }
@@ -534,17 +542,16 @@ void rotorMesh::findRotorRadius()
     forAll(cells_, i)
     {   
         label celli = cells_[i];
-        scalar radsqr = magSqr(cellCenter[celli]-rotor_.center);
+        scalar radsqr = magSqr(cellCenter[celli]-rotor_.center());
         if(radsqr>maxRadSqr)
         {
             maxRadSqr=radsqr;
         }
     }
 
+    rotor_.setRadius(sqrt(maxRadSqr));
 
-    rotor_.radius = sqrt(maxRadSqr);
-
-    Info << "Max rotor radius: "<<rotor_.radius<<endl;
+    Info << "Max rotor radius: "<<rotor_.radius()<<endl;
 }
 
 

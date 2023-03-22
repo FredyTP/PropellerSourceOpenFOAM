@@ -54,10 +54,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
 
         /*----------READ USER SPECIFIED ROTOR GEOMETRY---------------*/
         //- Read geometry data, SET TO EMPTY VALUE IF NOT PRESENT
-        rotorGeometry_.radius = coeffs_.getOrDefault<scalar>("radius", NO_RADIUS);
-        rotorGeometry_.direction = coeffs_.getOrDefault("direction",vector(Zero));
-        rotorGeometry_.center = coeffs_.getOrDefault("center",vector(Zero));
-        rotorGeometry_.psiRef = coeffs_.getOrDefault("psiRef",vector(Zero));
+        rotorGeometry_.readIfPresent(coeffs_);
 
         /*----------READ USER DESIRED ROTOR MODEL(BEMT ...)---------------*/
         //- Read propeller Model
@@ -66,9 +63,11 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
 
         /*---------IF NO RADIUS SPECIFIED CHECK FROM MODEL DATA---------------*/
         //- If no radius from dict, check on rotor Model
-        if(rotorGeometry_.radius == NO_RADIUS)
+        if(!rotorGeometry_.isRadiusSet())
         {
-            rotorGeometry_.radius = propellerModel_->radius();
+            //From blade data if not adimensional
+            if(propellerModel_->radius() != NO_RADIUS) 
+                rotorGeometry_.setRadius(propellerModel_->radius());
         }
 
         /*----------READ FV ROTOR MESH CONFIG---------------*/

@@ -25,9 +25,9 @@ void rotorDiscrete::buildCoordinateSystem(const rotorGeometry& geometry)
 
     cylCS_ = coordSystem::cylindrical
                 (
-                    rotorGeometry_.center, //centerd to local
-                    rotorGeometry_.direction, //z-axis 
-                    rotorGeometry_.psiRef  //x-axis
+                    rotorGeometry_.center(), //centerd to local
+                    rotorGeometry_.direction(), //z-axis 
+                    rotorGeometry_.psiRef()  //x-axis
                 );
 }
 tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
@@ -136,8 +136,8 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh &rotorMesh)
             ps,
             orto,
             voronoid,
-            delaunayTriangulation::circularRegion(0.15),
-            delaunayTriangulation::intersectCircle(0.15)
+            delaunayTriangulation::circularRegion(0.25),
+            delaunayTriangulation::intersectCircle(0.25)
         );
         
         std::string x_string = "x = [";

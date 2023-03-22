@@ -26,7 +26,7 @@ bool fixedVelocity::read(const dictionary &dict)
         scalar speed;
         ok &=dict.readEntry("velocity",speed);
         //Positive speed towards the disk
-        velocity = - speed * rDiscrete->geometry().direction;
+        velocity = - speed * rDiscrete->geometry().direction();
         Info<< "normal to rotor speed = "<<speed<<endl;
     }
     else

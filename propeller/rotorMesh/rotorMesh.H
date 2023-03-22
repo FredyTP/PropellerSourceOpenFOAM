@@ -76,9 +76,9 @@ TypeName("rotorMesh");
 
         inline const labelList& cells() const { return cells_; }
         const fvMesh& mesh() const { return mesh_;}
-        inline const vector& direction() const {return rotor_.direction;}
-        inline const vector& center() const {return rotor_.center;}
-        inline scalar radius() const {return rotor_.radius;}
+        inline const vector& direction() const {return rotor_.direction();}
+        inline const vector& center() const {return rotor_.center();}
+        inline scalar radius() const {return rotor_.radius();}
         inline scalar diskArea() const {return diskArea_;}
         inline const scalarList& areas() const {return area_;}
         inline bool isBuilt() const {return built_;}

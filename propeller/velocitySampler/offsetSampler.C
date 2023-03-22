@@ -90,7 +90,7 @@ bool offsetSampler::build()
         point rPoint = rDiscrete->cylindrical().globalPosition(cylPoints[i]);
 
         //Add the offset normal to the geometry
-        rPoint += rDiscrete->geometry().direction * offset;
+        rPoint += rDiscrete->geometry().direction() * offset;
         //Find the cell where the point is and set to the list
         cellToSample[i] = rMesh->mesh().findCell(rPoint); 
 

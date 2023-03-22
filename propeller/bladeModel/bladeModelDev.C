@@ -19,7 +19,7 @@ Foam::devel::bladeModel::bladeModel
     fName_=dict.getOrDefault<fileName>("file","");
     if(!fName_.empty())
     {
-        Info<<"Reading blade data from: "<<fName_<<endl;
+        Info<<"Reading blade data from: " << fName_<<endl;
         Foam::IFstream is(fName_);
         is  >> sections;
     }
