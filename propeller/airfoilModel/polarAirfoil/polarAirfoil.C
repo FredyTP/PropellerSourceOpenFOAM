@@ -17,7 +17,12 @@ namespace Foam
 polarAirfoil::polarAirfoil(const word name, const dictionary& dict)
 :   airfoilModel(name)
 {
-    this->read(dict);
+    if(!this->read(dict))
+    {
+        FatalIOErrorInFunction(dict)
+        << "Could not read or invalid polar data "
+        << exit(FatalIOError);
+    }
 }
 
 /*
@@ -130,6 +135,10 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     csvTable<scalar,word> csvReader(true);
     csvReader.readFile(file_);
 
+    if(csvReader.nCol() == 0)
+    {
+        return false;
+    }
     List<scalar> aoa,cl,cd,ma,re;
     aoa = csvReader.col(aoaName());
     cl = csvReader.col(clName());
@@ -184,12 +193,22 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         }
         if(ma[i] != maPolar || re[i] != rePolar || i == aoa.size()-1)
         {
-            //Increment size by 1
-            polars_.resize(polars_.size()+1);
 
             //Create polar
             auto ptrPolar = polar::New(extrapolation,"lineal",aoaPolar,clPolar,cdPolar,rePolar,maPolar);
-            polars_[polars_.size()-1].reset(ptrPolar.release());
+            if(ptrPolar->valid())
+            {
+                //Increment size by 1
+                polars_.resize(polars_.size()+1);
+                polars_[polars_.size()-1].reset(ptrPolar.release());
+
+            }
+            else
+            {
+                Info<<"PolarAirfoil: "<<this->name_
+                <<" in Polar (Re = "<<rePolar<<", Ma = "<<maPolar
+                <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
+            }
 
             maPolar = ma[i];
             rePolar = re[i];
@@ -203,7 +222,11 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         cdPolar.append(cd[i]);
     }
 
-    return true;
+    if(polars_.size()>0)
+    {
+        return true;
+    }
+    return false;
 }
 scalar polarAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {

@@ -70,6 +70,8 @@ private:
     scalar A1_n,A2_n,B1_n,B2_n; //Negativos
 
     void setParameters();
+
+    virtual bool valid();
 };
 
 }

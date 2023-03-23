@@ -22,6 +22,7 @@ namespace Foam
 
 polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re, scalar Ma)
 {
+    //The polar needs atleast 2 data-points to be functional
     processData(alpha,cl,cd);
     FixedList<List<scalar>,1> alphaIn;
     alphaIn[0]=alpha;
@@ -103,6 +104,15 @@ scalar polar::mach() const
 {
     return mach_;
 }
+bool polar::valid()
+{
+    if(cl_alpha->size()<2)
+    {
+        return false;
+    }
+    return true;
+}
+
 polar::~polar()
 {
     Info<<"Deleted polar"<<endl;
@@ -113,8 +123,8 @@ void polar::processData(List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd)
     //Check if alpha is in ascending order
     if(!std::is_sorted(alpha.begin(),alpha.end()))
     {
-        //FatalError()
-        return;
+        Info<<"Alpha values in polar are not sorted, sorting ..."<<endl;
+        std::sort(alpha.begin(),alpha.end());
     }
 
     alpha_min = alpha[0];

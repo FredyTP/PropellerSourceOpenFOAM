@@ -133,5 +133,17 @@ void viterna::setParameters()
     B2_n = calcB2(data_.cd_max,abs(data_.cd_stall_neg),abs(data_.alpha_stall_neg));
 }
 
+bool viterna::valid()
+{
+    bool valid = true;
+
+    if(alpha_min >= 0 || alpha_max <= 0)
+    {
+        valid = false;
+    }
+
+    return (valid & polar::valid());
+}
+
 }
 

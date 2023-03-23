@@ -41,6 +41,9 @@ public:
 
     scalar reynolds() const;
     scalar mach() const;
+
+    virtual bool valid();
+
     ~polar();
     
     static autoPtr<Foam::polar> New(const word modelType,const word interpolation, const fileName filename, scalar Re, scalar Ma);
