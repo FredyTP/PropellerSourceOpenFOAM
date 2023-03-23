@@ -136,8 +136,8 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh &rotorMesh)
             ps,
             orto,
             voronoid,
-            delaunayTriangulation::circularRegion(0.25),
-            delaunayTriangulation::intersectCircle(0.25)
+            delaunayTriangulation::circularRegion(rotorMesh.radius()),
+            delaunayTriangulation::intersectCircle(rotorMesh.radius())
         );
         
         std::string x_string = "x = [";
