@@ -41,7 +41,7 @@ rotorMesh::rotorMesh
     cells_(),
     area_(),
     diskArea_(NO_AREA),
-    rotor_(),
+    meshGeometry_(),
     cellsName_(),
     findClosestCenter_(false),
     correctGeometry_(false)
@@ -60,8 +60,14 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
     case selectionMode::smGeometry :
     case selectionMode::smGeometry2 :
 
-        rotor_= rotorGeometry; //Use as input data
+        meshGeometry_= rotorGeometry; //Use as input data
 
+        localCartesianCS_ = coordSystem::cartesian
+            (
+                meshGeometry_.center(), //centerd to local
+                meshGeometry_.direction(), //z-axis 
+                meshGeometry_.psiRef()  //x-axis
+            );
         this->tryUpdateCenter(); 
 
         if(selMode_==selectionMode::smGeometry)
@@ -72,6 +78,8 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         {
             this->createMeshSelectionCilinder();
         }
+
+        this->computeLocalPositions();
 
         Info<<"Proyected Area : "<<endl;
         this->computeCellsArea(); //
@@ -96,6 +104,15 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         this->findRotorCenter();
         this->findRotorNormal(rotorGeometry);
         this->findRotorRadius();
+
+        localCartesianCS_ = coordSystem::cartesian
+            (
+                meshGeometry_.center(), //centerd to local
+                meshGeometry_.direction(), //z-axis 
+                meshGeometry_.psiRef()  //x-axis
+            );
+
+        this->computeLocalPositions();
 
         Info<<"Proyected Area : "<<endl;
         this->computeCellsArea(); //
@@ -174,7 +191,7 @@ void rotorMesh::tryUpdateCenter()
         //Use closest cell centroid to center the plane used
         //to find rotor geometry, usually provides better results
         //in an oriented mesh
-        vector oldCenter = rotor_.center();
+        vector oldCenter = meshGeometry_.center();
         label centercell = mesh_.findCell(oldCenter);
         if(centercell == -1)
         {
@@ -182,10 +199,10 @@ void rotorMesh::tryUpdateCenter()
             Info << "Rotor center is outside of mesh" << endl;
             return;
         }
-        rotor_.setCenter(mesh_.C()[centercell]);
+        meshGeometry_.setCenter(mesh_.C()[centercell]);
 
 
-        Info << "Using rotor center: " << rotor_.center()
+        Info << "Using rotor center: " << meshGeometry_.center()
             << " instead of: " << oldCenter 
             << endl;
     }
@@ -194,16 +211,53 @@ void rotorMesh::tryCorrectGeometry(rotorGeometry& rotorGeometry)
 {
     if(correctGeometry_)
     {
-        rotorGeometry.setRadius(rotor_.radius());
-        rotorGeometry.setCenter(rotor_.center());
-        rotorGeometry.setDirection(rotor_.direction());
+        rotorGeometry.setRadius(meshGeometry_.radius());
+        rotorGeometry.setCenter(meshGeometry_.center());
+        rotorGeometry.setDirection(meshGeometry_.direction());
+        //Check for no refPsi direction (?)
+    }
+    else
+    {
+        //Add missing geometry information
+        //Useful when selecting from mesh
+        //and some parameters want to be specified like radius
+        //when a mesh selection is bigger than the desired radius
+        //And others want to be deduced like center or direction
+
+        if(!rotorGeometry.isRadiusSet())
+        {
+            rotorGeometry.setRadius(meshGeometry_.radius());
+        }
+        if(!rotorGeometry.isCenterSet())
+        {
+            rotorGeometry.setCenter(meshGeometry_.center());
+        }
+        if(!rotorGeometry.isDirectionSet())
+        {
+            rotorGeometry.setCenter(meshGeometry_.direction());
+        }
+    }
+}
+void rotorMesh::computeLocalPositions()
+{
+    cellCenterLC_.resize(cells_.size());
+
+    forAll(cells_,i)
+    {
+        label celli = cells_[i];
+
+        vector cellCentroid = mesh_.C()[celli];
+        vector localPos = localCartesianCS_.localPosition(cellCentroid);
+        
+        cellCenterLC_[i]= localPos;
+
     }
 }
 void rotorMesh::createMeshSelectionCilinder()
 {
-    const vector& rotorDir = rotor_.direction();
-    const vector& rotorCenter = rotor_.center();
-    const scalar& radius = rotor_.radius();
+    const vector& rotorDir = meshGeometry_.direction();
+    const vector& rotorCenter = meshGeometry_.center();
+    const scalar& radius = meshGeometry_.radius();
 
     dictionary diskDict;
     diskDict.add("name","diskSelection");
@@ -230,9 +284,9 @@ void rotorMesh::createMeshSelectionCilinder()
 void rotorMesh::createMeshSelection()
 {
 
-    const vector& rotorDir = rotor_.direction();
-    const vector& rotorCenter = rotor_.center();
-    const scalar& radius = rotor_.radius();
+    const vector& rotorDir = meshGeometry_.direction();
+    const vector& rotorCenter = meshGeometry_.center();
+    const scalar& radius = meshGeometry_.radius();
     //TODO: Find better or improve algorithm to select rotor cells
     plane rotorPlane(rotorCenter,rotorDir);
 
@@ -250,12 +304,14 @@ void rotorMesh::createMeshSelection()
         label celli = planeCells[i];
 
         vector cellCentroid = mesh_.C()[celli];
-        vector cel2cent = cellCentroid - rotorCenter;
-        scalar distanceSqr = magSqr(cel2cent);
+        vector localPos = localCartesianCS_.localPosition(cellCentroid);
+        localPos.z()=0; //set on rotor plane
+        scalar distanceSqr = magSqr(localPos);
 
         if( distanceSqr <= radiusSqr )
         {
             cells_.append(celli);
+            cellCenterLC_.append(localPos);
         }
     }
 
@@ -313,8 +369,8 @@ void rotorMesh::loadMeshSelection()
 }
 void rotorMesh::computeCellsArea()
 {
-    const vector& rotorDir = rotor_.direction();
-    const scalar& radius = rotor_.radius();
+    const vector& rotorDir = meshGeometry_.direction();
+    const scalar& radius = meshGeometry_.radius();
 
     scalar idealArea = constant::mathematical::pi * radius * radius;
     
@@ -375,7 +431,7 @@ void rotorMesh::computeCellsArea()
 void rotorMesh::computeCellsAreaVoronoid()
 {
     const vectorField& cellCenter = mesh_.C();
-    const scalar radius = rotor_.radius();
+    const scalar radius = meshGeometry_.radius();
     scalar idealArea = constant::mathematical::pi * radius * radius;
     
     //set area size
@@ -383,19 +439,13 @@ void rotorMesh::computeCellsAreaVoronoid()
 
     area_= 0.0;
     diskArea_ = 0.0;
-    //MODIFY ROTOR DISCRETE TO WORK ON LOCAL COORD SYSTEM
-    auto cs = coordSystem::cartesian
-            (
-                rotor_.center(), //centerd to local
-                rotor_.direction(), //z-axis 
-                rotor_.psiRef()  //x-axis
-            );
+
     //Find cells centers
     List<point> centers(cells_.size());
     forAll(cells_,i)
     {
         label celli = cells_[i];
-        centers[i] = cs.localPosition(cellCenter[celli]);
+        centers[i] = localCartesianCS_.localPosition(cellCenter[celli]);
         centers[i].z() = 0; //proyect over plane
     }
 
@@ -487,7 +537,7 @@ void rotorMesh::findRotorCenter()
 
     newCenter /= volume;
 
-    rotor_.setCenter(newCenter);
+    meshGeometry_.setCenter(newCenter);
 
     Info << "Volume avg rotor Center: "<<newCenter<<endl;
 }
@@ -510,12 +560,12 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
     forAll(cells_, i)
     {   
         label celli = cells_[i];
-        vector vecA = cellCenter[celli]-rotor_.center();
+        vector vecA = cellCenter[celli]-meshGeometry_.center();
     
         forAll(cells_, j)
         {
             label cellj = cells_[j];
-            vector vecB = cellCenter[cellj]-rotor_.center();
+            vector vecB = cellCenter[cellj]-meshGeometry_.center();
 
             vector probe = (vecA ^ vecB);
             if((probe & vecAbove) < 0)
@@ -529,7 +579,7 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
 
     newNormal.normalise();
 
-    rotor_.setDirection(newNormal);
+    meshGeometry_.setDirection(newNormal);
 
     Info << "Volume avg rotor Direction: "<<newNormal<<endl;
 }
@@ -542,16 +592,16 @@ void rotorMesh::findRotorRadius()
     forAll(cells_, i)
     {   
         label celli = cells_[i];
-        scalar radsqr = magSqr(cellCenter[celli]-rotor_.center());
+        scalar radsqr = magSqr(cellCenter[celli]-meshGeometry_.center());
         if(radsqr>maxRadSqr)
         {
             maxRadSqr=radsqr;
         }
     }
 
-    rotor_.setRadius(sqrt(maxRadSqr));
+    meshGeometry_.setRadius(sqrt(maxRadSqr));
 
-    Info << "Max rotor radius: "<<rotor_.radius()<<endl;
+    Info << "Max rotor radius: "<<meshGeometry_.radius()<<endl;
 }
 
 

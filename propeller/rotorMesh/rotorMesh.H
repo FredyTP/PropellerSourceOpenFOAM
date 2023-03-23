@@ -4,6 +4,8 @@
 #include "cuttingPlane.H"
 #include "Enum.H"
 #include "cylindricalCS.H"
+#include "cartesianCS.H"
+
 #include "rotorGeometry.H"
 
 #define NO_AREA -1
@@ -48,9 +50,12 @@ private:
     //- Sum of cells area = disk area
     scalar diskArea_;
     
+    //- Local cartesian position
+    List<vector> cellCenterLC_; //LC stands for local cartesian
+    coordSystem::cartesian localCartesianCS_;
 
-    //Rotor Geometry
-    rotorGeometry rotor_;
+    //Selected mesh rotor geometry
+    rotorGeometry meshGeometry_;
 
     //- Zone name if imported from zone or cell set
     word cellsName_;
@@ -76,9 +81,9 @@ TypeName("rotorMesh");
 
         inline const labelList& cells() const { return cells_; }
         const fvMesh& mesh() const { return mesh_;}
-        inline const vector& direction() const {return rotor_.direction();}
-        inline const vector& center() const {return rotor_.center();}
-        inline scalar radius() const {return rotor_.radius();}
+        inline const vector& direction() const {return meshGeometry_.direction();}
+        inline const vector& center() const {return meshGeometry_.center();}
+        inline scalar radius() const {return meshGeometry_.radius();}
         inline scalar diskArea() const {return diskArea_;}
         inline const scalarList& areas() const {return area_;}
         inline bool isBuilt() const {return built_;}
@@ -87,6 +92,7 @@ TypeName("rotorMesh");
 
         void clear();
 
+  
 
 protected:
     //Geometry
@@ -117,9 +123,13 @@ protected:
         void computeCellsAreaVoronoid();
 
         void tryCorrectGeometry(rotorGeometry& rotorGeometry);
+
+        void computeLocalPositions();
 };
 
 
 }
 
 #endif /* PROPELLER_ROTOR_MESH_ROTOR_MESH */
+
+
