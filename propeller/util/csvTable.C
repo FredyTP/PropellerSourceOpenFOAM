@@ -51,6 +51,29 @@ void csvTable<dataType, headerType>::processHeader(std::string &line)
 }
 
 template <class dataType, class headerType>
+label csvTable<dataType, headerType>::nCol()
+{
+    if(!table.good())
+    {
+        return 0;
+    }
+    if(this->nRow()>0)
+    {
+        return (*table)[0].size();
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+template <class dataType, class headerType>
+label csvTable<dataType, headerType>::nRow()
+{
+    return table.good()? table->size() : 0;
+}
+
+template <class dataType, class headerType>
 label csvTable<dataType, headerType>::index(headerType headerName)
 {
     if(!header.good())
@@ -68,7 +91,7 @@ label csvTable<dataType, headerType>::index(headerType headerName)
 }
 
 template <class dataType, class headerType>
-void csvTable<dataType, headerType>::readFile(fileName path)
+bool csvTable<dataType, headerType>::readFile(fileName path)
 {
     using namespace std;
 
@@ -78,7 +101,7 @@ void csvTable<dataType, headerType>::readFile(fileName path)
     if(!fileStream.is_open())
     {
         //ERROR READING FILE
-        return;
+        return false;
     }
     
     //Skip lines needed
@@ -105,6 +128,7 @@ void csvTable<dataType, headerType>::readFile(fileName path)
     {
         this->processLine(line);
     }
+    return true;
 }
 
 template <class dataType, class headerType>
@@ -229,3 +253,4 @@ Ostream& operator<<(Ostream& os, const csvTable<A, B> &table)
 }
 
 }
+

@@ -5,8 +5,13 @@
 #include <autoPtr.H>
 #include <string>
 
+
 namespace Foam
 {
+
+/**
+ * ADD ERROR CHECKING 
+*/
 template<class dataType, class headerType>
 class csvTable
 {
@@ -26,9 +31,11 @@ private:
     headerType convertHeader(std::string& val);
 public:
 
+    label nCol();
+    label nRow();
     label index(headerType headerName);
     
-    void readFile(fileName path);   
+    bool readFile(fileName path);   
 
     List<dataType> col(label coli);
     List<dataType> col(headerType headerName);
@@ -50,3 +57,4 @@ public:
 
 #include "csvTable.C"
 #endif //PROPELLER_UTIL_CSV_TABLE
+
