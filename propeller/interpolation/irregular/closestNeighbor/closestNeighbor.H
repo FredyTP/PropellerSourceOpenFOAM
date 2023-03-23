@@ -20,6 +20,7 @@ public:
     
     virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const;
 
+    virtual label size();
    
 };
 }

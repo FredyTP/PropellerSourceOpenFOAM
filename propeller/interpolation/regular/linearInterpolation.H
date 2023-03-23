@@ -159,6 +159,15 @@ public:
 
         return iReturn;
     }    
+
+    virtual label size() {
+        label s = 0;
+        forAll(this->size_,i)
+        {
+            s+=this->size_[i];
+        }
+        return s;
+    }
 };
 
 

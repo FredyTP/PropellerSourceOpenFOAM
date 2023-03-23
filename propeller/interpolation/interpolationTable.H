@@ -65,6 +65,8 @@ public:
     */                                                         
     virtual bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) = 0;
 
+    virtual label size() = 0;
+
     
     
 };

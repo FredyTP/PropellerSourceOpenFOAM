@@ -110,5 +110,10 @@ bool inverseDistance<typeIn, typeOu, dim>::setRawData(List<List<typeIn>> &inputs
     return true;
 }
 
+template <class typeIn, class typeOu, label dim>
+label inverseDistance<typeIn, typeOu, dim>::size()
+{
+    return outputs.size();
+}
 }
 

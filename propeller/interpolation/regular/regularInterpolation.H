@@ -54,7 +54,7 @@ public:
         scalar tam = 1;
         for(label d =0; d<dim;d++)
         {
-            tam *=size[d];
+            tam *=size_[d];
         }
         return tam;
     }
@@ -85,7 +85,7 @@ protected:
     List<typeOu> outputs;
 
     //Size of each dimension representing the discretizations of Ns-dimensional cube
-    FixedList<label,dim> size;
+    FixedList<label,dim> size_;
     //Iteration order in which the dimensions are traveled (0 1 2 3...)
     FixedList<label,dim> order;
 public:
@@ -197,7 +197,7 @@ public:
         for(label d=0; d< dim; d++)
         {
             std::sort(inputs[d].begin(),inputs[d].end());
-            size[d]=inputs[d].size();
+            size_[d]=inputs[d].size();
         }
 
         outputs.resize(this->getOutputSize());
@@ -227,9 +227,9 @@ public:
     {
         for(label i = 0; i< dim; i++)
         {
-            size[i]=inputs[i].size();
+            size_[i]=inputs[i].size();
         }
-        label len = std::accumulate(size.begin(),size.end(),1,[](label a, label b){return a*b;});
+        label len = std::accumulate(size_.begin(),size_.end(),1,[](label a, label b){return a*b;});
         label oLen = outputs.size();
         return len == oLen;
     }
@@ -242,7 +242,7 @@ public:
             label tam = 1;
             for(label d2 = 0;d2<d;d2++)
             {
-                tam*=size[order[d2]];
+                tam*=size_[order[d2]];
             }
             p+=i_n*tam;
         }
@@ -258,7 +258,7 @@ public:
             label tam = 1;
             for(label d2 = 0;d2<d;d2++)
             {
-                tam*=size[order[d2]];
+                tam*=size_[order[d2]];
             }
             idxs[order[d]]=p/tam;
 

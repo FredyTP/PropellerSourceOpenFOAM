@@ -53,6 +53,10 @@ namespace Foam
         result.coefficients()[0] = 1;
 }
 
-
+template <class typeIn, class typeOu, label dim>
+label closestNeighbor<typeIn, typeOu, dim>::size()
+{
+        return outputs.size();
+}
 }
 
