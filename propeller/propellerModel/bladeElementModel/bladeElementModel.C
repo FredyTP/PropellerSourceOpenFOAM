@@ -65,6 +65,30 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         dimensionedScalar(dimless, Zero)
     );
 
+    volScalarField clField
+    (
+        IOobject
+        (
+            "propeller:cl",
+            rotorMesh_->mesh().time().timeName(),
+            rotorMesh_->mesh()
+        ),
+        rotorMesh_->mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
+
+
+    volScalarField cdField
+    (
+        IOobject
+        (
+            "propeller:cd",
+            rotorMesh_->mesh().time().timeName(),
+            rotorMesh_->mesh()
+        ),
+        rotorMesh_->mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
     forAll(cylPoints, i)
     {
         //Get local radius
@@ -123,6 +147,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         scalar cl = bladeSec.cl(AoA,re,mach);
         scalar cd = bladeSec.cd(AoA,re,mach);
 
+        clField[celli]=cl;
+        cdField[celli]=cd;
         aoaField[celli] = AoA;
         aoaList[i]=AoA;
        
@@ -153,29 +179,18 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     if(rotorMesh_->mesh().time().writeTime())
     {
         aoaField.write();
+        clField.write();
+        cdField.write();
     }
 
     result.power = result.torque * omega;
-    if(result.power == 0)
-    {
-        result.eta = 0;
-    }
-    else
-    {
-        result.eta=result.force.z() * this->refV / result.power;
-    }
-    result.J = this->refV/(omega*rotorDiscrete_.geometry().radius());
 
-    /*Info<< "Total Lift: "<<totalLift<<endl;
-    Info<< "Total Drag: "<<totalDrag<<endl;
-    Info<< "Total thrust: "<<totalThrust<<endl;
-    Info<< "Total power:" <<power <<endl;
-    Info<< "Total Moment z: " <<totalMoment<<endl;
-    Info<< "RPM: "<< omega * 30/pi<<endl;
-    Info<< "Rad/s: " <<omega<<endl;
-    Info<< "Max AoA: "<< max(aoaList) * 180/pi<<endl;
-    Info<< "Min AoA: "<< min(aoaList) * 180/pi<<endl;
-    Info<< "Max Sampled Vel: "<<max(U)<<endl;*/
+    result.updateEta(this->refV);
+    //Use J definition Vref/(rps * D)
+    result.updateJ(this->refV,omega,rotorDiscrete_.geometry().radius());
+    result.updateCT(this->refRho,omega,rotorDiscrete_.geometry().radius());
+    result.updateCP(this->refRho,omega,rotorDiscrete_.geometry().radius());
+
     return result;
 
 }
