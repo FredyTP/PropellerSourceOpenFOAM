@@ -17,16 +17,24 @@ namespace Foam
                          Class propellerModel Declaration
 \*---------------------------------------------------------------------------*/
 
+/**
+ * Propeller result integrated data information
+ * Adimensional parameters defined as website : 
+ * https://m-selig.ae.illinois.edu/props/propDB.html
+ * suggests
+*/
 class propellerResult
 {
     public:
-    vector force {0,0,0}; //x: y: z: thrust in local coordinates
-    scalar torque {0}; //Aerodynamic torque on rotor axis
-    scalar power {0}; //Power needed to rotate the propeller
-    scalar J{0}; // refV / (n*D)
-    scalar eta{0}; // Thrust* refV / power
+    vector force {0,0,0}; //- x: y: z: thrust in local coordinates
+    scalar torque {0};    //- Aerodynamic torque on rotor axis
+    scalar power {0};     //- Power needed to rotate the propeller
+    scalar J{0};          //- Adimensional: refV / (n*D)
+    scalar eta{0};        //- Thrust* refV / power
+    scalar CT{0};         //- Thrust coefficient T/(rho*n^2*D^4)
+    scalar CP{0};         //- Power coefficient Power/(rho*n^3*D^5)
 
-    inline scalar& thrust() {return force.z();}
+    inline scalar thrust() const {return force.z();}
     void info(word name)
     {
         Info<<name<<" result:"<<endl;
@@ -35,6 +43,69 @@ class propellerResult
         Info<<"\tPower = "<<power<<endl;
         Info<<"\tJ = "<<J<<endl;
         Info<<"\tEta = "<<eta<<endl;
+    }
+
+    /**
+     * Update Js with force and power already set
+     * J defined as Adimensional: refV / (n*D)
+    */
+    void updateJ(scalar vRef, scalar omega, scalar radius)
+    {
+        scalar vRot = omega/constant::mathematical::pi * radius;
+        if(vRot == 0)
+        {
+            J = 0;
+        }
+        else
+        {
+            J = vRef/vRot;
+        }
+    }
+
+    /**
+     * @brief: Update eta value with force and power already set
+     * eta defined as Adimensional: Thrust * vRef / power
+    */
+    void updateEta(scalar vRef)
+    {
+        if(power == 0)
+        {
+            eta = 0;
+        }
+        else
+        {
+            eta=thrust() * vRef / power;
+        }
+    }
+
+    void updateCT(scalar rhoRef,scalar omega, scalar radius)
+    {
+        scalar den = rhoRef * 
+                pow((omega / constant::mathematical::piByTwo),2)*
+                pow(2*radius,4);
+        if(den == 0)
+        {
+            CT=0;
+        }
+        else
+        {
+            CT = thrust()/den;
+        }
+    }
+
+    void updateCP(scalar rhoRef, scalar omega,scalar radius)
+    {
+        scalar den = rhoRef * 
+                pow((omega / constant::mathematical::piByTwo),3)*
+                pow(2*radius,5);
+        if(den == 0)
+        {
+            CP=0;
+        }
+        else
+        {
+            CP = power/den;
+        }
     }
 
 };
