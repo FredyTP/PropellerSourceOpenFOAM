@@ -13,7 +13,7 @@ private:
     scalar radius_ {NO_RADIUS};
     vector center_ {0,0,0};
     vector direction_ {0,0,0};
-    vector psiRef_ {0,0,0};
+    vector psiRef_ {0,0,1}; // not used yet
 
     bool radiusSet = false;
     bool centerSet = false;
@@ -93,12 +93,25 @@ public:
     {
         return radiusSet && centerSet && directionSet && psiRefSet;
     }
+
+    friend Ostream& operator<<(Ostream& os, const rotorGeometry& r)
+    {
+        os << "Rotor geometry: "<<endl;
+        os << tab <<"- radius: "<<r.radius_<<endl;
+        os << tab <<"- center: "<<r.center_<<endl;
+        os << tab <<"- direction: "<<r.direction_<<endl;
+        os << tab <<"- psiRef: "<< r.psiRef_<<endl;
+        return os;
+    }
 protected: 
 
     bool isValidVector(vector v){ return magSqr(v) > VSMALL;}
 
     
 };
+
+
+
 }
 
 
