@@ -18,7 +18,7 @@ private:
     bool radiusSet = false;
     bool centerSet = false;
     bool directionSet = false;
-    bool psiRefSet = false;
+    bool psiRefSet = true; // do no care yet
 
 public:
 
@@ -31,6 +31,12 @@ public:
     inline bool isCenterSet() const { return centerSet;}
     inline bool isDirectionSet() const {return directionSet;}
     inline bool isPsiRefSet() const { return psiRefSet;}
+
+    inline bool isRadiusReady() const {return radiusSet && radius_>0;}
+    inline bool isCenterReady() const {return centerSet;}
+    inline bool isDirectionReady() const {return directionSet && isValidVector(direction_);}
+    inline bool isPsiRefReady() const {return psiRefSet && isValidVector(psiRef_);}
+
    
     /**
      * Read geometry presented data from dictionary
@@ -96,16 +102,19 @@ public:
 
     friend Ostream& operator<<(Ostream& os, const rotorGeometry& r)
     {
-        os << "Rotor geometry: "<<endl;
-        os << tab <<"- radius: "<<r.radius_<<endl;
-        os << tab <<"- center: "<<r.center_<<endl;
-        os << tab <<"- direction: "<<r.direction_<<endl;
-        os << tab <<"- psiRef: "<< r.psiRef_<<endl;
+        os.incrIndent();
+
+        indent(os) <<"- radius: "<<r.radius_<<endl;
+        indent(os) <<"- center: "<<r.center_<<endl;
+        indent(os) <<"- direction: "<<r.direction_<<endl;
+        indent(os) <<"- psiRef: "<< r.psiRef_<<endl;
+
+        os.decrIndent();
         return os;
     }
 protected: 
 
-    bool isValidVector(vector v){ return magSqr(v) > VSMALL;}
+    bool isValidVector(vector v) const { return magSqr(v) > VSMALL;}
 
     
 };

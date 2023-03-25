@@ -69,43 +69,30 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh &rotorMesh)
 {
     Info<< "Building rotor Discrete from mesh" <<endl;
     discreteMode_ = discreteMode::dmMesh;
-    const labelList cells = rotorMesh.cells();
-    const auto &mesh = rotorMesh.mesh();
-    
-    cylPoints_.resize(cells.size());
-    localBlade_.resize(cells.size());
+    //const labelList cells = rotorMesh.cells();
+    //const auto &mesh = rotorMesh.mesh();
+    const auto& rotorPoints = rotorMesh.rotorPoints();
+    const auto& rotorCells = rotorMesh.rotorCells();
+    //Resize to computed points
+    cylPoints_.resize(rotorPoints.size());
+    localBlade_.resize(rotorPoints.size());
 
 
-    volScalarField volume
-    (
-        IOobject
-        (
-            "propeller:rotorVolume",
-            rotorMesh.mesh().time().timeName(),
-            rotorMesh.mesh()
-        ),
-        rotorMesh.mesh(),
-        dimensionedScalar(dimVolume, Zero)
-    );
 
-    forAll(cells, i)
+    forAll(cylPoints_, i)
     {
-        label celli = cells[i];
-        vector cellCenter = mesh.C()[celli];
+        //label celli = cells[i];
+        vector rPoint = rotorPoints[i];
 
         //Project points over the disk
         //From global to local cyl position
         // Global -> local cyl
-        cylPoints_[i] = cylCS_.localPosition(cellCenter);
+        cylPoints_[i] = cylCS_.localPosition(rPoint);
         cylPoints_[i].z()=0;
         
         //Not the most efficient way to compute global coords
         localBlade_[i] = this->bladeLocalFromPoint(cylPoints_[i]);
-        volume[celli] = mesh.V()[celli];
     }
-
-    volume.write();
-
 
 
     //-------------BEGIN JUST TEST-------------//
@@ -117,7 +104,7 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh &rotorMesh)
         ps[3] = XYZ{0.1,0.1,0};
         ps[4] = XYZ{0,0,0};
         ps[5] = XYZ{0.15,0,0};*/
-        List<point> ps(cylPoints_.size());
+        /*List<point> ps(cylPoints_.size());
         for(label i = 0; i <cylPoints_.size(); i++)
         {
             point pt = cylCS_.globalPosition(cylPoints_[i]);
@@ -221,7 +208,7 @@ void rotorDiscrete::fromRotorMesh(const rotorMesh &rotorMesh)
     pyplot+="plot.show()\n";
    std::ofstream file("triangulation.py",std::ios::out);
     file<<pyplot;
-    file.close();
+    file.close();*/
     /*wchar_t *program = Py_DecodeLocale("./", NULL);
     if (program == NULL) {
         fprintf(stderr, "Fatal error: cannot decode argv[0]\n");

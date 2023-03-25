@@ -59,16 +59,32 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
     {
     case selectionMode::smGeometry :
     case selectionMode::smGeometry2 :
-
+    {
         meshGeometry_= rotorGeometry; //Use as input data
 
+        const bool rgReady = rotorGeometry.isRadiusReady() 
+                && rotorGeometry.isCenterReady() 
+                && rotorGeometry.isDirectionReady();
+
+        //Check if geometry is enough to build mesh
+        if(!rgReady)
+        {
+            FatalErrorInFunction
+                << "Trying to select rotor mesh with incomplete geometry"
+                <<exit(FatalError);
+        }
+
+
+        //Update to closest center if it's asked to (revisar esto)
+        this->tryUpdateCenter(); 
+
+        //Build local coordinate system
         localCartesianCS_ = coordSystem::cartesian
             (
                 meshGeometry_.center(), //centerd to local
                 meshGeometry_.direction(), //z-axis 
                 meshGeometry_.psiRef()  //x-axis
             );
-        this->tryUpdateCenter(); 
 
         if(selMode_==selectionMode::smGeometry)
         {
@@ -94,16 +110,31 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         this->findRotorNormal(rotorGeometry);
         this->tryCorrectGeometry(rotorGeometry); //Update data if required
 
+        if(meshGeometry_.radius()<rotorGeometry.radius())
+        {
+            FatalErrorInFunction
+            <<"Mesh Selection radius is inferior to rotor radius"
+            <<endl;
+        }
+    }
         break;
     case selectionMode::smCellZone :
     case selectionMode::smCellSet :
+
+        //Check for input information
+        if(!rotorGeometry.isDirectionReady())
+        {
+            FatalErrorInFunction
+            <<"No defined disk normal for rotor mesh selection"
+            <<exit(FatalError);
+        }
 
         this->loadMeshSelection(); //Load mesh from cellSet
 
         //Find geometry---------
         this->findRotorCenter();
-        this->findRotorNormal(rotorGeometry);
-        this->findRotorRadius();
+        this->findRotorNormal(rotorGeometry); //ROTOR NORMAL ALWAYS UPDATES ROTOR GEOMETRY NORMAL
+        
 
         localCartesianCS_ = coordSystem::cartesian
             (
@@ -113,6 +144,7 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
             );
 
         this->computeLocalPositions();
+        this->findRotorRadius();
 
         Info<<"Proyected Area : "<<endl;
         this->computeCellsArea(); //
@@ -127,6 +159,8 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
     break;
     }
 
+
+    
     built_ = true;
 }
 void rotorMesh::clear()
@@ -196,8 +230,9 @@ void rotorMesh::tryUpdateCenter()
         if(centercell == -1)
         {
             //Maybe check before if point is inside of boundaries
-            Info << "Rotor center is outside of mesh" << endl;
-            return;
+            FatalErrorInFunction << "Rotor center is outside of mesh" 
+            << exit(FatalError);
+            
         }
         meshGeometry_.setCenter(mesh_.C()[centercell]);
 
@@ -363,7 +398,6 @@ void rotorMesh::loadMeshSelection()
         break;
     }
 
-    
     Info<<"Number of Selected cells: "<<cells_.size()<<endl;
     
 }
@@ -467,38 +501,30 @@ void rotorMesh::computeCellsAreaVoronoid()
     delaunayTriangulation::Voronoid
     (
         sortedCenter,
-        vertex,
-        voroCells,
+        vertex,    //new order no ref
+        voroCells, // same order as sortedCenter
         delaunayTriangulation::circularRegion(radius),
         delaunayTriangulation::intersectCircle(radius)
     );
 
+    // set vertex points
+    rotorPoints_ = vertex; 
+
+    rotorCells_.resize(cells_.size());
+
+    // add cell centers to rotor points and create cells
     forAll(voroCells,i)
     {
-        auto& poli = voroCells[i];
-        if(poli.size()>2)
-        {
-            scalar area = 0.0;
-
-            label j = poli.size() - 1;
-            for (label i = 0; i < poli.size(); i++)
-            {
-                area += (vertex[poli[j]].x() + vertex[poli[i]].x()) * (vertex[poli[j]].y() - vertex[poli[i]].y());
-                j = i;
-            }
-            area_[idx[i]] = std::abs(area / 2.0);
-           
-        }
-        else
-        {
-            Info<<"ERROR BUILDING VORONOID MESH"<<endl;
-        }
-
+        label celli = cells_[i];
+        rotorPoints_.append(sortedCenter[i]);
+        rotorCells_[idx[i]]=rotorCell(rotorPoints_.size()-1,voroCells[i],rotorPoints_,mesh_.V()[celli]);
     }
 
-    forAll(area_,i)
+    //Find total area
+    forAll(rotorCells_,i)
     {
-        diskArea_ += area_[i];
+        area_[i] = rotorCells_[i].area();
+        diskArea_ += rotorCells_[i].area();
     }
 
     volScalarField areainfo
@@ -547,13 +573,8 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
 
     const vectorField& cellCenter = mesh_.C();
 
-    vector vecAbove(1000,1000,1000);
+    vector vecAbove = rotorGeometry.direction();
 
-    //If direction is a valid vector
-    if(rotorGeometry.direction() != vector())
-    {
-        vecAbove=rotorGeometry.direction();
-    }
 
     vector newNormal(Zero);
     
@@ -580,6 +601,7 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
     newNormal.normalise();
 
     meshGeometry_.setDirection(newNormal);
+    rotorGeometry.setDirection(newNormal);
 
     Info << "Volume avg rotor Direction: "<<newNormal<<endl;
 }
@@ -592,7 +614,7 @@ void rotorMesh::findRotorRadius()
     forAll(cells_, i)
     {   
         label celli = cells_[i];
-        scalar radsqr = magSqr(cellCenter[celli]-meshGeometry_.center());
+        scalar radsqr = magSqr(cellCenterLC_[i]);
         if(radsqr>maxRadSqr)
         {
             maxRadSqr=radsqr;

@@ -6,7 +6,9 @@
 #include "cylindricalCS.H"
 #include "cartesianCS.H"
 
+#include "rotorCell.H"
 #include "rotorGeometry.H"
+#include "rotorCell.H"
 
 #define NO_AREA -1
 namespace Foam
@@ -42,17 +44,20 @@ private:
     selectionMode selMode_;
 
     //Selected cells for rotor geometry
-
-    //- Selected cells
+    //- Selected fvCells
     labelList cells_;
-    //- Cells area
+    //- Selected fvCells area over rotor
     scalarList area_;
-    //- Sum of cells area = disk area
+    //- Sum of cells area = selected disk area
     scalar diskArea_;
     
     //- Local cartesian position
     List<vector> cellCenterLC_; //LC stands for local cartesian
     coordSystem::cartesian localCartesianCS_;
+
+    //Rotor mesh
+    List<point> rotorPoints_;
+    List<rotorCell> rotorCells_;
 
     //Selected mesh rotor geometry
     rotorGeometry meshGeometry_;
@@ -78,7 +83,9 @@ TypeName("rotorMesh");
         virtual bool read(const dictionary& dict);
 
     //Getters
-
+        inline const List<rotorCell>& rotorCells() const {return rotorCells_;}
+        inline const List<point>& rotorPoints() const {return rotorPoints_;}
+        
         inline const labelList& cells() const { return cells_; }
         const fvMesh& mesh() const { return mesh_;}
         inline const vector& direction() const {return meshGeometry_.direction();}

@@ -230,7 +230,11 @@
 			"solutionControl.C": "cpp",
 			"IOobjectList.C": "cpp",
 			"PtrList.C": "cpp",
-			"GeometricField.C": "cpp"
+			"GeometricField.C": "cpp",
+			"messageStream.C": "cpp",
+			"UList.C": "cpp",
+			"IOerror.C": "cpp",
+			"IjkField.C": "cpp"
 		}
 	}
 }

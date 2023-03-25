@@ -31,6 +31,8 @@ Foam::fv::propellerSource::propellerSource
     propellerModel_(),
     rotorMesh_(mesh_)
 {
+    //Output propeller adimensional parameter definition
+    propellerResult::OutputDefinition(Info)<<endl;
     this->read(dict);
 }
 
@@ -40,7 +42,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
     //Reads fv::option and saves propeller content in Coeffs_ dict
     if(fv::option::read(dict))
     {
-        std::cout<<"Reading propeller source"<<std::endl;
+        Info<<"Reading propeller source"<<endl;
 
         /*---------FV OPTIONS RELATED STUFF--------*/
         fv::option::resetApplied();
@@ -81,6 +83,17 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         propellerModel_->setRotorMesh(&rotorMesh_);
         //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
+
+        Info<<"Rotor Geometry of: "<< this->name()<<endl
+        << rotorGeometry_;
+
+        if(!rotorGeometry_.isReady())
+        {
+            FatalErrorInFunction
+                <<"Rotor geometry data of "<< this->name() <<" is not determined:"
+                << exit(FatalError);
+        }
+
         //Set reference properties for aerodynamic forces and adim variables
         propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
         propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
@@ -97,14 +110,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         /*----CREATE ROTOR DYNAMICS----*/
         dynamics_ = rotorDynamics::New(dict.subDict("dynamics"));
 
-        if(!rotorGeometry_.isReady())
-        {
-            FatalErrorInFunction
-                <<"Rotor geometry data of "<< this->name() <<" is not determined:"
-                << endl
-                << rotorGeometry_
-                << exit(FatalError);
-        }
+
 
         return true;
     }
@@ -143,7 +149,9 @@ void Foam::fv::propellerSource::addSup
         );
 
     dynamics_->integrate(result.torque,mesh_.time().deltaTValue());
-    result.info(name_);
+    
+    Info<<name_<<": step parameters"<<endl;
+    Info<<result<<endl;
     //Add source term to the equation
     eqn+=force;
 

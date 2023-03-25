@@ -52,6 +52,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     const scalar omega = angularVelocity;
     
     List<scalar> aoaList(cylPoints.size());
+    List<vector> pressOnPoints(cylPoints.size());
 
     volScalarField aoaField
     (
@@ -105,9 +106,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         scalar average_fact = n_blade / (2 * pi * radius);
 
         //Get cell area and volum
-        scalar area = rotorMesh_->areas()[i];
-        label celli = rotorMesh_->cells()[i];
-        scalar volume = rotorMesh_->mesh().V()[celli];
+        //scalar area = rotorMesh_->areas()[i];
+        //label celli = rotorMesh_->cells()[i];
+        //scalar volume = rotorMesh_->mesh().V()[celli];
         
         
         //Local rotation tensor
@@ -147,15 +148,15 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         scalar cl = bladeSec.cl(AoA,re,mach);
         scalar cd = bladeSec.cd(AoA,re,mach);
 
-        clField[celli]=cl;
-        cdField[celli]=cd;
-        aoaField[celli] = AoA;
-        aoaList[i]=AoA;
+        //clField[celli]=cl;
+        //cdField[celli]=cd;
+        //aoaField[celli] = AoA;
+        //aoaList[i]=AoA;
        
 
         //Calculate aerodinamic forces
-        scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed * area;
-        scalar drag = average_fact * 0.5 * rho * cd * chord * relativeSpeed * relativeSpeed * area;
+        scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed;
+        scalar drag = average_fact * 0.5 * rho * cd * chord * relativeSpeed * relativeSpeed;
 
 
         //Open foam code is not decomposing Lift and drag
@@ -164,18 +165,43 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
         vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
         
-        vector totalAerForce = normalForce + tangentialForce;
+        pressOnPoints[i] = normalForce + tangentialForce;
+        //Back to global ref frame
+        pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);
 
-        result.force += totalAerForce;
-        result.torque += (tangentialForce.x() * radius);
+        //result.force += totalAerForce;
+        //result.torque += (tangentialForce.x() * radius);
 
         //Back to global ref frame
-        totalAerForce = transform(bladeTensor,totalAerForce);
+        //totalAerForce = transform(bladeTensor,totalAerForce);
 
         //Add source term
-        force[celli] = -totalAerForce / volume;
+        //force[celli] = -totalAerForce / volume;
         
     }
+
+    forAll(rotorMesh_->rotorCells(),i)
+    {
+        const auto & rCell = rotorMesh_->rotorCells()[i];
+        const auto & triangles = rCell.tri();
+        vector bladeForce{0,0,0};
+        label celli = rotorMesh_->cells()[i];
+        forAll(triangles,i)
+        {
+            bladeForce += rCell.triArea()[i] * 
+            (pressOnPoints[triangles[i][0]] + 
+             pressOnPoints[triangles[i][1]] + 
+             pressOnPoints[triangles[i][2]]) / 3;
+        }
+
+        result.force += bladeForce;
+        result.torque += mag(bladeForce ^ rCell.position(rCell.center()));
+
+        
+        force[celli] = -bladeForce/rCell.volume();
+    }
+
+
     if(rotorMesh_->mesh().time().writeTime())
     {
         aoaField.write();
