@@ -11,6 +11,8 @@ namespace Foam
 
     //Define run time table for selecting derived types
     defineRunTimeSelectionTable(propellerModel, dictionary);   
+
+    bool propellerResult::definitionShown_  = false;
 }
 
 Foam::propellerModel::propellerModel

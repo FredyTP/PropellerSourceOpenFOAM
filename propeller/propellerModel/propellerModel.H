@@ -34,15 +34,49 @@ class propellerResult
     scalar CT{0};         //- Thrust coefficient T/(rho*n^2*D^4)
     scalar CP{0};         //- Power coefficient Power/(rho*n^3*D^5)
 
-    inline scalar thrust() const {return force.z();}
-    void info(word name)
+    propellerResult()
     {
-        Info<<name<<" result:"<<endl;
-        Info<<"\tThrust = "<<thrust()<<endl;
-        Info<<"\tTorque = "<<torque<<endl;
-        Info<<"\tPower = "<<power<<endl;
-        Info<<"\tJ = "<<J<<endl;
-        Info<<"\tEta = "<<eta<<endl;
+        propellerResult::OutputDefinition(Info)<<endl;
+    }
+    inline scalar thrust() const {return force.y();}
+
+    static Ostream& OutputDefinition(Ostream& os)
+    {
+        if(!definitionShown_)
+        {
+            definitionShown_ = true;
+            indent(os) << "Rotor adimiensional parameters definitions: "<<endl;
+            os.incrIndent();
+            indent(os) <<"- J (Advance Coefficient):  Vref/(n*D)"<<endl;
+            indent(os) <<"- Eta (Efficiency): (T * Vref)/P"<<endl;
+            indent(os) <<"- CT (Thrust Coefficient): T/(rho * n^2 * D^4)"<<endl;
+            indent(os) <<"- CP (Power Coefficient): P/(rho * n^3 * D^5)"<<endl;
+            os.decrIndent();
+            indent(os) << "Where: "<<endl;
+            os.incrIndent();
+            indent(os)<< "- Vref is reference velocity"<<endl;
+            indent(os)<< "- n is rotational speed in revolution/second"<<endl;
+            indent(os)<< "- D is rotor diameter"<<endl;
+            indent(os)<< "- T is rotor thrust"<<endl;
+            indent(os)<< "- P is rotor power"<<endl;
+            indent(os)<< "- rho is reference density"<<endl;
+            os.decrIndent();
+        }
+        return os;
+    }
+
+    friend Ostream& operator<<(Ostream& os, const propellerResult& pr)
+    {   
+        os.incrIndent();
+        indent(os) <<"- Thrust = "<<pr.thrust()<<endl;
+        indent(os) <<"- Torque = "<<pr.torque<<endl;
+        indent(os) <<"- Power = "<<pr.power<<endl;
+        indent(os) <<"- J = "<<pr.J<<endl;
+        indent(os) <<"- Eta = "<<pr.eta<<endl;
+        indent(os) <<"- CT = "<<pr.CT<<endl;
+        indent(os) <<"- CP = "<<pr.CP<<endl; 
+        os.decrIndent();
+        return os;
     }
 
     /**
@@ -108,7 +142,11 @@ class propellerResult
         }
     }
 
+private:
+    static bool definitionShown_;
 };
+
+
 
 
 class propellerModel

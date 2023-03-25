@@ -103,12 +103,11 @@ bool polarAirfoil::readFromPolars(word extrapolation)
     List<Tuple2<word,FixedList<scalar,2>>> polarFiles;
     csvTable<scalar,word> csvReader(true);
     //Read airfoil data
-    if(!file_.empty())
-    {
-        Info<<"Reading polar data from: "<<file_<<endl;
-        Foam::IFstream is(file_);
-        is  >> polarFiles;
-    }
+
+    Info<<"Reading polar data from: "<<file_<<endl;
+    Foam::IFstream is(file_);
+    is  >> polarFiles;
+
     polars_.resize(polarFiles.size());
     //Build airfoil polars
     forAll(polarFiles,i)

@@ -281,12 +281,17 @@ static int VoronoidFromTri
 */
 static void removeSuperTri(List<ITRIANGLE>& tri,label nv)
 {
-   for (label i=0;i<tri.size();i++) {
-         if (tri[i][0] >= nv || tri[i][1] >= nv || tri[i][2] >= nv) {
-            tri[i] = tri[tri.size()-1];
-            i--;
-         }
+   label ntri = tri.size();
+   for (label i=0;i<ntri;i++) 
+   {
+      if (tri[i][0] >= nv || tri[i][1] >= nv || tri[i][2] >= nv) 
+      {
+         tri[i] = tri[tri.size()-1];
+         i--;
+         ntri--;
       }
+   }
+   tri.resize(ntri);
 }
 /*
   Implemented from http://paulbourke.net/papers/triangulate/
@@ -314,7 +319,7 @@ static void removeSuperTri(List<ITRIANGLE>& tri,label nv)
          return(0);
    }
 */
-static int Triangulate(List<point>& pxyz,List<ITRIANGLE>& v,std::function<bool (point)> isInRegion,bool keepSuperTri = false)
+static int Triangulate(List<point>& pxyz,List<ITRIANGLE>& v,std::function<bool (point)> isInRegion = [](point p){return false;},bool keepSuperTri = false)
 {
    List<bool> complete;
    List<IEDGE> edges;

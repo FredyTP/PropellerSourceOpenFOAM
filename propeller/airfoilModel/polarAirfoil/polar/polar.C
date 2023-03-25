@@ -123,8 +123,9 @@ void polar::processData(List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd)
     //Check if alpha is in ascending order
     if(!std::is_sorted(alpha.begin(),alpha.end()))
     {
-        Info<<"Alpha values in polar are not sorted, sorting ..."<<endl;
-        std::sort(alpha.begin(),alpha.end());
+        FatalErrorInFunction
+        <<"Alpha values in polar are not sorted"
+        <<exit(FatalError);
     }
 
     alpha_min = alpha[0];
@@ -144,13 +145,13 @@ autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, 
 
     if (!ctorPtr)
     {
-        /*FatalIOErrorInLookup
+        FatalIOErrorInLookup
         (
             "polar",
-            typeName,
+            "polar",
             modelType,
             *dictionaryConstructorTablePtr_
-        ) << exit(FatalIOError);*/
+        ) << exit(FatalIOError);
     }
     csvTable<scalar,word> csvReader(true);
     csvReader.readFile(filename);
@@ -170,13 +171,13 @@ autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, 
 
     if (!ctorPtr)
     {
-        /*FatalIOErrorInLookup
+        FatalIOErrorInLookup
         (
             "polar",
-            typeName,
+            "polar",
             modelType,
             *dictionaryConstructorTablePtr_
-        ) << exit(FatalIOError);*/
+        ) << exit(FatalIOError);
     }
 
     return autoPtr<Foam::polar>(ctorPtr(interpolation,alpha,cl,cd,Re,Ma));

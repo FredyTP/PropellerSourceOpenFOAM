@@ -132,7 +132,7 @@ template <class dataType, class headerType>
 List<dataType> csvTable<dataType, headerType>::col(label coli)
 {
     List<dataType> column(0);
-    if(coli < 0 || coli >= this->nCol() -1)
+    if(coli < 0 || coli > this->nCol() -1)
     {
         //Index out of bound return empty column
         return column;
@@ -158,7 +158,7 @@ template <class dataType, class headerType>
 List<List<dataType>> csvTable<dataType, headerType>::col2(label coli)
 {
     List<List<dataType>> column(0);
-    if(coli < 0 || coli >= this->nCol() -1)
+    if(coli < 0 || coli > this->nCol() -1)
     {
         //Index out of bound return empty column
         return column;
