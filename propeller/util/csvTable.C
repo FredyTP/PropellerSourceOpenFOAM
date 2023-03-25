@@ -84,14 +84,7 @@ label csvTable<dataType, headerType>::index(headerType headerName)
     {
         return -1;
     }
-    for(label i = 0 ; i < header->size();i++)
-    {
-        if((*header)[i]==headerName)
-        {
-            return i;
-        }
-    }
-    return header->size();
+    return header->find(headerName);
 }
 
 template <class dataType, class headerType>
@@ -139,10 +132,13 @@ template <class dataType, class headerType>
 List<dataType> csvTable<dataType, headerType>::col(label coli)
 {
     List<dataType> column(0);
-    if(coli>=(*table)[0].size())
+    if(coli < 0 || coli >= this->nCol() -1)
     {
+        //Index out of bound return empty column
         return column;
     }
+
+    // Build column from rows
     column.resize(table->size());
     for(label i = 0 ; i < table->size(); i++)
     {
@@ -162,10 +158,12 @@ template <class dataType, class headerType>
 List<List<dataType>> csvTable<dataType, headerType>::col2(label coli)
 {
     List<List<dataType>> column(0);
-    if(coli>(*table)[0].size())
+    if(coli < 0 || coli >= this->nCol() -1)
     {
+        //Index out of bound return empty column
         return column;
     }
+
     column.resize(table->size());
     for(label i = 0 ; i < table->size(); i++)
     {
