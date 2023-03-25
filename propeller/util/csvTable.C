@@ -18,10 +18,14 @@ void csvTable<dataType, headerType>::processLine(std::string &line)
         dataType cell = convertInput(value);
         row.push_back(cell);
     }
-    if(row.size()!=nColumn && nColumn>0)
+    if(row.size() == 0 )
     {
-        //Invalid row
+        //Empty line is okey but dont add it
         return;
+    }
+    if(row.size()!=nColumn && nColumn>0)
+    {   
+        throw (std::runtime_error("invalid row: '"+value+"'"));
     }
     table->push_back(row);
     if(nColumn==0)
@@ -186,8 +190,7 @@ dataType csvTable<dataType, headerType>::convertInput(std::string &val)
     std::stringstream stream(val);
     stream >> valor;
     if (stream.fail()) {
-        std::runtime_error e(val);
-        throw e;
+        throw std::runtime_error("invalid type conversion of value: "+val);
     }
     return valor;
 }
@@ -200,8 +203,7 @@ headerType csvTable<dataType, headerType>::convertHeader(std::string &val)
     std::stringstream stream(val);
     stream >> valor;
     if (stream.fail()) {
-        std::runtime_error e(val);
-        throw e;
+        throw std::runtime_error("invalid type conversion of header: "+val);
     }
     return valor;
 }

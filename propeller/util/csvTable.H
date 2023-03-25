@@ -53,6 +53,7 @@ public:
     friend Ostream& operator<<(Ostream& os, const csvTable<A,B>& table);
     
 };
+
 }
 
 #include "csvTable.C"
