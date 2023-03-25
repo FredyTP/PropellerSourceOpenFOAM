@@ -97,6 +97,15 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         /*----CREATE ROTOR DYNAMICS----*/
         dynamics_ = rotorDynamics::New(dict.subDict("dynamics"));
 
+        if(!rotorGeometry_.isReady())
+        {
+            FatalErrorInFunction
+                <<"Rotor geometry data of "<< this->name() <<" is not determined:"
+                << endl
+                << rotorGeometry_
+                << exit(FatalError);
+        }
+
         return true;
     }
 
