@@ -8,7 +8,7 @@ namespace Foam
     defineTypeNameAndDebug(offsetSampler,0);
     addToRunTimeSelectionTable(velocitySampler,offsetSampler, dictionary);
 
-offsetSampler::offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_)
+offsetSampler::offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
  : velocitySampler(rDiscrete_,rMesh_)
 {
     this->read(dict);
@@ -33,7 +33,7 @@ bool offsetSampler::read(const dictionary &dict)
  
 const vectorField& offsetSampler::sampleVelocity(const volVectorField& U) 
 {
-    //If no offset and rotorDiscrete is equal to rotorMesh
+    //If no offset and rotorDiscrete is equal to rotorFvMeshSel
     //Then the correspondence is cell to cell
     if(offset == 0.0 && rDiscrete->mode() == rotorDiscrete::dmMesh)
     {
@@ -68,7 +68,7 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
 }
 bool offsetSampler::build()
 {
-    //If offset is 0.0 and rotorDiscrete is equal to rotorMesh
+    //If offset is 0.0 and rotorDiscrete is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
     if(offset == 0.0 && rDiscrete->mode() == rotorDiscrete::dmMesh)

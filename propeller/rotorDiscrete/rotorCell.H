@@ -19,12 +19,11 @@ public:
     {
         
     }
-    rotorCell(label center, List<label> vertex,const List<point>& points,scalar vol)
-        : center_(center), vertex_(vertex), pointData_(&points), volume_(vol)
+    rotorCell(label center, List<label> vertex,const List<point>& points,label cellIdx)
+        : center_(center), vertex_(vertex), pointData_(&points), celli_(cellIdx)
     {
-        List<point> pts(vertex_.size()+1);
-        vertex.append(center_);
         vertex_.append(center_);
+        List<point> pts(vertex_.size());
         forAll(vertex_,i)
         {
             pts[i] = localPosition(i);
@@ -52,13 +51,12 @@ public:
 
     scalar area() const { return area_;}
 
-
     //GETTERS
     inline const List<FixedList<label,3>>& tri() const { return tri_;}
     inline const List<scalar>& triArea() const { return triArea_;}
     inline label center() const { return center_;}
     inline const List<label>& vertex() const {return vertex_;}
-    inline scalar volume() const {return volume_;}
+    inline label celli() const {return celli_;}
 
 private:
 
@@ -94,11 +92,10 @@ private:
         return std::abs(area/ 2.0);
     }
 
-    
     List<label> vertex_;
     label center_; 
     scalar area_;
-    scalar volume_;
+    label celli_;
     const List<point>* pointData_;
     List<FixedList<label,3>> tri_;
     List<scalar> triArea_;

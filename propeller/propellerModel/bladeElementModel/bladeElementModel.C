@@ -33,7 +33,7 @@ Foam::scalar Foam::bladeElementModel::radius() const
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
-    rotorDiscrete_.fromRotorMesh(*rotorMesh_);
+    rotorDiscrete_.fromRotorMesh(*rotorFvMeshSel_);
 
     bladeModel_.setMaxRadius(rotorGeometry.radius());
 }
@@ -43,65 +43,29 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 {
     propellerResult result;
     //Puntos de la discretizacion
-    const List<vector> cylPoints = rotorDiscrete_.cylPoints();
+    const List<vector>& cylPoints = rotorDiscrete_.cylPoints();
     //Tensor de cada punto local to global
-    const List<tensor> bladeCS = rotorDiscrete_.localBladeCS();
+    const List<tensor>& bladeCS = rotorDiscrete_.localBladeCS();
 
     //Velocidad angular
-    scalar pi = Foam::constant::mathematical::pi;
+    const scalar pi = Foam::constant::mathematical::pi;
     const scalar omega = angularVelocity;
     
     List<scalar> aoaList(cylPoints.size());
     List<vector> pressOnPoints(cylPoints.size(),vector(0,0,0));
-
-    volScalarField aoaField
-    (
-        IOobject
-        (
-            "propeller:AoA",
-            rotorMesh_->mesh().time().timeName(),
-            rotorMesh_->mesh()
-        ),
-        rotorMesh_->mesh(),
-        dimensionedScalar(dimless, Zero)
-    );
 
     volScalarField radiusField
     (
         IOobject
         (
             "propeller:radius",
-            rotorMesh_->mesh().time().timeName(),
-            rotorMesh_->mesh()
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh()
         ),
-        rotorMesh_->mesh(),
+        rotorFvMeshSel_->mesh(),
         dimensionedScalar(dimless, Zero)
     );
 
-    volScalarField clField
-    (
-        IOobject
-        (
-            "propeller:cl",
-            rotorMesh_->mesh().time().timeName(),
-            rotorMesh_->mesh()
-        ),
-        rotorMesh_->mesh(),
-        dimensionedScalar(dimless, Zero)
-    );
-
-
-    volScalarField cdField
-    (
-        IOobject
-        (
-            "propeller:cd",
-            rotorMesh_->mesh().time().timeName(),
-            rotorMesh_->mesh()
-        ),
-        rotorMesh_->mesh(),
-        dimensionedScalar(dimless, Zero)
-    );
     forAll(cylPoints, i)
     {
         //Get local radius
@@ -111,18 +75,12 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
         if(chord == 0)
         {
-             continue;
+            continue;
         }
         scalar twist = bladeSec.twist();
         scalar n_blade = 2;
         scalar average_fact = n_blade / (2 * pi * radius);
-
-        //Get cell area and volum
-        //scalar area = rotorMesh_->areas()[i];
-        //label celli = rotorMesh_->cells()[i];
-        //scalar volume = rotorMesh_->mesh().V()[celli];
-        
-        
+                
         //Local rotation tensor
         const tensor& bladeTensor = bladeCS[i];
 
@@ -130,7 +88,6 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         vector airVel = U[i];
         vector localAirVel = invTransform(bladeTensor,airVel);
         
-
         //Get blade velocity
         vector relativeBladeVel(omega*radius,0,0);
 
@@ -141,12 +98,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         relativeVel.y()=0;
         scalar relativeSpeed = mag(relativeVel);
 
-        //Info<<"Rel local vel: "<<relativeSpeed<<endl;
         //Airspeed angle (positive when speed is from "below" airfoil)
         scalar phi = atan2(-relativeVel.z(),relativeVel.x());
         //Info<<"Phi: "<<phi<<endl;
-
-        
 
         //Angle of atack
         scalar AoA = twist - phi;
@@ -159,17 +113,10 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
         scalar cl = bladeSec.cl(AoA,re,mach);
         scalar cd = bladeSec.cd(AoA,re,mach);
-
-        //clField[celli]=cl;
-        //cdField[celli]=cd;
-        //aoaField[celli] = AoA;
-        //aoaList[i]=AoA;
        
-
         //Calculate aerodinamic forces
         scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed;
         scalar drag = average_fact * 0.5 * rho * cd * chord * relativeSpeed * relativeSpeed;
-
 
         //Open foam code is not decomposing Lift and drag
         //from wind axis to blade axis
@@ -179,25 +126,20 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         
         pressOnPoints[i] = normalForce + tangentialForce;
         //Back to global ref frame
-        pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);
-
-        //result.force += totalAerForce;
-        //result.torque += (tangentialForce.x() * radius);
-
-        //Back to global ref frame
-        //totalAerForce = transform(bladeTensor,totalAerForce);
-
-        //Add source term
-        //force[celli] = -totalAerForce / volume;
-        
+        pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);        
     }
 
-    forAll(rotorMesh_->rotorCells(),i)
+
+
+    const List<rotorCell>& rotorCells = rotorDiscrete_.rotorCells();
+    const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
+
+    forAll(rotorCells,i)
     {
-        const auto & rCell = rotorMesh_->rotorCells()[i];
+        const auto & rCell = rotorCells[i];
         const auto & triangles = rCell.tri();
         vector bladeForce{0,0,0};
-        label celli = rotorMesh_->cells()[i];
+        label celli = rCell.celli();
         forAll(triangles,j)
         {
             bladeForce += rCell.triArea()[j] * 
@@ -208,24 +150,22 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         bladeForce = pressOnPoints[rCell.center()] * rCell.area();
         result.force += bladeForce;
 
-        result.torque += bladeForce.x() * cylPoints[rCell.center()].x();
+        result.torque += bladeForce ^(cylPoints[rCell.center()].x() * bladeCS[rCell.center()].col<1>()) ;
         
-        force[celli] = -bladeForce/rCell.volume();
+        force[celli] = - bladeForce/cellVol[celli];
 
 
         radiusField[celli] = cylPoints[rCell.center()].x();
     }
-    Info<<"FORCE: "<<result.force<<endl;
+    result.force = rotorDiscrete_.cartesian().localVector(result.force);
+    result.torque = rotorDiscrete_.cartesian().localVector(result.torque);
 
-    if(rotorMesh_->mesh().time().writeTime())
+    if(rotorFvMeshSel_->mesh().time().writeTime())
     {
-        aoaField.write();
-        clField.write();
-        cdField.write();
         radiusField.write();
     }
 
-    result.power = result.torque * omega;
+    result.power = result.torque.z() * omega;
 
     result.updateEta(this->refV);
     //Use J definition Vref/(rps * D)

@@ -5,7 +5,7 @@
 
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
-#include "rotorMesh.H"
+#include "rotorFvMeshSel.H"
 #include "rotorDiscrete.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -27,7 +27,7 @@ class propellerResult
 {
     public:
     vector force {0,0,0}; //- x: y: z: thrust in local coordinates
-    scalar torque {0};    //- Aerodynamic torque on rotor axis
+    vector torque {0,0,0};    //- Aerodynamic torque on rotor axis
     scalar power {0};     //- Power needed to rotate the propeller
     scalar J{0};          //- Adimensional: refV / (n*D)
     scalar eta{0};        //- Thrust* refV / power
@@ -68,7 +68,7 @@ class propellerResult
     friend Ostream& operator<<(Ostream& os, const propellerResult& pr)
     {   
         os.incrIndent();
-        indent(os) <<"- Thrust = "<<pr.thrust()<<endl;
+        indent(os) <<"- Force = "<<pr.force<<endl;
         indent(os) <<"- Torque = "<<pr.torque<<endl;
         indent(os) <<"- Power = "<<pr.power<<endl;
         indent(os) <<"- J = "<<pr.J<<endl;
@@ -153,7 +153,7 @@ class propellerModel
 {
 
 protected:
-    const rotorMesh* rotorMesh_;
+    const rotorFvMeshSel* rotorFvMeshSel_;
     scalar refV=1; //Refence velocity for adimensional
     scalar refRho=1; //Reference density 
 public:
@@ -198,7 +198,7 @@ public:
     // Abstract functions
         virtual scalar radius() const = 0;
 
-    void setRotorMesh(const rotorMesh* rotorMesh){ rotorMesh_ = rotorMesh;}
+    void setRotorMesh(const rotorFvMeshSel* rotorFvMeshSel){ rotorFvMeshSel_ = rotorFvMeshSel;}
 
     virtual void build(const rotorGeometry& rotorGeometry){}
 

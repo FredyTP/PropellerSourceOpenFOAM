@@ -22,7 +22,7 @@ rotorDiscrete::rotorDiscrete()
 void rotorDiscrete::buildCoordinateSystem(const rotorGeometry& geometry)
 {
     rotorGeometry_ = geometry;
-    globalCS_ = coordSystem::cylindrical
+    carCS_ = coordSystem::cartesian
                 (
                     rotorGeometry_.center(), //centerd to local
                     rotorGeometry_.direction(), //z-axis 
@@ -31,10 +31,17 @@ void rotorDiscrete::buildCoordinateSystem(const rotorGeometry& geometry)
 
     cylCS_ = coordSystem::cylindrical //local Cartesian to cylindrical
                 (
-                    vector(0,0,0),//rotorGeometry_.center(), //centerd to local
-                    vector(0,0,1),//rotorGeometry_.direction(), //z-axis 
-                    vector(1,0,0)//rotorGeometry_.psiRef()  //x-axis
+                    rotorGeometry_.center(), //centerd to local
+                    rotorGeometry_.direction(), //z-axis 
+                    rotorGeometry_.psiRef()  //x-axis
                 );
+
+    carToCylCS_ = coordSystem::cylindrical
+                    (
+                        vector(0,0,0), //same center
+                        vector(0,0,1), //same z-axis
+                        vector(1,0,0)  //same x-axis
+                    );
 
 }
 tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
@@ -42,10 +49,10 @@ tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
     //z- up, y -outwards from center, x perpendicular y,z (leading edge to trailing edge)
     point global,origin;
 
-    global = globalCS_.globalPosition(localPoint);
-    origin = globalCS_.origin();
+    global = cylCS_.globalPosition(localPoint);
+    origin = cylCS_.origin();
     
-    tensor rotTensor(globalCS_.R());
+    tensor rotTensor(cylCS_.R());
 
     //z-axis
     const vector ax3 = rotTensor.col<2>(); // == e3 (already normalized)
@@ -72,34 +79,170 @@ tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
 
     return rotTensor;
 }
-void rotorDiscrete::fromRotorMesh(const rotorMesh &rotorMesh)
+void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel)
 {
     Info<< "Building rotor Discrete from mesh" <<endl;
     discreteMode_ = discreteMode::dmMesh;
-    //const labelList cells = rotorMesh.cells();
-    //const auto &mesh = rotorMesh.mesh();
-    const auto& rotorPoints = rotorMesh.rotorPoints();
-    const auto& rotorCells = rotorMesh.rotorCells();
-    //Resize to computed points
-    cylPoints_.resize(rotorPoints.size());
-    localBlade_.resize(rotorPoints.size());
 
+    //Selected rotor radius (real used, no from mesh)
+    const scalar radius = rotorGeometry_.radius();
+    const scalar sqrRadius = radius * radius;
+    const scalar idealArea = constant::mathematical::pi * sqrRadius;
 
+    //List ref.
+    const labelList& cells = rotorFvMeshSel.cells(); 
+    const vectorField& cellCenter = rotorFvMeshSel.mesh().C();
 
-    forAll(cylPoints_, i)
+    List<point> centers(cells.size());
+    List<label> cellis(cells.size());
+    label iCent = 0;
+    forAll(cells,i)
     {
-        //label celli = cells[i];
-        vector rPoint = rotorPoints[i];
+        label celli = cells[i]; //cell index
 
-        //Project points over the disk
-        //From global to local cyl position
-        // Global -> local cyl
-        cylPoints_[i] = cylCS_.localPosition(rPoint);
-        cylPoints_[i].z()=0;
-        
-        //Not the most efficient way to compute global coords
+        //Get local center coordinates
+        point testCenter = carCS_.localPosition(cellCenter[celli]);
+        testCenter.z() = 0; //proyect over plane
+        if(magSqr(testCenter) <= sqrRadius)
+        {
+            centers[iCent] = testCenter;
+            cellis[iCent] = celli;
+            iCent++;
+        }
+
+    }
+
+    //Resize to fit correct data
+    centers.resize(iCent);
+    cellis.resize(iCent);
+
+    List<List<label>> voroCells;
+    List<point> vertex;
+
+    //Create voronoid diagram of proyected centers for 2D meshing
+    delaunayTriangulation::Voronoid
+    (
+        centers,
+        vertex,  
+        voroCells, 
+        delaunayTriangulation::circularRegion(radius),
+        delaunayTriangulation::intersectCircle(radius)
+    );
+
+    //Add vertex points
+    carPoints_ = vertex;
+    carPoints_.resize(vertex.size() + centers.size());
+
+    rotorCells_.resize(centers.size());
+
+    // add cell centers to rotor points and create cells
+    forAll(voroCells,i)
+    {
+        label celli = cellis[i]; //Now indexing is from cellis (used cells)
+        carPoints_[i+vertex.size()] = centers[i];
+        rotorCells_[i]=rotorCell(i+vertex.size(),voroCells[i],carPoints_,celli);
+    }   
+
+    //TODO: ?Add aditional integration points
+    
+    //Add cyl coord system and local blade tensor
+
+    cylPoints_.resize(carPoints_.size());
+    localBlade_.resize(carPoints_.size());
+    forAll(carPoints_,i)
+    {
+        cylPoints_[i] = carToCylCS_.localPosition(carPoints_[i]);
         localBlade_[i] = this->bladeLocalFromPoint(cylPoints_[i]);
     }
+
+
+//-------------BEGIN JUST TEST-------------//
+
+
+        std::string x_string = "x = [";
+        std::string y_string = "y = [";
+        std::string xc_string = "xc = [";
+        std::string yc_string = "yc = [";
+
+        for(label i = 0 ; i < centers.size();i++)
+        {
+            xc_string += std::to_string(centers[i].x());
+            
+            yc_string += std::to_string(centers[i].y());
+
+            if(i != centers.size()-1)
+            {
+                xc_string +=",";
+                yc_string +=",";
+            }
+        }
+
+        xc_string +="]";
+        yc_string +="]";
+
+        for(label i = 0 ; i < vertex.size();i++)
+        {
+            x_string += std::to_string(vertex[i].x());
+            
+            y_string += std::to_string(vertex[i].y());
+
+            if(i != vertex.size()-1)
+            {
+                x_string +=",";
+                y_string +=",";
+            }
+        }
+
+        x_string +="]";
+        y_string +="]";
+
+        std::string tri_str = "tri = [";
+        for(label i = 0; i< voroCells.size(); i++)
+        {
+            auto vor = voroCells[i];
+            if(vor.size()==0) continue;
+            tri_str += "[";   
+            for(label j=0; j <vor.size();j++)
+            {
+                tri_str += std::to_string(vor[j]);
+                tri_str += ",";
+            }
+            tri_str += std::to_string(vor[0]);
+            tri_str += "]";
+            if(i!= voroCells.size()-1)
+            {
+                tri_str += ",";
+            }
+
+        }
+        tri_str += "]";
+
+    std::string pyplot= "import numpy as np;\n";
+    pyplot+= "import matplotlib.pyplot as plot;\n";
+    pyplot += "import matplotlib as mp;\n";
+    pyplot+= xc_string + "\n";
+    pyplot+= yc_string + "\n";
+    pyplot+= x_string + "\n";
+    pyplot+= y_string +"\n";
+    pyplot+= tri_str + "\n";
+
+    pyplot+="tris = []\n";
+    pyplot+="for i in range(len(tri)):\n";
+    pyplot+="\txp = np.zeros(len(tri[i]))\n";
+    pyplot+="\typ = np.zeros(len(tri[i]))\n";
+    pyplot+="\tfor j in range(len(tri[i])):\n";
+    pyplot+="\t\txp[j]=x[tri[i][j]]\n";
+    pyplot+="\t\typ[j]=y[tri[i][j]]\n";
+    //pyplot+="\tif(len(tri[i])>2):\n";
+    pyplot+="\tplot.plot(xp,yp)\n";
+    pyplot+="\n";
+    pyplot+="plot.plot(xc,yc,marker='o',linewidth = 0)\n";
+    pyplot+="plot.show()\n";
+    std::ofstream file("triangulation.py",std::ios::out);
+    file<<pyplot;
+    file.close();
+
+     //-------------END JUST TEST-------------//
 }
 bool rotorDiscrete::read(const dictionary &dict)
 {

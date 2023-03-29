@@ -3,7 +3,7 @@
 #include "dictionary.H"
 #include "autoPtr.H"
 #include "rotorDiscrete.H"
-#include "rotorMesh.H"
+#include "rotorFvMeshSel.H"
 
 namespace Foam
 {
@@ -19,7 +19,7 @@ public:
         (
             const dictionary& dict,
             const rotorDiscrete* rDiscrete_,
-            const rotorMesh* rMesh_
+            const rotorFvMeshSel* rMesh_
         ),
         (dict,rDiscrete_,rMesh_)
     );
@@ -32,11 +32,11 @@ public:
 
     virtual void writeSampled(const word& name);
     
-    static autoPtr<velocitySampler> New(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_);
+    static autoPtr<velocitySampler> New(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
 
 protected:
-    velocitySampler(const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_);
-    const rotorMesh* rMesh;
+    velocitySampler(const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
+    const rotorFvMeshSel* rMesh;
     const rotorDiscrete* rDiscrete;
     vectorField sampledVel;
 };

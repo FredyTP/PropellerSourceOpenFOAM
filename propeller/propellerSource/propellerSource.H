@@ -15,7 +15,7 @@
 #include "airfoilModelList.H"
 
 #include "bladeModelDev.H"
-#include "rotorMesh.H"
+#include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
 
 #include "velocitySampler.H"
@@ -47,7 +47,7 @@ protected:
     autoPtr<propellerModel> propellerModel_;
 
     //Associated fvMesh and equivalent area on disk
-    rotorMesh rotorMesh_;
+    rotorFvMeshSel rotorFvMeshSel_;
 
     //Disk Geometry
     rotorGeometry rotorGeometry_;

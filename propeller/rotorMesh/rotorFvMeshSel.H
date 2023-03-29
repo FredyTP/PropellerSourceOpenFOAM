@@ -14,7 +14,7 @@
 namespace Foam
 {
 
-class rotorMesh
+class rotorFvMeshSel
 {
 public:
     //Public Enumerations
@@ -46,21 +46,10 @@ private:
     //Selected cells for rotor geometry
     //- Selected fvCells
     labelList cells_;
-    //- Selected fvCells area over rotor
-    scalarList area_;
-    //- Sum of cells area = selected disk area
-    scalar diskArea_;
     
-    //- Local cartesian position
-    List<vector> cellCenterLC_; //LC stands for local cartesian
-    coordSystem::cartesian localCartesianCS_;
-
-    //Rotor mesh
-    List<point> rotorPoints_;
-    List<rotorCell> rotorCells_;
-
     //Selected mesh rotor geometry
     rotorGeometry meshGeometry_;
+    scalar maxPointRadius=0;
 
     //- Zone name if imported from zone or cell set
     word cellsName_;
@@ -70,36 +59,30 @@ private:
 
     bool built_ = false;
 public:
-TypeName("rotorMesh");
+TypeName("rotorFvMeshSel");
 
     //Contructors
         //- Construct from parameters
-        rotorMesh(const fvMesh& mesh);
+        rotorFvMeshSel(const fvMesh& mesh);
 
     //Destructor
-        virtual ~rotorMesh() = default;
+        virtual ~rotorFvMeshSel() = default;
     //IO
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
 
-    //Getters
-        inline const List<rotorCell>& rotorCells() const {return rotorCells_;}
-        inline const List<point>& rotorPoints() const {return rotorPoints_;}
-        
+    //Getters        
         inline const labelList& cells() const { return cells_; }
         const fvMesh& mesh() const { return mesh_;}
         inline const vector& direction() const {return meshGeometry_.direction();}
         inline const vector& center() const {return meshGeometry_.center();}
         inline scalar radius() const {return meshGeometry_.radius();}
-        inline scalar diskArea() const {return diskArea_;}
-        inline const scalarList& areas() const {return area_;}
+        inline scalar maxRadius() const {return maxPointRadius;}
         inline bool isBuilt() const {return built_;}
     //BUILD SELECTION
         void build(rotorGeometry& rotorGeometry);
 
         void clear();
-
-  
 
 protected:
     //Geometry
@@ -107,7 +90,6 @@ protected:
         //- Update rotor center with closest cell center (Slow op)
         void tryUpdateCenter();
         
-                
         //- Create mesh selection from center
         //and radius
         void createMeshSelection();
@@ -124,14 +106,7 @@ protected:
 
         void findRotorRadius();
 
-
-        //- Compute cell area for selected cells
-        void computeCellsArea();
-        void computeCellsAreaVoronoid();
-
         void tryCorrectGeometry(rotorGeometry& rotorGeometry);
-
-        void computeLocalPositions();
 };
 
 

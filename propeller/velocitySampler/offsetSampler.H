@@ -3,7 +3,7 @@
 
 #include "velocitySampler.H"
 #include "rotorDiscrete.H"
-#include "rotorMesh.H"
+#include "rotorFvMeshSel.H"
 #include "dictionary.H"
 #include "cellPointWeight.H"
 namespace Foam
@@ -13,7 +13,7 @@ class offsetSampler : public velocitySampler
 public:
     TypeName("offsetSampler");
 
-    offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_);
+    offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
 
     bool read(const dictionary& dict);
 

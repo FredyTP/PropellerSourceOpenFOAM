@@ -12,7 +12,7 @@ propeller/airfoilModel/polarAirfoil/polar/viterna.C
 propeller/airfoilModel/polarAirfoil/polarAirfoil.C
 propeller/airfoilModel/airfoilModelList.C
 propeller/bladeModel/bladeModelDev.C
-propeller/rotorMesh/rotorMesh.C
+propeller/rotorMesh/rotorFvMeshSel.C
 propeller/rotorDynamics/rotorDynamics.C
 propeller/rotorDynamics/fixedPower.C
 propeller/rotorDynamics/fixedSpeed.C

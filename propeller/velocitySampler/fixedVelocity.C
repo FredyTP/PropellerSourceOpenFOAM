@@ -9,7 +9,7 @@ namespace Foam
     addToRunTimeSelectionTable(velocitySampler,fixedVelocity, dictionary);
 
 
-fixedVelocity::fixedVelocity(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorMesh* rMesh_)
+fixedVelocity::fixedVelocity(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
     : velocitySampler(rDiscrete_,rMesh_)
 {
     this->read(dict);

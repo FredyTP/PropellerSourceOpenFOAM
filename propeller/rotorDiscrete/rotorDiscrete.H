@@ -6,7 +6,7 @@
 #include "Enum.H"
 #include "cylindricalCS.H"
 #include "cartesianCS.H"
-#include "rotorMesh.H"
+#include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
 
 namespace Foam
@@ -26,20 +26,28 @@ public:
 private:
 
     //COORDINATE SYSTEMS
-    // LabCoordinateSystem -> localCylindrical
-    //- Rotor local cylindrical coordinate system (r-theta-z)
-    //from local cartesian system
-    coordSystem::cylindrical globalCS_;
+    //Two coordinate systems are used
+    //- Cartesian CS from global cartesian to local cartesian (x, y, z(rotor axis))
+    coordSystem::cartesian   carCS_;
+    //- Cylindrical CS, from global cartesian to local cylindrical (R - theta - z)
     coordSystem::cylindrical cylCS_;
-    vector psiOrigin_;
+    //- Cartesian to cilindrical CS
+    coordSystem::cylindrical carToCylCS_;
+
+    //- Used rotor geometry
     rotorGeometry rotorGeometry_;
     
-    //- Cell centre positions in local rotor frame
-    //  (Cylindrical r-theta-z)
-    List<point> cylPoints_;
+    //- All points used in cilindrical coordinates
+    List<point> cylPoints_;//  (Cylindrical r-theta-z)
+
+    //- All points used in local cartesian coordinates
+    List<point> carPoints_;
+
+    //- All cells build
+    List<rotorCell> rotorCells_;
 
     //- Rotation tensor from blade local reference to global reference frame
-    List<tensor> localBlade_; 
+    List<tensor> localBlade_; //(x: LE->TE) (y: radial) (z: "up")
 
     discreteMode discreteMode_ = discreteMode::dmNone;
 public:
@@ -49,7 +57,7 @@ TypeName("rotorDiscrete");
         //- Construct from dictionary
         rotorDiscrete();
 
-        void fromRotorMesh(const rotorMesh& rotorMesh);
+        void fromRotorMesh(const rotorFvMeshSel& rotorFvMeshSel);
     //Destructor
         virtual ~rotorDiscrete() = default;
     //IO
@@ -58,8 +66,9 @@ TypeName("rotorDiscrete");
 
         void buildCoordinateSystem(const rotorGeometry& geometry);
 
+     //Getters
         const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
-
+        const coordSystem::cartesian& cartesian() const {return carCS_;}
         const List<point>& cylPoints() const {return cylPoints_;}
 
         const rotorGeometry& geometry() const {return rotorGeometry_;}
@@ -67,7 +76,8 @@ TypeName("rotorDiscrete");
         const List<tensor>& localBladeCS() const {return localBlade_;}
 
         label size() const {return cylPoints_.size();}
-    //Getters
+
+        const List<rotorCell>& rotorCells() const {return rotorCells_;}
 
         discreteMode mode() const {return discreteMode_;}
 

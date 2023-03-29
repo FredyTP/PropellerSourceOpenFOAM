@@ -1,6 +1,4 @@
-#include "rotorMesh.H"
-
-#include "rotorMesh.H"
+#include "rotorFvMeshSel.H"
 #include "cellSet.H"
 #include "fvMatrices.H"
 #include "geometricOneField.H"
@@ -13,13 +11,13 @@
 namespace Foam
 {
 
-defineTypeNameAndDebug(rotorMesh,0);
+defineTypeNameAndDebug(rotorFvMeshSel,0);
 
 const Enum
 <
-    rotorMesh::selectionMode
+    rotorFvMeshSel::selectionMode
 >
-rotorMesh::selectionModeNames_
+rotorFvMeshSel::selectionModeNames_
 ({
     {selectionMode::smNone, "none"},
     {selectionMode::smGeometry, "geometry"},
@@ -31,7 +29,7 @@ rotorMesh::selectionModeNames_
 
 
 
-rotorMesh::rotorMesh
+rotorFvMeshSel::rotorFvMeshSel
 (
     const fvMesh& mesh
 )
@@ -39,8 +37,6 @@ rotorMesh::rotorMesh
     mesh_(mesh),
     selMode_(selectionMode::smNone),
     cells_(),
-    area_(),
-    diskArea_(NO_AREA),
     meshGeometry_(),
     cellsName_(),
     findClosestCenter_(false),
@@ -49,7 +45,7 @@ rotorMesh::rotorMesh
 
 }
 
-void rotorMesh::build(rotorGeometry& rotorGeometry)
+void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
 {
     // Fix rotor center specification
     //Provide geometry data if not data specified or ask for correction
@@ -78,13 +74,7 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         //Update to closest center if it's asked to (revisar esto)
         this->tryUpdateCenter(); 
 
-        //Build local coordinate system
-        localCartesianCS_ = coordSystem::cartesian
-            (
-                meshGeometry_.center(), //centerd to local
-                meshGeometry_.direction(), //z-axis 
-                meshGeometry_.psiRef()  //x-axis
-            );
+       
 
         if(selMode_==selectionMode::smGeometry)
         {
@@ -94,14 +84,6 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         {
             this->createMeshSelectionCilinder();
         }
-
-        this->computeLocalPositions();
-
-        Info<<"Proyected Area : "<<endl;
-        this->computeCellsArea(); //
-
-        Info<<"Voronoi Area: "<<endl;
-        this->computeCellsAreaVoronoid();
 
         //Find "new" geometry --
         this->findRotorRadius();
@@ -134,24 +116,11 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
         //Find geometry---------
         this->findRotorCenter();
         this->findRotorNormal(rotorGeometry); //ROTOR NORMAL ALWAYS UPDATES ROTOR GEOMETRY NORMAL
-        
-
-        localCartesianCS_ = coordSystem::cartesian
-            (
-                meshGeometry_.center(), //centerd to local
-                meshGeometry_.direction(), //z-axis 
-                meshGeometry_.psiRef()  //x-axis
-            );
-
-        this->computeLocalPositions();
         this->findRotorRadius();
 
-        Info<<"Proyected Area : "<<endl;
-        this->computeCellsArea(); //
-
-        Info<<"Voronoi Area: "<<endl;
-        this->computeCellsAreaVoronoid();
-
+        //For mesh selection, the used radius is the maximum
+        //(It is supposed that when a selection is used, a smooth circular disk is provided)
+        meshGeometry_.setRadius(maxRadius());
         this->tryCorrectGeometry(rotorGeometry); //Use geometry as output
     break;
 
@@ -163,14 +132,12 @@ void rotorMesh::build(rotorGeometry& rotorGeometry)
     
     built_ = true;
 }
-void rotorMesh::clear()
+void rotorFvMeshSel::clear()
 {
     cells_.clear();
-    area_.clear();
-    diskArea_ = 0;
     built_ = false;
 }
-bool rotorMesh::read(const dictionary &dict)
+bool rotorFvMeshSel::read(const dictionary &dict)
 {
     Info<<"Reading Rotor mesh config"<<endl;
 
@@ -186,7 +153,7 @@ bool rotorMesh::read(const dictionary &dict)
         findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
         Info<<"FindClosestCenter: "<< findClosestCenter_<<endl;
 
-        //If rotorMesh is build from geometry, the resulting mesh geometry
+        //If rotorFvMeshSel is build from geometry, the resulting mesh geometry
         // may be used to update the provided geometry
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
 
@@ -196,7 +163,7 @@ bool rotorMesh::read(const dictionary &dict)
         ok &= dict.readEntry("cellZone",cellsName_);
         Info<< "Reading cellSet from: " << cellsName_<<endl;
 
-        //If rotorMesh is from cellset geometry may not be provided
+        //If rotorFvMeshSel is from cellset geometry may not be provided
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
 
         break;
@@ -205,7 +172,7 @@ bool rotorMesh::read(const dictionary &dict)
         ok &= dict.readEntry("cellSet",cellsName_);
         Info<< "Reading cellSet from: " << cellsName_<<endl;
 
-        //If rotorMesh is from cellset geometry may not be provided
+        //If rotorFvMeshSel is from cellset geometry may not be provided
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
 
         break;
@@ -213,11 +180,9 @@ bool rotorMesh::read(const dictionary &dict)
         break;
     }
 
-
-
     return ok;
 }
-void rotorMesh::tryUpdateCenter()
+void rotorFvMeshSel::tryUpdateCenter()
 {
 
     if(findClosestCenter_)
@@ -242,7 +207,7 @@ void rotorMesh::tryUpdateCenter()
             << endl;
     }
 }
-void rotorMesh::tryCorrectGeometry(rotorGeometry& rotorGeometry)
+void rotorFvMeshSel::tryCorrectGeometry(rotorGeometry& rotorGeometry)
 {
     if(correctGeometry_)
     {
@@ -273,22 +238,11 @@ void rotorMesh::tryCorrectGeometry(rotorGeometry& rotorGeometry)
         }
     }
 }
-void rotorMesh::computeLocalPositions()
-{
-    cellCenterLC_.resize(cells_.size());
 
-    forAll(cells_,i)
-    {
-        label celli = cells_[i];
-
-        vector cellCentroid = mesh_.C()[celli];
-        vector localPos = localCartesianCS_.localPosition(cellCentroid);
-        
-        cellCenterLC_[i]= localPos;
-
-    }
-}
-void rotorMesh::createMeshSelectionCilinder()
+/**
+ * Uncomplete function, need to ensure only 1 mesh layer
+*/
+void rotorFvMeshSel::createMeshSelectionCilinder()
 {
     const vector& rotorDir = meshGeometry_.direction();
     const vector& rotorCenter = meshGeometry_.center();
@@ -316,7 +270,7 @@ void rotorMesh::createMeshSelectionCilinder()
     );
     cells_ = selectedCells.sortedToc();
 }
-void rotorMesh::createMeshSelection()
+void rotorFvMeshSel::createMeshSelection()
 {
 
     const vector& rotorDir = meshGeometry_.direction();
@@ -331,31 +285,38 @@ void rotorMesh::createMeshSelection()
 
     //User squared radius to compute faster
     scalar radiusSqr = radius * radius;
+    //- Local cartesian position
+    //Build local coordinate system
+    coordSystem::cartesian localCartesianCS        (
+            meshGeometry_.center(), //centerd to local
+            meshGeometry_.direction(), //z-axis 
+            meshGeometry_.psiRef()  //x-axis
+        );
+     
 
-    //Select only cells which centroid to the rotor center <= radius
+
+
+    //Select only cells which centroid proyected over the disk results inside the disk
     forAll(planeCells,i)
     {
         
         label celli = planeCells[i];
 
         vector cellCentroid = mesh_.C()[celli];
-        vector localPos = localCartesianCS_.localPosition(cellCentroid);
-        //localPos.z()=0; //set on rotor plane 
+        vector localPos = localCartesianCS.localPosition(cellCentroid);
+        localPos.z()=0; //set on rotor plane 
         scalar distanceSqr = magSqr(localPos);
 
         if( distanceSqr <= radiusSqr )
         {
             cells_.append(celli);
-            cellCenterLC_.append(localPos);
         }
     }
-
-    
 
     Info<<"Number of Selected cells: "<<cells_.size()<<endl;
 
 }
-void rotorMesh::loadMeshSelection()
+void rotorFvMeshSel::loadMeshSelection()
 {
 
     switch (selMode_)
@@ -367,10 +328,10 @@ void rotorMesh::loadMeshSelection()
         break;
     case selectionMode::smCellZone:
     {
-//- LOAD FROM CELLZONE
+        //- LOAD FROM CELLZONE
         Info<< indent
         << "- selecting cells using cellZones "
-        << flatOutput(cellsName_) << nl;
+        << cellsName_ << nl;
 
         const auto& zones = mesh_.cellZones();
 
@@ -401,7 +362,7 @@ void rotorMesh::loadMeshSelection()
     Info<<"Number of Selected cells: "<<cells_.size()<<endl;
     
 }
-void rotorMesh::computeCellsArea()
+/*void rotorFvMeshSel::computeCellsArea()
 {
     const vector& rotorDir = meshGeometry_.direction();
     const scalar& radius = meshGeometry_.radius();
@@ -460,9 +421,9 @@ void rotorMesh::computeCellsArea()
     Info<< "Ideal disk area: " << idealArea<<endl;
     Info<< "Disk Area: " << diskArea_ << endl;    
 
-}
+}*/
 
-void rotorMesh::computeCellsAreaVoronoid()
+/*void rotorFvMeshSel::computeCellsAreaVoronoid()
 {
     const vectorField& cellCenter = mesh_.C();
     const scalar radius = meshGeometry_.radius();
@@ -624,9 +585,9 @@ void rotorMesh::computeCellsAreaVoronoid()
 
      //-------------END JUST TEST-------------//
 
-}
+}*/
 
-void rotorMesh::findRotorCenter()
+void rotorFvMeshSel::findRotorCenter()
 {
     const scalarField& cellVolume = mesh_.V();
     const vectorField& cellCenter = mesh_.C();
@@ -648,7 +609,7 @@ void rotorMesh::findRotorCenter()
     Info << "Volume avg rotor Center: "<<newCenter<<endl;
 }
 
-void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
+void rotorFvMeshSel::findRotorNormal(rotorGeometry& rotorGeometry)
 {
 
     const vectorField& cellCenter = mesh_.C();
@@ -686,24 +647,56 @@ void rotorMesh::findRotorNormal(rotorGeometry& rotorGeometry)
     Info << "Volume avg rotor Direction: "<<newNormal<<endl;
 }
 
-void rotorMesh::findRotorRadius()
+void rotorFvMeshSel::findRotorRadius()
 {
-    
+    //Build local coordinate system
+    coordSystem::cartesian localCartesianCS        (
+            meshGeometry_.center(), //centerd to local
+            meshGeometry_.direction(), //z-axis 
+            meshGeometry_.psiRef()  //x-axis
+        );
+
+    //Cell center data
     const vectorField& cellCenter = mesh_.C();
+
+    //Cell points index
+    const labelListList& cellpoints = mesh_.cellPoints();
+
+    //Mesh points data
+    const pointField& meshPoints = mesh_.points();
+
+    scalar maxCenterRadiusSqr = 0;
     scalar maxRadSqr=0;
     forAll(cells_, i)
     {   
         label celli = cells_[i];
-        scalar radsqr = magSqr(cellCenterLC_[i]);
-        if(radsqr>maxRadSqr)
+        const labelList& cellPoints = cellpoints[celli];
+        const point& center = cellCenter[celli];
+
+        //Find cell center radius and check if biggest
+        scalar cradsqr = magSqr(localCartesianCS.localPosition(center));
+        if(cradsqr>maxCenterRadiusSqr)
         {
-            maxRadSqr=radsqr;
+            maxCenterRadiusSqr=cradsqr;
+        }
+
+        forAll(cellPoints,j)
+        {
+            //Find cell vertex radius and check if biggest
+            const point& pij = meshPoints[cellPoints[j]];
+            scalar radsqr = magSqr(localCartesianCS.localPosition(pij));
+            if(radsqr>maxRadSqr)
+            {
+                maxRadSqr=radsqr;
+            }
         }
     }
 
-    meshGeometry_.setRadius(sqrt(maxRadSqr));
+    maxPointRadius = sqrt(maxRadSqr);
+    meshGeometry_.setRadius(sqrt(maxCenterRadiusSqr));
 
-    Info << "Max rotor radius: "<<meshGeometry_.radius()<<endl;
+    Info << "Max vertex radius: "<<maxPointRadius<<endl;
+    Info << "Max cell center radius: "<<meshGeometry_.radius()<<endl;
 }
 
 

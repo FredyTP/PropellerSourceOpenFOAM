@@ -29,7 +29,7 @@ Foam::fv::propellerSource::propellerSource
 :
     fv::option(name,modelType,dict,mesh),
     propellerModel_(),
-    rotorMesh_(mesh_)
+    rotorFvMeshSel_(mesh_)
 {
     //Output propeller adimensional parameter definition
     propellerResult::OutputDefinition(Info)<<endl;
@@ -73,14 +73,14 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         }
 
         /*----------READ FV ROTOR MESH CONFIG---------------*/
-        const dictionary& rotorMeshDict = coeffs_.subDict("rotorMesh");
-        rotorMesh_.read(rotorMeshDict);
+        const dictionary& rotorFvMeshSelDict = coeffs_.subDict("rotorMesh");
+        rotorFvMeshSel_.read(rotorFvMeshSelDict);
 
         /*-----BUILD MESH AND UPDATE PROVIDED ROTOR GEOMETRY-----*/
-        rotorMesh_.build(rotorGeometry_);  //- Building rotor mesh may or may not modify rotorGeometry
+        rotorFvMeshSel_.build(rotorGeometry_);  //- Building rotor mesh may or may not modify rotorGeometry
        
         /*-----SET THE FV MESH TO THE ROTOR MODEL-----*/
-        propellerModel_->setRotorMesh(&rotorMesh_);
+        propellerModel_->setRotorMesh(&rotorFvMeshSel_);
         //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
 
@@ -103,7 +103,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         velSampler_ = velocitySampler::New(
                    dict.subDict("velocitySampler"),
                    &propellerModel_->rDiscrete(), 
-                   &rotorMesh_);
+                   &rotorFvMeshSel_);
         velSampler_->writeSampled(name_); //Write to file sampling location
 
         
@@ -148,7 +148,7 @@ void Foam::fv::propellerSource::addSup
             force
         );
 
-    dynamics_->integrate(result.torque,mesh_.time().deltaTValue());
+    dynamics_->integrate(mag(result.torque),mesh_.time().deltaTValue());
     
     Info<<name_<<": step parameters"<<endl;
     Info<<result<<endl;
