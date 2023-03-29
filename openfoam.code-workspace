@@ -234,7 +234,13 @@
 			"messageStream.C": "cpp",
 			"UList.C": "cpp",
 			"IOerror.C": "cpp",
-			"IjkField.C": "cpp"
+			"IjkField.C": "cpp",
+			"GAMGSolverScale.C": "cpp",
+			"fvScalarMatrix.C": "cpp",
+			"fvMatrixSolve.C": "cpp",
+			"fvMesh.C": "cpp",
+			"GAMGSolverSolve.C": "cpp",
+			"rotorFvMeshSel.C": "cpp"
 		}
 	}
 }

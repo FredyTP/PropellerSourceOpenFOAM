@@ -52,13 +52,25 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     const scalar omega = angularVelocity;
     
     List<scalar> aoaList(cylPoints.size());
-    List<vector> pressOnPoints(cylPoints.size());
+    List<vector> pressOnPoints(cylPoints.size(),vector(0,0,0));
 
     volScalarField aoaField
     (
         IOobject
         (
             "propeller:AoA",
+            rotorMesh_->mesh().time().timeName(),
+            rotorMesh_->mesh()
+        ),
+        rotorMesh_->mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
+
+    volScalarField radiusField
+    (
+        IOobject
+        (
+            "propeller:radius",
             rotorMesh_->mesh().time().timeName(),
             rotorMesh_->mesh()
         ),
@@ -186,27 +198,31 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         const auto & triangles = rCell.tri();
         vector bladeForce{0,0,0};
         label celli = rotorMesh_->cells()[i];
-        forAll(triangles,i)
+        forAll(triangles,j)
         {
-            bladeForce += rCell.triArea()[i] * 
-            (pressOnPoints[triangles[i][0]] + 
-             pressOnPoints[triangles[i][1]] + 
-             pressOnPoints[triangles[i][2]]) / 3;
+            bladeForce += rCell.triArea()[j] * 
+            (pressOnPoints[triangles[j][0]] + 
+             pressOnPoints[triangles[j][1]] + 
+             pressOnPoints[triangles[j][2]]) / 3;
         }
-
+        bladeForce = pressOnPoints[rCell.center()] * rCell.area();
         result.force += bladeForce;
-        result.torque += mag(bladeForce ^ rCell.position(rCell.center()));
 
+        result.torque += bladeForce.x() * cylPoints[rCell.center()].x();
         
         force[celli] = -bladeForce/rCell.volume();
-    }
 
+
+        radiusField[celli] = cylPoints[rCell.center()].x();
+    }
+    Info<<"FORCE: "<<result.force<<endl;
 
     if(rotorMesh_->mesh().time().writeTime())
     {
         aoaField.write();
         clField.write();
         cdField.write();
+        radiusField.write();
     }
 
     result.power = result.torque * omega;

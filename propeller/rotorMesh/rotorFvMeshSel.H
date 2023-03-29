@@ -1,5 +1,5 @@
-#ifndef PROPELLER_ROTOR_MESH_ROTOR_MESH
-#define PROPELLER_ROTOR_MESH_ROTOR_MESH
+#ifndef PROPELLER_ROTOR_MESH_ROTOR_FV_MESH_SEL
+#define PROPELLER_ROTOR_MESH_ROTOR_FV_MESH_SEL
 #include "fvMesh.H"
 #include "cuttingPlane.H"
 #include "Enum.H"
@@ -137,6 +137,6 @@ protected:
 
 }
 
-#endif /* PROPELLER_ROTOR_MESH_ROTOR_MESH */
+#endif /* PROPELLER_ROTOR_MESH_ROTOR_FV_MESH_SEL */
 
 

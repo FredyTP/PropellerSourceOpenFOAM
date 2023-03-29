@@ -29,9 +29,11 @@ private:
     // LabCoordinateSystem -> localCylindrical
     //- Rotor local cylindrical coordinate system (r-theta-z)
     //from local cartesian system
+    coordSystem::cylindrical globalCS_;
     coordSystem::cylindrical cylCS_;
     vector psiOrigin_;
     rotorGeometry rotorGeometry_;
+    
     //- Cell centre positions in local rotor frame
     //  (Cylindrical r-theta-z)
     List<point> cylPoints_;

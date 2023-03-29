@@ -33,7 +33,6 @@ static bool Voronoid
 )
 {
    List<point> nodeP = points;
-
    List<ITRIANGLE> triangles;
    delaunayTriangulation::Triangulate(nodeP,triangles,isInRegion,true);
    delaunayTriangulation::VoronoidFromTri(nodeP,triangles,vertex,cells,isInRegion,intersectRegion);
@@ -286,7 +285,7 @@ static void removeSuperTri(List<ITRIANGLE>& tri,label nv)
    {
       if (tri[i][0] >= nv || tri[i][1] >= nv || tri[i][2] >= nv) 
       {
-         tri[i] = tri[tri.size()-1];
+         tri[i] = tri[ntri-1];
          i--;
          ntri--;
       }
@@ -319,8 +318,28 @@ static void removeSuperTri(List<ITRIANGLE>& tri,label nv)
          return(0);
    }
 */
-static int Triangulate(List<point>& pxyz,List<ITRIANGLE>& v,std::function<bool (point)> isInRegion = [](point p){return false;},bool keepSuperTri = false)
+static int Triangulate(List<point>& points,List<ITRIANGLE>& v,std::function<bool (point)> isInRegion = [](point p){return false;},bool keepSuperTri = false)
 {
+
+
+//SORT ARRAY
+   //Init empty array
+   List<point> pxyz(points.size());
+   //Sort
+   List<label> idx(points.size());
+   std::iota(idx.begin(), idx.end(), 0);
+   std::sort(idx.begin(),idx.end(),[&points](label a, label b)
+   {
+      return points[a].x()<points[b].x();
+   });
+
+   forAll(idx,i)
+   {
+      pxyz[i]=points[idx[i]]; //Sort array
+   }
+
+
+// BEGIN TRIANGLUATION
    List<bool> complete;
    List<IEDGE> edges;
    int nedge = 0;
@@ -503,14 +522,35 @@ static int Triangulate(List<point>& pxyz,List<ITRIANGLE>& v,std::function<bool (
    }
 
    v.resize(ntri);
+   //Add supervertex direct indexing
+   idx.append(nv);
+   idx.append(nv+1);
+   idx.append(nv+2);
+   //reorder tri
+   forAll(v,i)
+   {
+      forAll(v[i],j)
+      {
+         v[i][j]=idx[v[i][j]];
+      }
+   }
    /*
       Remove triangles with supertriangle vertices
       These are triangles which have a vertex number greater than nv
    */
+   //points = pxyz;
   if(!keepSuperTri)
   {
       delaunayTriangulation::removeSuperTri(v,nv);
-      pxyz.resize(nv);
+      //points.resize(nv);
+  }
+  else
+  {
+      //points = pxyz;
+      points.append(pxyz[nv+0]);
+      points.append(pxyz[nv+1]);
+      points.append(pxyz[nv+2]);
+
   }
 
   return(status);

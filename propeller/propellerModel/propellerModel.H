@@ -38,7 +38,7 @@ class propellerResult
     {
         propellerResult::OutputDefinition(Info)<<endl;
     }
-    inline scalar thrust() const {return force.y();}
+    inline scalar thrust() const {return force.z();}
 
     static Ostream& OutputDefinition(Ostream& os)
     {
