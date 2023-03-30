@@ -1,5 +1,5 @@
-#ifndef PROPELLER_ROTOR_MESH_ROTOR_CELL
-#define PROPELLER_ROTOR_MESH_ROTOR_CELL
+#ifndef PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_TRI_CELL
+#define PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_TRI_CELL
 
 #include "List.H"
 #include "vector.H"
@@ -11,15 +11,15 @@ namespace Foam
      * Cell for calculation and integration of pressure
      * Use diferent list for integration points rather than using the same as vertex
     */
-class rotorCell
+class rotorTriCell
 {
 public:
 
-    rotorCell()
+    rotorTriCell()
     {
         
     }
-    rotorCell(label center, List<label> vertex,const List<point>& points,label cellIdx)
+    rotorTriCell(label center, List<label> vertex,const List<point>& points,label cellIdx)
         : center_(center), vertex_(vertex), pointData_(&points), celli_(cellIdx)
     {
         vertex_.append(center_);
@@ -60,22 +60,7 @@ public:
 
 private:
 
-    /**
-     * Compute cell area
-    */
-    scalar computeArea(const List<label>& v)
-    {
-        scalar area = 0.0;
-
-        label j = v.size() - 2;
-        for (label i = 0; i < v.size()-1; i++)
-        {
-            area += (localPosition(j).x() + localPosition(i).x()) * (localPosition(j).y() - localPosition(i).y());
-            j = i;
-        }
-        return std::abs(area/ 2.0);
-    }
-
+    
     /**
      * Comput tri area
     */
@@ -101,5 +86,4 @@ private:
     List<scalar> triArea_;
 };
 }
-
-#endif /* PROPELLER_ROTOR_MESH_ROTOR_CELL */
+#endif /* PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_TRI_CELL */
