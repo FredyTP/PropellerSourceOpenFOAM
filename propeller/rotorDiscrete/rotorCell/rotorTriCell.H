@@ -11,7 +11,7 @@ namespace Foam
      * Cell for calculation and integration of pressure
      * Use diferent list for integration points rather than using the same as vertex
     */
-class rotorTriCell
+class rotorTriCell : public rotorCell
 {
 public:
 
@@ -20,18 +20,21 @@ public:
         
     }
     rotorTriCell(label center, List<label> vertex,const List<point>& points,label cellIdx)
-        : center_(center), vertex_(vertex), pointData_(&points), celli_(cellIdx)
+        : rotorCell(center,vertex,points,cellIdx)
     {
-        vertex_.append(center_);
-        List<point> pts(vertex_.size());
-        forAll(vertex_,i)
+
+        integrationPoints_ = this->vertex();
+        integrationPoints_.append(this->center());
+
+        List<point> pts(integrationPoints_.size());
+        forAll(pts,i)
         {
-            pts[i] = localPosition(i);
+            pts[i] = this->position(integrationPoints_[i]);
         }
-        //pts[vertex_.size()]=localPosition(vertex_.size());
+
 
         delaunayTriangulation::Triangulate(pts,tri_);
-        area_ = computeArea(vertex_);
+
         triArea_.resize(tri_.size());
 
         scalar areaTri = 0;
@@ -45,21 +48,34 @@ public:
             areaTri += triArea_[i];
         }
     }
-    const label globalIndex(label localIndex) {return localIndex==vertex_.size()? center_ : vertex_[localIndex];}
-    const point& localPosition(label i) const {return i==vertex_.size()? (*pointData_)[center_] : (*pointData_)[vertex_[i]];}
-    const point& position(label i) const {return (*pointData_)[i];}
+    
 
-    scalar area() const { return area_;}
+    template<typename fieldType>
+    virtual fieldType integrateField(const List<fieldType>& field) const
+    {
+        fieldType value(0);
+
+        forAll(tri_,i)
+        {
+            value += (triArea[i] * (field[tri_[i][0]]+field[tri_[i][1]]+field[tri_[i][2]])/3.0);
+        }
+        
+        return value;
+    }
+
+    virtual const List<label>& integrationPoints() const
+    {
+        return integrationPoints_;
+    }
+  
 
     //GETTERS
     inline const List<FixedList<label,3>>& tri() const { return tri_;}
     inline const List<scalar>& triArea() const { return triArea_;}
-    inline label center() const { return center_;}
-    inline const List<label>& vertex() const {return vertex_;}
-    inline label celli() const {return celli_;}
+    
 
 private:
-
+    const label globalIndex(label localIndex) {return integrationPoint_[localIndex];}
     
     /**
      * Comput tri area
@@ -71,17 +87,14 @@ private:
         label j = t.size() - 1;
         for (label i = 0; i < t.size(); i++)
         {
-            area += (position(t[j]).x() + position(t[i]).x()) * (position(t[j]).y() - position(t[i]).y());
+            area += (this->position(t[j]).x() + this->position(t[i]).x()) * (this->position(t[j]).y() - this->position(t[i]).y());
             j = i;
         }
-        return std::abs(area/ 2.0);
+        return std::abs(area / 2.0);
     }
 
-    List<label> vertex_;
-    label center_; 
-    scalar area_;
-    label celli_;
-    const List<point>* pointData_;
+    List<label> integrationPoints_;
+    
     List<FixedList<label,3>> tri_;
     List<scalar> triArea_;
 };

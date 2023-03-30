@@ -19,6 +19,11 @@ public:
     }
     
 
+
+
+    // -----PURE VIRTUAL METHODS  
+    
+
     /**
      * @brief: Integrates field over the cells integration points.
      * 
@@ -29,13 +34,16 @@ public:
      * Accessing field[integrationPoint[0]] -> returns the field value at integrationPoint 0
     */
     template<typename fieldType>
-    virtual scalar integrateField(const List<fieldType>& field) const = 0;
+    virtual fieldType integrateField(const List<fieldType>& field) const = 0;
 
 
     /**
      * @brief: Returns a list of integration points index
     */
     virtual const List<label>& integrationPoints() const = 0;
+
+
+    //-------------------------------------------------------------//
 
     /**
      * @brief: Updates the integration points values needed
@@ -56,6 +64,11 @@ public:
 
     inline const point& position(label i) const { return (*pointData)[i];} 
     inline const point& vertexPosition(label vertexi) const { return postion(vertex_[i]);}
+    inline const point& centerPosition() const { return position(center_);}
+
+    inline const List<label>& vertex() const {return vertex_;}
+    inline label center() const { return center_;}
+
 
 protected:
 
@@ -76,6 +89,7 @@ protected:
     }
 
 
+private:
     //Idx of center position   
     label center_; 
 
