@@ -33,4 +33,5 @@
 
 # Build dir
 linux*
-propeller/airfoilModel/cylinder/cylinderAirfoil.C
+
+openfoam.code-workspace
