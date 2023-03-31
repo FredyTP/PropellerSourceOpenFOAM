@@ -1,6 +1,7 @@
 #ifndef PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_CELL
 #define PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_CELL
 
+#include "point.H"
 #include "dictionary.H"
 #include "autoPtr.H"
 
@@ -12,14 +13,12 @@ class rotorCell
 {
 public:
 
-    rotorCell(label center, List<label> vertex,const List<point>& points,label cellIdx)
+    rotorCell(label center, List<label>& vertex,const List<point>& points,label cellIdx)
         :center_(center), vertex_(vertex), pointData_(&points), celli_(cellIdx)
     {
         this->computeArea();
     }
     
-
-
 
     // -----PURE VIRTUAL METHODS  
     
@@ -33,8 +32,7 @@ public:
      * 
      * Accessing field[integrationPoint[0]] -> returns the field value at integrationPoint 0
     */
-    template<typename fieldType>
-    virtual fieldType integrateField(const List<fieldType>& field) const = 0;
+    virtual vector integrateField(const List<vector>& field) const = 0;
 
 
     /**
@@ -62,13 +60,14 @@ public:
     inline scalar area() const { return area_; }
     inline scalar celli() const {return celli_; }
 
-    inline const point& position(label i) const { return (*pointData)[i];} 
-    inline const point& vertexPosition(label vertexi) const { return postion(vertex_[i]);}
+    inline const point& position(label i) const { return (*pointData_)[i];} 
+    inline const point& vertexPosition(label vertexi) const { return position(vertex_[vertexi]);}
     inline const point& centerPosition() const { return position(center_);}
 
     inline const List<label>& vertex() const {return vertex_;}
     inline label center() const { return center_;}
-
+             
+    static autoPtr<rotorCell> New(word type, label center, List<label>& vertex, const List<point> &points, label cellIdx);
 
 protected:
 
@@ -82,10 +81,10 @@ protected:
         label j = vertex_.size() - 1;
         for (label i = 0; i < vertex_.size(); i++)
         {
-            area += (position(vertex_[j]).x() + position(vertex_[i]).x()) * (position(vertex_[j]).y() - position(vertex_[i]).y());
+            area_ += (vertexPosition(j).x() + vertexPosition(i).x()) * (vertexPosition(j).y() - vertexPosition(i).y());
             j = i;
         }
-        std::abs(area_/ 2.0);
+        area_ = std::abs(area_/ 2.0);
     }
 
 
@@ -112,3 +111,5 @@ private:
 }
 
 #endif /* PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_CELL */
+
+

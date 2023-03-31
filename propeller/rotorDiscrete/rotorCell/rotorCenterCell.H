@@ -9,15 +9,15 @@ namespace Foam
 class rotorCenterCell : public rotorCell
 {
 public:
-    rotorCenterCell(label center, List<label> vertex,const List<point>& points,label cellIdx)
+    rotorCenterCell(label center, List<label>& vertex,const List<point>& points,label cellIdx)
         : rotorCell(center,vertex,points,cellIdx), integrationPoints_({center})
     {
 
     }
-    template<typename fieldType>
-    virtual fieldType integrateField(const List<fieldType>& field) const
+    
+    virtual vector integrateField(const List<vector>& field) const
     {
-        return field[this->center()] * this->area();
+        return (field[this->center()] * this->area());
     }
 
     virtual const List<label>& integrationPoints() const
@@ -36,3 +36,5 @@ private:
 
 
 #endif /* PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_CENTER_CELL */
+
+

@@ -43,8 +43,13 @@ private:
     //- All points used in local cartesian coordinates
     List<point> carPoints_;
 
+    List<bool> integrationPoints_;
+    
     //- All cells build
-    List<rotorCell> rotorCells_;
+    PtrList<rotorCell> rotorCells_;
+
+    //- Total disk area
+    scalar area_ = 0.0;
 
     //- Rotation tensor from blade local reference to global reference frame
     List<tensor> localBlade_; //(x: LE->TE) (y: radial) (z: "up")
@@ -57,7 +62,7 @@ TypeName("rotorDiscrete");
         //- Construct from dictionary
         rotorDiscrete();
 
-        void fromRotorMesh(const rotorFvMeshSel& rotorFvMeshSel);
+        void fromRotorMesh(const rotorFvMeshSel& rotorFvMeshSel, word integration);
     //Destructor
         virtual ~rotorDiscrete() = default;
     //IO
@@ -77,9 +82,11 @@ TypeName("rotorDiscrete");
 
         label size() const {return cylPoints_.size();}
 
-        const List<rotorCell>& rotorCells() const {return rotorCells_;}
+        const PtrList<rotorCell>& rotorCells() const {return rotorCells_;}
 
         discreteMode mode() const {return discreteMode_;}
+
+        const List<bool>& integrationPoints() const { return integrationPoints_; }
 
 protected:
         tensor bladeLocalFromPoint(const point& localPoint) const;

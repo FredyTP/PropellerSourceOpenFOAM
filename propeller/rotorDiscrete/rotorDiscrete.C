@@ -6,7 +6,7 @@
 #include "rotorGeometry.H"
 #include "delaunayTriangulation.H"
 #include <fstream>
-
+#include "rotorTriCell.H"
 
 namespace Foam
 {
@@ -79,7 +79,7 @@ tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
 
     return rotTensor;
 }
-void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel)
+void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word integration)
 {
     Info<< "Building rotor Discrete from mesh" <<endl;
     discreteMode_ = discreteMode::dmMesh;
@@ -132,16 +132,25 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel)
     //Add vertex points
     carPoints_ = vertex;
     carPoints_.resize(vertex.size() + centers.size());
-
+    integrationPoints_.resize(carPoints_.size());
     rotorCells_.resize(centers.size());
 
+    area_ = 0.0;
+    scalar ta = 0.0;
     // add cell centers to rotor points and create cells
     forAll(voroCells,i)
     {
         label celli = cellis[i]; //Now indexing is from cellis (used cells)
         carPoints_[i+vertex.size()] = centers[i];
-        rotorCells_[i]=rotorCell(i+vertex.size(),voroCells[i],carPoints_,celli);
+        rotorCells_.set(i,rotorCell::New(integration,i+vertex.size(),voroCells[i],carPoints_,celli));
+        rotorCells_[i].updateIntegrationList(integrationPoints_);
+        area_ += rotorCells_[i].area();
+        ta += (static_cast<rotorTriCell*>(rotorCells_.get(i)))->areaTri();
     }   
+
+    Info<< "Total disk area: "<<area_<<endl;
+    Info<< "Total diak tri area: "<<ta<<endl;
+    Info<< "Idea disk area: "<<idealArea<<endl;
 
     //TODO: ?Add aditional integration points
     

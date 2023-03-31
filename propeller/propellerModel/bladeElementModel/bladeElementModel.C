@@ -23,6 +23,7 @@ Foam::bladeElementModel::bladeElementModel
 {
     Info<<"Creating blade Element Model"<<endl;
     
+    integrationOrder = dict.getOrDefault<word>("integration","tri");
 }
 
 Foam::scalar Foam::bladeElementModel::radius() const
@@ -33,7 +34,7 @@ Foam::scalar Foam::bladeElementModel::radius() const
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
-    rotorDiscrete_.fromRotorMesh(*rotorFvMeshSel_);
+    rotorDiscrete_.fromRotorMesh(*rotorFvMeshSel_,integrationOrder);
 
     bladeModel_.setMaxRadius(rotorGeometry.radius());
 }
@@ -65,9 +66,25 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         rotorFvMeshSel_->mesh(),
         dimensionedScalar(dimless, Zero)
     );
+    volScalarField areaField
+    (
+        IOobject
+        (
+            "propeller:area",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh()
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimArea, Zero)
+    );
 
     forAll(cylPoints, i)
     {
+        if(!rotorDiscrete_.integrationPoints()[i])
+        {
+            //If point is not need for integration, continue
+            continue;
+        }
         //Get local radius
         scalar radius = cylPoints[i].x();
         auto bladeSec = bladeModel_.sectionAtRadius(radius);
@@ -131,23 +148,15 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
 
 
-    const List<rotorCell>& rotorCells = rotorDiscrete_.rotorCells();
+    const PtrList<rotorCell>& rotorCells = rotorDiscrete_.rotorCells();
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
 
     forAll(rotorCells,i)
     {
         const auto & rCell = rotorCells[i];
-        const auto & triangles = rCell.tri();
-        vector bladeForce{0,0,0};
+        vector bladeForce = rCell.integrateField(pressOnPoints);
         label celli = rCell.celli();
-        forAll(triangles,j)
-        {
-            bladeForce += rCell.triArea()[j] * 
-            (pressOnPoints[triangles[j][0]] + 
-             pressOnPoints[triangles[j][1]] + 
-             pressOnPoints[triangles[j][2]]) / 3;
-        }
-        bladeForce = pressOnPoints[rCell.center()] * rCell.area();
+
         result.force += bladeForce;
 
         result.torque += bladeForce ^(cylPoints[rCell.center()].x() * bladeCS[rCell.center()].col<1>()) ;
@@ -156,6 +165,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
 
         radiusField[celli] = cylPoints[rCell.center()].x();
+        areaField[celli] = rCell.area();
     }
     result.force = rotorDiscrete_.cartesian().localVector(result.force);
     result.torque = rotorDiscrete_.cartesian().localVector(result.torque);
@@ -163,6 +173,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     if(rotorFvMeshSel_->mesh().time().writeTime())
     {
         radiusField.write();
+        areaField.write();
     }
 
     result.power = result.torque.z() * omega;

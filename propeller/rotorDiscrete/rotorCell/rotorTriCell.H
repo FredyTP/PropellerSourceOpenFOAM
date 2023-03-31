@@ -4,6 +4,7 @@
 #include "List.H"
 #include "vector.H"
 #include "delaunayTriangulation.H"
+#include "rotorCell.H"
 
 namespace Foam
 {
@@ -15,11 +16,7 @@ class rotorTriCell : public rotorCell
 {
 public:
 
-    rotorTriCell()
-    {
-        
-    }
-    rotorTriCell(label center, List<label> vertex,const List<point>& points,label cellIdx)
+    rotorTriCell(label center, List<label>& vertex,const List<point>& points,label cellIdx)
         : rotorCell(center,vertex,points,cellIdx)
     {
 
@@ -47,17 +44,17 @@ public:
             triArea_[i] = computeAreaTri(tri_[i]);
             areaTri += triArea_[i];
         }
+        triTotalArea_ = areaTri;
     }
     
 
-    template<typename fieldType>
-    virtual fieldType integrateField(const List<fieldType>& field) const
+    virtual vector integrateField(const List<vector>& field) const
     {
-        fieldType value(0);
+        vector value{0,0,0};
 
         forAll(tri_,i)
         {
-            value += (triArea[i] * (field[tri_[i][0]]+field[tri_[i][1]]+field[tri_[i][2]])/3.0);
+            value += (triArea_[i] * (field[tri_[i][0]]+field[tri_[i][1]]+field[tri_[i][2]])/3.0);
         }
         
         return value;
@@ -72,10 +69,11 @@ public:
     //GETTERS
     inline const List<FixedList<label,3>>& tri() const { return tri_;}
     inline const List<scalar>& triArea() const { return triArea_;}
+    inline scalar areaTri() const { return triTotalArea_; }
     
 
 private:
-    const label globalIndex(label localIndex) {return integrationPoint_[localIndex];}
+    const label globalIndex(label localIndex) {return integrationPoints_[localIndex];}
     
     /**
      * Comput tri area
@@ -97,6 +95,8 @@ private:
     
     List<FixedList<label,3>> tri_;
     List<scalar> triArea_;
+    scalar triTotalArea_;
 };
 }
 #endif /* PROPELLER_ROTOR_DISCRETE_ROTOR_CELL_ROTOR_TRI_CELL */
+

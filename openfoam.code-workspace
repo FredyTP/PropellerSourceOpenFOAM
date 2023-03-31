@@ -240,7 +240,8 @@
 			"fvMatrixSolve.C": "cpp",
 			"fvMesh.C": "cpp",
 			"GAMGSolverSolve.C": "cpp",
-			"rotorFvMeshSel.C": "cpp"
+			"rotorFvMeshSel.C": "cpp",
+			"rotorCellNew.C": "cpp"
 		}
 	}
 }

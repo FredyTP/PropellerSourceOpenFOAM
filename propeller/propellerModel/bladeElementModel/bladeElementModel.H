@@ -17,6 +17,8 @@ protected:
     airfoilModelList airfoils_;
     Foam::devel::bladeModel bladeModel_;
     rotorDiscrete rotorDiscrete_;
+
+    word integrationOrder;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");
