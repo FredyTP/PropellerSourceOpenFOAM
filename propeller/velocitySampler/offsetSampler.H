@@ -8,6 +8,31 @@
 #include "cellPointWeight.H"
 namespace Foam
 {
+
+/**
+ * @brief Sampled velocity class from fv vector field solution
+ *  
+ * This class samples fvSolution to specified points, if no offset is provided,
+ * the velocity is sampled at rotor cells.
+ * The offset is from each point, with the direction of the rotor normal (upstream)
+ * 
+ * If velocity is sampled at cell center, its cheaper but less exact, and the value 
+ * is constant within a fvCell.
+ * 
+ * If velocity is not sampled at cell center, the value is interpolated with a tetraedron
+ * discrete algorithm
+ * @example
+ * 
+ * Example of dicts provided to this class
+ * 
+ *   velocitySampler
+ *   {
+ *   
+ *       type            offsetSampler;
+ *       offset          0.2;
+ *       atCellCenter    true;
+ *   }
+ */
 class offsetSampler : public velocitySampler
 {
 public:
