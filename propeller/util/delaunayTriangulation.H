@@ -28,6 +28,7 @@ static bool Voronoid
    const List<point>& points,
    List<point>& vertex, 
    List<List<label>> &cells,
+   label refinementLevel,
    std::function<bool (point)> isInRegion,
    std::function<void (point,point,point&,bool)> intersectRegion
 )
@@ -35,7 +36,7 @@ static bool Voronoid
    List<point> nodeP = points;
    List<ITRIANGLE> triangles;
    delaunayTriangulation::Triangulate(nodeP,triangles,isInRegion,true);
-   delaunayTriangulation::VoronoidFromTri(nodeP,triangles,vertex,cells,isInRegion,intersectRegion);
+   delaunayTriangulation::VoronoidFromTri(nodeP,triangles,vertex,cells,refinementLevel,isInRegion,intersectRegion);
    return true;
 }
 
@@ -129,13 +130,60 @@ static std::function<void (point,point,point&,bool)> intersectCircle(scalar radi
    return intersect;
 }
 
+/**
+ * @brief Refine border a number of equali sampled points refinement
+ * @warning Refinement shape must be a convex shape in order to work!!
+*/
+static void refineBorder
+(
+   List<point>& orto,
+   List<label>& insidePoints,
+   const point& p1, 
+   const point& p2,
+   label refinement,
+   std::function<bool (point)> isInRegion,
+   std::function<void (point,point,point&,bool)> findIntersection
+)
+{
+   //p1 first point, p2, last one
 
+   //Add p1
+   insidePoints.append(orto.size());
+   orto.append(p1);
+
+   //Create list for extra points
+   if(refinement>0)
+   {
+      point dp = (p2-p1)/(refinement+1);
+
+      for(label i = 0; i < refinement;i++)
+      {
+         point in = p1+(i+1)*dp;
+         scalar factor = 10;
+         point out = in*factor;
+         point intersect;
+         while(isInRegion(out))
+         {
+            out*=factor;
+         }
+         findIntersection(out,in,intersect,true);
+         insidePoints.append(orto.size());
+         orto.append(intersect);
+      }
+   }
+
+   //Add p2
+   insidePoints.append(orto.size());
+   orto.append(p2);
+
+}
 static int VoronoidFromTri
 (
    List<point>& nucli,
    List<ITRIANGLE>& tri, 
    List<point>& orto, 
    List<List<label>>& voronoid,
+   label refinementLevel,
    std::function<bool (point)> isInRegion,
    std::function<void (point,point,point&,bool)> findIntersection
 )
@@ -229,16 +277,27 @@ static int VoronoidFromTri
 
                   } while (!isInRegion(p2));
                   
-                  
-               
                   if(o1 == o2)
                   {
                      findIntersection(orto[poli[o1]],p1,int1,true);
                      findIntersection(orto[poli[o1]],p2,int2,true);
-                     insidePoli.append(orto.size());
+
+                     refineBorder(orto,insidePoli,int1,int2,refinementLevel,isInRegion,findIntersection);
+                     /*insidePoli.append(orto.size());
                      orto.append(int1);
+                     
+
+                     point mid = (int1+int2)/2;
+                     point out = mid + 1000*mid;
+
+                     point extra;
+                     findIntersection(out,mid,extra,true);
+
                      insidePoli.append(orto.size());
-                     orto.append(int2);
+                     orto.append(extra);
+
+                     insidePoli.append(orto.size());
+                     orto.append(int2);*/
                   }
                   else
                   {
@@ -248,20 +307,31 @@ static int VoronoidFromTri
                      findIntersection(pout1,p1,int1,true);
                      findIntersection(pout2,p2,int2,true);
 
-                     insidePoli.append(orto.size());
+                     refineBorder(orto,insidePoli,int1,int2,refinementLevel,isInRegion,findIntersection);
+
+                     /*insidePoli.append(orto.size());
                      orto.append(int1);
 
+                     
+
+                     point mid = (int1+int2)/2;
+                     point out = mid + 1000*mid;
+
+                     point extra;
+                     findIntersection(out,mid,extra,true);
+
                      insidePoli.append(orto.size());
-                     orto.append(int2);
+                     orto.append(extra);
+
+                     insidePoli.append(orto.size());
+                     orto.append(int2);*/
                   }
                   
                }
             }
             else
             {
-
                insidePoli.append(poli[j]);
-               
             }
            
       }

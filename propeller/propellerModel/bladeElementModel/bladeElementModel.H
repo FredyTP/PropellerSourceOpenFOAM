@@ -19,6 +19,8 @@ protected:
     rotorDiscrete rotorDiscrete_;
 
     word integrationOrder;
+    bool correctCenters;
+    label refinementLevel;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");

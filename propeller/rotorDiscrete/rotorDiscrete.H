@@ -62,7 +62,7 @@ TypeName("rotorDiscrete");
         //- Construct from dictionary
         rotorDiscrete();
 
-        void fromRotorMesh(const rotorFvMeshSel& rotorFvMeshSel, word integration);
+        void fromRotorMesh(const rotorFvMeshSel& rotorFvMeshSel, word integration, bool correctCenters,label refinementLevel);
     //Destructor
         virtual ~rotorDiscrete() = default;
     //IO

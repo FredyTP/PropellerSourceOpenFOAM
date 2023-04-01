@@ -24,6 +24,8 @@ Foam::bladeElementModel::bladeElementModel
     Info<<"Creating blade Element Model"<<endl;
     
     integrationOrder = dict.getOrDefault<word>("integration","tri");
+    correctCenters = dict.getOrDefault<bool>("correctCenters",false);
+    refinementLevel = dict.getOrDefault<label>("borderRefinement",0);
 }
 
 Foam::scalar Foam::bladeElementModel::radius() const
@@ -34,7 +36,7 @@ Foam::scalar Foam::bladeElementModel::radius() const
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
-    rotorDiscrete_.fromRotorMesh(*rotorFvMeshSel_,integrationOrder);
+    rotorDiscrete_.fromRotorMesh(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel);
 
     bladeModel_.setMaxRadius(rotorGeometry.radius());
 }

@@ -79,7 +79,7 @@ tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
 
     return rotTensor;
 }
-void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word integration)
+void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word integration, bool correctCenters,label refinementLevel)
 {
     Info<< "Building rotor Discrete from mesh" <<endl;
     discreteMode_ = discreteMode::dmMesh;
@@ -124,7 +124,8 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
     (
         centers,
         vertex,  
-        voroCells, 
+        voroCells,
+        refinementLevel,
         delaunayTriangulation::circularRegion(radius),
         delaunayTriangulation::intersectCircle(radius)
     );
@@ -140,8 +141,22 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
     // add cell centers to rotor points and create cells
     forAll(voroCells,i)
     {
+        vector c{0,0,0};
+        if(correctCenters)
+        {
+            forAll(voroCells[i],j)
+            {
+                c += carPoints_[voroCells[i][j]];
+            }
+            c /= voroCells[i].size();
+        }
+        else
+        {
+            c=centers[i];
+        }
+        carPoints_[i+vertex.size()] = c;
+
         label celli = cellis[i]; //Now indexing is from cellis (used cells)
-        carPoints_[i+vertex.size()] = centers[i];
         rotorCells_.set(i,rotorCell::New(integration,i+vertex.size(),voroCells[i],carPoints_,celli));
         rotorCells_[i].updateIntegrationList(integrationPoints_);
         area_ += rotorCells_[i].area();

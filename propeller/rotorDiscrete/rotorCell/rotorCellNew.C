@@ -12,7 +12,13 @@ autoPtr<rotorCell> rotorCell::New(word type, label center, List<label>& vertex, 
     }
     else if(type == "tri")
     {
-        return autoPtr<rotorCell>::NewFrom<rotorTriCell>(center,vertex,points,cellIdx);
+        //Triangulated mesh cells without center 
+        return autoPtr<rotorCell>::NewFrom<rotorTriCell>(center,vertex,points,cellIdx,false);
+    }
+    else if(type == "tricenter")
+    {
+        //Triangulated mesh cells with center included
+        return autoPtr<rotorCell>::NewFrom<rotorTriCell>(center,vertex,points,cellIdx,true);
     }
     else
     {

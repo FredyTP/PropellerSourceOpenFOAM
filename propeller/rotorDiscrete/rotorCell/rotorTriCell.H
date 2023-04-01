@@ -16,12 +16,15 @@ class rotorTriCell : public rotorCell
 {
 public:
 
-    rotorTriCell(label center, List<label>& vertex,const List<point>& points,label cellIdx)
+    rotorTriCell(label center, List<label>& vertex,const List<point>& points,label cellIdx, bool useCenter)
         : rotorCell(center,vertex,points,cellIdx)
     {
 
         integrationPoints_ = this->vertex();
-        integrationPoints_.append(this->center());
+        if(useCenter)
+        {
+            integrationPoints_.append(this->center());
+        }
 
         List<point> pts(integrationPoints_.size());
         forAll(pts,i)
