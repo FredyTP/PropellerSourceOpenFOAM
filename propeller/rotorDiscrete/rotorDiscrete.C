@@ -81,8 +81,12 @@ tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
 }
 void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word integration, bool correctCenters,label refinementLevel)
 {
+
+    //TODO
+    //integration, correct centers, and refinement level shouldnt be provided to this fuction, should be in the dictionary!!!
     Info<< "Building rotor Discrete from mesh" <<endl;
     discreteMode_ = discreteMode::dmMesh;
+    integrationMode_ = integration;
 
     //Selected rotor radius (real used, no from mesh)
     const scalar radius = rotorGeometry_.radius();

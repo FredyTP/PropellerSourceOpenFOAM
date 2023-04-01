@@ -55,6 +55,8 @@ private:
     List<tensor> localBlade_; //(x: LE->TE) (y: radial) (z: "up")
 
     discreteMode discreteMode_ = discreteMode::dmNone;
+
+    word integrationMode_;
 public:
 TypeName("rotorDiscrete");
 
@@ -88,10 +90,16 @@ TypeName("rotorDiscrete");
 
         const List<bool>& integrationPoints() const { return integrationPoints_; }
 
+        word integrationMode() const { return integrationMode_;}
+
 protected:
         tensor bladeLocalFromPoint(const point& localPoint) const;
 
-};
+};        //TODO:
+        //Update:
+        //Using cellweights still extreme slow because the constructor
+        //Interpolate on every cell face
+        //This function should return a reference to a vectorField
 
 
 }

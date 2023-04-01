@@ -17,7 +17,7 @@ offsetSampler::offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscre
 bool offsetSampler::read(const dictionary &dict)
 {
     offset = dict.getOrDefault<scalar>("offset",0.0);
-    if(std::abs(offset)<=SMALL)
+    if(std::abs(offset)<=VSMALL)
     {
         offset=0.0;
     }
@@ -33,34 +33,35 @@ bool offsetSampler::read(const dictionary &dict)
  
 const vectorField& offsetSampler::sampleVelocity(const volVectorField& U) 
 {
-    //If no offset and rotorDiscrete is equal to rotorFvMeshSel
+    //If no offset and rotorDiscrete is integrated in cell centers
     //Then the correspondence is cell to cell
-    if(offset == 0.0 && rDiscrete->mode() == rotorDiscrete::dmMesh)
+    if(offset == 0.0 && rDiscrete->integrationMode() == "center")
     {
-        forAll(this->sampledVel,i)
+        const PtrList<rotorCell>& rotorCells = rDiscrete->rotorCells();
+        forAll(rotorCells,i)
         {
-            this->sampledVel[i]=U.primitiveField()[rMesh->cells()[i]];
-        }    
+            this->sampledVel[rotorCells[i].center()] = U.primitiveField()[rotorCells[i].celli()];
+        } 
     }
     else if(atCellCenter)
     {
         forAll(this->sampledVel,i)
         {
-            this->sampledVel[i]=U.primitiveField()[cellToSample[i]];
+            if(rDiscrete->integrationPoints()[i])
+            {
+                this->sampledVel[i]=U.primitiveField()[cellToSample[i]];
+            }
         }     
     }
     else
     {
-        //TODO:
-        //This can be further improved finding cellweights when building
-        //Update:
-        //Using cellweights still extreme slow because the constructor
-        //Interpolate on every cell face
-        //This function should return a reference to a vectorField
         interpolationCellPoint<vector> interp(U);
         forAll(this->sampledVel,i)
         {
-            this->sampledVel[i]=interp.interpolate(*(cellWeights[i].get()));
+            if(rDiscrete->integrationPoints()[i])
+            {
+                this->sampledVel[i]=interp.interpolate(*(cellWeights[i].get()));
+            }          
         }        
     }
 
@@ -71,7 +72,7 @@ bool offsetSampler::build()
     //If offset is 0.0 and rotorDiscrete is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
-    if(offset == 0.0 && rDiscrete->mode() == rotorDiscrete::dmMesh)
+    if(offset == 0.0 && rDiscrete->integrationMode() == "center")
     {
         return true;
     }
@@ -86,6 +87,11 @@ bool offsetSampler::build()
     //Iterate over all discretization points
     forAll(cylPoints, i)
     {
+        //Just get on the integration points
+        if(!rDiscrete->integrationPoints()[i])
+        {
+            continue;
+        }
         //Get global coordinates
         point rPoint = rDiscrete->cylindrical().globalPosition(cylPoints[i]);
 
@@ -119,6 +125,10 @@ void offsetSampler::writeSampled(const word& name)
 
     forAll(cellToSample,i)
     {
+        if(!rDiscrete->integrationPoints()[i])
+        {
+            continue;
+        }
         sampled[cellToSample[i]]=1.0;
     }
     sampled.write();

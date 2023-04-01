@@ -160,6 +160,8 @@ void Foam::fv::propellerSource::addSup
     {
         //To save force field into a dict
         force.write();
+        //Check if want to save sampled cells
+        velSampler_->writeSampled(this->name());
     }
     
 }
