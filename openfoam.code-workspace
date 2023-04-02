@@ -241,7 +241,14 @@
 			"fvMesh.C": "cpp",
 			"GAMGSolverSolve.C": "cpp",
 			"rotorFvMeshSel.C": "cpp",
-			"rotorCellNew.C": "cpp"
+			"rotorCellNew.C": "cpp",
+			"subModelBase.C": "cpp",
+			"phaseSystemTemplates.C": "cpp",
+			"simpleControl.C": "cpp",
+			"DimensionedField.C": "cpp",
+			"faePatchField.C": "cpp",
+			"force.C": "cpp",
+			"regIOobjectWrite.C": "cpp"
 		}
 	}
 }

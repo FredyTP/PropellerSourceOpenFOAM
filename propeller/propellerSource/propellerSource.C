@@ -29,7 +29,19 @@ Foam::fv::propellerSource::propellerSource
 :
     fv::option(name,modelType,dict,mesh),
     propellerModel_(),
-    rotorFvMeshSel_(mesh_)
+    rotorFvMeshSel_(mesh_),
+    force(
+        IOobject
+        (
+            fv::option::name_ + ":rotorForce",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedVector(dimVelocity/dimTime, Zero)
+    )
 {
     //Output propeller adimensional parameter definition
     propellerResult::OutputDefinition(Info)<<endl;
@@ -84,13 +96,13 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
 
-        Info<<"Rotor Geometry of: "<< this->name()<<endl
+        Info<<"Rotor Geometry of: "<< fv::option::name()<<endl
         << rotorGeometry_;
 
         if(!rotorGeometry_.isReady())
         {
             FatalErrorInFunction
-                <<"Rotor geometry data of "<< this->name() <<" is not determined:"
+                <<"Rotor geometry data of "<< fv::option::name() <<" is not determined:"
                 << exit(FatalError);
         }
 
@@ -104,12 +116,13 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
                    dict.subDict("velocitySampler"),
                    &propellerModel_->rDiscrete(), 
                    &rotorFvMeshSel_);
-        velSampler_->writeSampled(name_); //Write to file sampling location
+        velSampler_->writeSampled(fv::option::name_); //Write to file sampling location
 
         
         /*----CREATE ROTOR DYNAMICS----*/
         dynamics_ = rotorDynamics::New(dict.subDict("dynamics"));
 
+        
 
 
         return true;
@@ -119,6 +132,11 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
 
 }
 
+void Foam::fv::propellerSource::writeData(Ostream &os) const
+{
+    os<<"TESTING AUTO OUTPUT"<<endl;
+}
+
 void Foam::fv::propellerSource::addSup
 (
     fvMatrix<vector>& eqn,
@@ -126,17 +144,7 @@ void Foam::fv::propellerSource::addSup
 )
 {
     //Create force vector field from mesh and set dimensions
-    volVectorField force
-    (
-        IOobject
-        (
-            name_ + ":rotorForce",
-            mesh_.time().timeName(),
-            mesh_
-        ),
-        mesh_,
-        dimensionedVector(eqn.dimensions()/dimVolume, Zero)
-    );
+
 
     const volVectorField& Uin(eqn.psi());
 
@@ -150,7 +158,7 @@ void Foam::fv::propellerSource::addSup
 
     dynamics_->integrate(mag(result.torque),mesh_.time().deltaTValue());
     
-    Info<<name_<<": step parameters"<<endl;
+    Info<<fv::option::name_<<": step parameters"<<endl;
     Info<<result<<endl;
     //Add source term to the equation
     eqn+=force;
@@ -159,10 +167,11 @@ void Foam::fv::propellerSource::addSup
     if(mesh_.time().writeTime())
     {
         //To save force field into a dict
-        force.write();
+        //force.write();
         //Check if want to save sampled cells
-        velSampler_->writeSampled(this->name());
+        velSampler_->writeSampled(fv::option::name());
+
     }
+
     
 }
-

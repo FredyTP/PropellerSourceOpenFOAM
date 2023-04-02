@@ -14,7 +14,7 @@
 namespace Foam
 {
 
-class rotorFvMeshSel
+class rotorFvMeshSel : public regIOobject
 {
 public:
     //Public Enumerations
@@ -70,6 +70,7 @@ TypeName("rotorFvMeshSel");
     //IO
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
+        virtual bool writeData(Ostream& os) const;
 
     //Getters        
         inline const labelList& cells() const { return cells_; }

@@ -57,6 +57,9 @@ protected:
 
     //Rotor dynamics control
     autoPtr<rotorDynamics> dynamics_;
+
+    volVectorField force;
+    
 public:
     //Defines the runtime name of this class
     TypeName("propeller");
@@ -86,7 +89,7 @@ public:
     //IO
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
-
+        void writeData(Ostream& os) const;
 
     // Source term addition
 
