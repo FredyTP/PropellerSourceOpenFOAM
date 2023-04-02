@@ -44,6 +44,26 @@ void rotorDiscrete::buildCoordinateSystem(const rotorGeometry& geometry)
                     );
 
 }
+void rotorDiscrete::writeArea(word propName,const fvMesh& mesh) const
+{
+    volScalarField areainfo
+    (
+        IOobject
+        (
+            propName+":diskArea",
+            mesh.time().timeName(),
+            mesh
+        ),
+        mesh,
+        dimensionedScalar(dimArea, Zero)
+    );
+    forAll(rotorCells_,i)
+    {
+        areainfo[rotorCells_[i].celli()]=rotorCells_[i].area();
+    }
+
+    areainfo.write();
+}
 tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
 {
     //z- up, y -outwards from center, x perpendicular y,z (leading edge to trailing edge)
@@ -171,6 +191,8 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
     Info<< "Total diak tri area: "<<ta<<endl;
     Info<< "Idea disk area: "<<idealArea<<endl;
 
+
+    
     //TODO: ?Add aditional integration points
     
     //Add cyl coord system and local blade tensor

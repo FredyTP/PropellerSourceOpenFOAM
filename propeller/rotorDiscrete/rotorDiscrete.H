@@ -92,6 +92,7 @@ TypeName("rotorDiscrete");
 
         word integrationMode() const { return integrationMode_;}
 
+        void writeArea(word propName,const fvMesh& mesh) const ;
 protected:
         tensor bladeLocalFromPoint(const point& localPoint) const;
 

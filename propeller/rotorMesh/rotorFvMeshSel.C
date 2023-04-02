@@ -40,18 +40,7 @@ rotorFvMeshSel::rotorFvMeshSel
     meshGeometry_(),
     cellsName_(),
     findClosestCenter_(false),
-    correctGeometry_(false),
-    regIOobject
-    (
-        IOobject
-        (
-            "vengajoder",
-            mesh.time().timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        )
-    )
+    correctGeometry_(false)
 {
 
 }
@@ -192,11 +181,6 @@ bool rotorFvMeshSel::read(const dictionary &dict)
     }
 
     return ok;
-}
-bool rotorFvMeshSel::writeData(Ostream &os) const
-{
-    os<<"VENGA VA FUMCIOSNAS JODER"<<endl;
-    return true;
 }
 void rotorFvMeshSel::tryUpdateCenter()
 {
