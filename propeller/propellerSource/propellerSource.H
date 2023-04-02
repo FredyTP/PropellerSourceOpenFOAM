@@ -59,6 +59,8 @@ protected:
     autoPtr<rotorDynamics> dynamics_;
 
     volVectorField force;
+
+    regIOpropellerResult propResult_;
     
 public:
     //Defines the runtime name of this class

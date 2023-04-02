@@ -3,6 +3,7 @@
 #include "propellerSource.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvMatrices.H"
+#include "propellerResult.H"
 
 #include "cellSet.H"
 #include "closestNeighbor.H"
@@ -29,7 +30,7 @@ Foam::fv::propellerSource::propellerSource
 :
     fv::option(name,modelType,dict,mesh),
     propellerModel_(),
-    rotorFvMeshSel_(mesh_),
+    rotorFvMeshSel_(mesh),
     force(
         IOobject
         (
@@ -41,7 +42,8 @@ Foam::fv::propellerSource::propellerSource
         ),
         mesh_,
         dimensionedVector(dimVelocity/dimTime, Zero)
-    )
+    ),
+    propResult_(name,mesh)
 {
     //Output propeller adimensional parameter definition
     propellerResult::OutputDefinition(Info)<<endl;
@@ -95,7 +97,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         propellerModel_->setRotorMesh(&rotorFvMeshSel_);
         //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
-
+        propellerModel_->rDiscrete().writeArea(this->name(),mesh_);
         Info<<"Rotor Geometry of: "<< fv::option::name()<<endl
         << rotorGeometry_;
 
@@ -148,18 +150,17 @@ void Foam::fv::propellerSource::addSup
 
     const volVectorField& Uin(eqn.psi());
 
-    propellerResult result;
-    result = propellerModel_->calculate
+    propResult_ = propellerModel_->calculate
         (
             velSampler_->sampleVelocity(Uin),
             dynamics_->angularVelocity(),
             force
         );
 
-    dynamics_->integrate(mag(result.torque),mesh_.time().deltaTValue());
+    dynamics_->integrate(mag(propResult_.torque),mesh_.time().deltaTValue());
     
     Info<<fv::option::name_<<": step parameters"<<endl;
-    Info<<result<<endl;
+    Info<<propResult_<<endl;
     //Add source term to the equation
     eqn+=force;
 
@@ -169,7 +170,7 @@ void Foam::fv::propellerSource::addSup
         //To save force field into a dict
         //force.write();
         //Check if want to save sampled cells
-        velSampler_->writeSampled(fv::option::name());
+        velSampler_->writeSampled(this->name());
 
     }
 
