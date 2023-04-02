@@ -57,29 +57,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     List<scalar> aoaList(cylPoints.size());
     List<vector> pressOnPoints(cylPoints.size(),vector(0,0,0));
 
-    volScalarField radiusField
-    (
-        IOobject
-        (
-            "propeller:radius",
-            rotorFvMeshSel_->mesh().time().timeName(),
-            rotorFvMeshSel_->mesh()
-        ),
-        rotorFvMeshSel_->mesh(),
-        dimensionedScalar(dimless, Zero)
-    );
-    volScalarField areaField
-    (
-        IOobject
-        (
-            "propeller:area",
-            rotorFvMeshSel_->mesh().time().timeName(),
-            rotorFvMeshSel_->mesh()
-        ),
-        rotorFvMeshSel_->mesh(),
-        dimensionedScalar(dimArea, Zero)
-    );
-
+    //---CALCULATE VALUE ON INTEGRATION POINTS---//
     forAll(cylPoints, i)
     {
         if(!rotorDiscrete_.integrationPoints()[i])
@@ -149,34 +127,24 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     }
 
 
-
     const PtrList<rotorCell>& rotorCells = rotorDiscrete_.rotorCells();
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
 
+    //-----INTEGRATE PRESSURE FIELD------//
     forAll(rotorCells,i)
     {
         const auto & rCell = rotorCells[i];
         vector bladeForce = rCell.integrateField(pressOnPoints);
         label celli = rCell.celli();
-
-        result.force += bladeForce;
-
-        result.torque += bladeForce ^(cylPoints[rCell.center()].x() * bladeCS[rCell.center()].col<1>()) ;
-        
         force[celli] = - bladeForce/cellVol[celli];
 
-
-        radiusField[celli] = cylPoints[rCell.center()].x();
-        areaField[celli] = rCell.area();
+        result.force += bladeForce;
+        result.torque += bladeForce ^(cylPoints[rCell.center()].x() * bladeCS[rCell.center()].col<1>()) ;        
     }
+
+    //To rotor local coordinates
     result.force = rotorDiscrete_.cartesian().localVector(result.force);
     result.torque = rotorDiscrete_.cartesian().localVector(result.torque);
-
-    if(rotorFvMeshSel_->mesh().time().writeTime())
-    {
-        radiusField.write();
-        areaField.write();
-    }
 
     result.power = result.torque.z() * omega;
 

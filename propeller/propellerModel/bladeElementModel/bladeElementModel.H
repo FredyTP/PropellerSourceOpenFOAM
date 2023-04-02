@@ -51,6 +51,7 @@ public:
     virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force);
 
     virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
+
 };
 
 }
