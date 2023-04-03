@@ -205,10 +205,9 @@ public:
         //Fill outputs in place
         for(label i = 0 ; i< outputs_.size();i++)
         {
-            FixedList<label,dim> idx;
+            FixedList<label,dim> idx(0);
             for(label d = 0; d<dim;d++)
             {
-                
                 for(label j = 0; j < inputs[d].size(); j++)
                 {
                     if(inputs[d][j]==inputs_[i][d])
@@ -267,6 +266,18 @@ public:
         return idxs;
     }
 
+    /**
+     * @brief Find linear interpolation indexes
+     * 
+     * @param input value that will be interpolated
+     * @param inputs gridded data points
+     * @param i1 index of closest data point < input
+     * @param i2 index of closest data point > input
+     * @return result, if result = 0, input is out of bounds
+     * if result = 1 data is inside bounds
+     * 
+     * if i1 = i2, input value == inputs[i1] (i1 and i2)
+     */
     static label FindIndex(typeIn input, const List<typeIn>& inputs, label &i1, label &i2)
     {
         if(input<inputs[0])
