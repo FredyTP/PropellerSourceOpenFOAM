@@ -248,7 +248,8 @@
 			"DimensionedField.C": "cpp",
 			"faePatchField.C": "cpp",
 			"force.C": "cpp",
-			"regIOobjectWrite.C": "cpp"
+			"regIOobjectWrite.C": "cpp",
+			"interpolationTableNew.C": "cpp"
 		}
 	}
 }

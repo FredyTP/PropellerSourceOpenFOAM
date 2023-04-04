@@ -168,6 +168,7 @@ public:
         {
             order[i]=i;
         }
+
         //Find all diferent variables
         for(label i = 0; i < inputs_.size(); i++)
         {
@@ -175,7 +176,7 @@ public:
             {
                 bool contains = false;
                 //Check if that input already been processed
-                for(int c = 0; c <inputs[d].size(); ++c)
+                for(int c = 0; c <inputs[d].size(); ++c) //Refactor with list.find()
                 {
                     if(inputs[d][c]==inputs_[i][d])
                     {
@@ -190,8 +191,6 @@ public:
             }
         }
 
-       
-        
         //Sort arrays
 
         for(label d=0; d< dim; d++)
@@ -200,6 +199,13 @@ public:
             size_[d]=inputs[d].size();
         }
 
+        //Output size != N1 * N2 * ...Ni; not regular gridded data
+        if(outputs_.size() != this->getOutputSize())
+        {
+            //This criteria is not 100% robust but easy check
+            return false;
+        }
+        
         outputs.resize(this->getOutputSize());
         
         //Fill outputs in place
@@ -207,8 +213,7 @@ public:
         {
             FixedList<label,dim> idx;
             for(label d = 0; d<dim;d++)
-            {
-                
+            {              
                 for(label j = 0; j < inputs[d].size(); j++)
                 {
                     if(inputs[d][j]==inputs_[i][d])
