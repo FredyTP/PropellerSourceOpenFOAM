@@ -55,7 +55,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     const scalar pi = Foam::constant::mathematical::pi;
     const scalar omega = angularVelocity;
     
-    List<scalar> aoaList(cylPoints.size());
+    scalar aoaMax = -VGREAT;
+    scalar aoaMin = VGREAT;
+
     List<vector> pressOnPoints(cylPoints.size(),vector(0,0,0));
 
     //---CALCULATE VALUE ON INTEGRATION POINTS---//
@@ -103,6 +105,10 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         //Angle of atack
         scalar AoA = twist - phi;
 
+        if(AoA < aoaMin) aoaMin = AoA;
+        if(AoA > aoaMax) aoaMax = AoA;
+
+
         scalar rho = this->refRho;
         scalar nu = 1e-5;
         scalar re = rho*relativeSpeed*chord/nu;
@@ -127,6 +133,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);        
     }
 
+    Info<< "- Max AoA: "<<aoaMax * 180/pi <<"º"<<endl;
+    Info<< "- Min AoA: "<<aoaMin * 180/pi <<"º"<<endl;
 
     const PtrList<rotorCell>& rotorCells = rotorDiscrete_.rotorCells();
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
