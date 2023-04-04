@@ -18,6 +18,7 @@ protected:
     Foam::devel::bladeModel bladeModel_;
     rotorDiscrete rotorDiscrete_;
 
+    scalar nBlades_; 
     word integrationOrder;
     bool correctCenters;
     label refinementLevel;

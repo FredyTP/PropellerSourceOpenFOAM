@@ -23,6 +23,7 @@ Foam::bladeElementModel::bladeElementModel
 {
     Info<<"Creating blade Element Model"<<endl;
     
+    dict.readEntry("nBlades",nBlades_);
     integrationOrder = dict.getOrDefault<word>("integration","tri");
     correctCenters = dict.getOrDefault<bool>("correctCenters",false);
     refinementLevel = dict.getOrDefault<label>("borderRefinement",0);
@@ -75,8 +76,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
             continue;
         }
         scalar twist = bladeSec.twist();
-        scalar n_blade = 2;
-        scalar average_fact = n_blade / (2 * pi * radius);
+        
+        scalar average_fact = nBlades_ / (2 * pi * radius);
                 
         //Local rotation tensor
         const tensor& bladeTensor = bladeCS[i];
