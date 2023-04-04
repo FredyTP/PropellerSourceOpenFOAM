@@ -67,9 +67,14 @@ public:
 
     virtual label size() = 0;
 
+    //static autoPtr<interpolationTable> New();
+    static autoPtr<interpolationTable> NewFromRaw(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
+
     
     
 };
+
+
 
 }
 

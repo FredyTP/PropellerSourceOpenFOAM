@@ -103,7 +103,7 @@ public:
     void updateCT(scalar rhoRef,scalar omega, scalar radius)
     {
         scalar den = rhoRef * 
-                pow((omega / constant::mathematical::piByTwo),2)*
+                pow((omega / constant::mathematical::twoPi),2)*
                 pow(2*radius,4);
         if(den == 0)
         {
@@ -118,7 +118,7 @@ public:
     void updateCP(scalar rhoRef, scalar omega,scalar radius)
     {
         scalar den = rhoRef * 
-                pow((omega / constant::mathematical::piByTwo),3)*
+                pow((omega / constant::mathematical::twoPi),3)*
                 pow(2*radius,5);
         if(den == 0)
         {
@@ -171,6 +171,7 @@ public:
     {
         
         os <<"force = "<<this->force<<";"<<endl;
+        os <<"thrust = "<<this->thrust()<<";"<<endl;
         os <<"torque = "<<this->torque<<";"<<endl;
         os <<"power = "<<this->power<<";"<<endl;
         os <<"j = "<<this->J<<";"<<endl;
