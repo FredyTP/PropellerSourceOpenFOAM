@@ -26,6 +26,16 @@ bool offsetSampler::read(const dictionary &dict)
     Info<< "offset = "<<offset<<endl;
     Info<< "sample atCellCenter = "<<atCellCenter<<endl;
 
+    //For parallel computation only 0 offset anc cell-center integration is available
+    if(Pstream::parRun())
+    {
+        if(offset != 0.0 || rDiscrete->integrationMode() != "center")
+        {
+            Info<<indent<<"In parallel runs, only 0 offset and cell center integration is available"<<endl;
+            FatalErrorInFunction<<exit(FatalError);
+        }
+    }
+    
     this->build();
 
     return true;
@@ -100,6 +110,15 @@ bool offsetSampler::build()
         //Find the cell where the point is and set to the list
         cellToSample[i] = rMesh->mesh().findCell(rPoint); 
 
+        if(cellToSample[i]==-1)
+        {
+            FatalErrorInFunction
+                << "sampledCell at position = "
+                << rPoint 
+                <<", is outside computational domain"
+                <<exit(FatalError);
+        }
+
         if(!atCellCenter)
         {
             cellWeights[i] = autoPtr<cellPointWeight>::New(rMesh->mesh(),rPoint,cellToSample[i]);
@@ -129,7 +148,10 @@ void offsetSampler::writeSampled(const word& name)
         {
             continue;
         }
-        sampled[cellToSample[i]]=1.0;
+
+        sampled[cellToSample[i]]=1.0;   
+
+        
     }
     sampled.write();
 }
