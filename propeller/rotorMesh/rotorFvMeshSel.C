@@ -187,6 +187,12 @@ void rotorFvMeshSel::tryUpdateCenter()
 
     if(findClosestCenter_)
     {
+        if(Pstream::parRun())
+        {
+            Info<<"Find closest center feature not available for parallel runs. "
+                <<"Using provided center instead: "<<meshGeometry_.center()<<endl;
+            return;
+        }
         //Use closest cell centroid to center the plane used
         //to find rotor geometry, usually provides better results
         //in an oriented mesh
@@ -195,16 +201,28 @@ void rotorFvMeshSel::tryUpdateCenter()
         if(centercell == -1)
         {
             //Maybe check before if point is inside of boundaries
-            FatalErrorInFunction << "Rotor center is outside of mesh" 
-            << exit(FatalError);
-            
+            //FatalErrorInFunction << "Rotor center is outside of mesh" 
+            //<< exit(FatalError);
+            //Pstream::broadcast
         }
-        meshGeometry_.setCenter(mesh_.C()[centercell]);
-
-
-        Info << "Using rotor center: " << meshGeometry_.center()
+        else
+        {
+            meshGeometry_.setCenter(mesh_.C()[centercell]);
+            //Pstream::scatter(meshGeometry_.center());
+        }
+        
+        //reduce(centercell,maxOp<scalar>());
+        if(centercell==-1)
+        {
+            Info<<"Center cell is outside boundaries, using provided center to cut the cells"<<endl;
+        }
+        else
+        {
+            Info << "Using rotor center: " << meshGeometry_.center()
             << " instead of: " << oldCenter 
             << endl;
+        }
+        
     }
 }
 void rotorFvMeshSel::tryCorrectGeometry(rotorGeometry& rotorGeometry)
@@ -236,6 +254,34 @@ void rotorFvMeshSel::tryCorrectGeometry(rotorGeometry& rotorGeometry)
         {
             rotorGeometry.setCenter(meshGeometry_.direction());
         }
+    }
+}
+
+void rotorFvMeshSel::syncCellData()
+{
+    //Join all core cell number
+    label allCoreCells = cells_.size();
+    reduce(allCoreCells,sumOp<label>());
+
+    //Obtain number of cells for each core
+    parNcells.resize(Pstream::nProcs(),0);
+    parNcells[Pstream::myProcNo()]=cells_.size();
+
+    reduce(parNcells,sumOp<labelList>());
+     //Out total number of cells
+    Info<<"Total selected cells: "<<allCoreCells<<". In each core: "<<parNcells<<endl;
+
+    //Get cell list for each core
+    List<List<label>> coreCells;
+    parCells.resize(Pstream::nProcs());
+    forAll(parCells,i)
+    {
+        parCells[i].resize(parNcells[i],0);
+    }
+    parCells[Pstream::myProcNo()]=cells_;
+    forAll(parCells,i)
+    {
+        reduce(parCells[i],sumOp<labelList>());
     }
 }
 
@@ -294,12 +340,9 @@ void rotorFvMeshSel::createMeshSelection()
         );
      
 
-
-
     //Select only cells which centroid proyected over the disk results inside the disk
     forAll(planeCells,i)
-    {
-        
+    { 
         label celli = planeCells[i];
 
         vector cellCentroid = mesh_.C()[celli];
@@ -313,7 +356,8 @@ void rotorFvMeshSel::createMeshSelection()
         }
     }
 
-    Info<<"Number of Selected cells: "<<cells_.size()<<endl;
+    //Sync selection data arround processes
+    this->syncCellData();
 
 }
 void rotorFvMeshSel::loadMeshSelection()
@@ -359,7 +403,8 @@ void rotorFvMeshSel::loadMeshSelection()
         break;
     }
 
-    Info<<"Number of Selected cells: "<<cells_.size()<<endl;
+    this->syncCellData();
+
     
 }
 /*void rotorFvMeshSel::computeCellsArea()
@@ -602,8 +647,10 @@ void rotorFvMeshSel::findRotorCenter()
         volume += cellVolume[celli];
     }
 
+    
+    reduce(newCenter,sumOp<vector>());
+    reduce(volume,sumOp<scalar>());
     newCenter /= volume;
-
     meshGeometry_.setCenter(newCenter);
 
     Info << "Volume avg rotor Center: "<<newCenter<<endl;
@@ -639,7 +686,8 @@ void rotorFvMeshSel::findRotorNormal(rotorGeometry& rotorGeometry)
         
     }
 
-    newNormal.normalise();
+    reduce(newNormal,sumOp<vector>());
+    newNormal/=mag(newNormal);
 
     meshGeometry_.setDirection(newNormal);
     rotorGeometry.setDirection(newNormal);
@@ -691,6 +739,9 @@ void rotorFvMeshSel::findRotorRadius()
             }
         }
     }
+
+    reduce(maxPointRadius,maxOp<scalar>());
+    reduce(maxCenterRadiusSqr,maxOp<scalar>());
 
     maxPointRadius = sqrt(maxRadSqr);
     meshGeometry_.setRadius(sqrt(maxCenterRadiusSqr));

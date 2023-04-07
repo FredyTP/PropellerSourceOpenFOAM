@@ -58,6 +58,12 @@ private:
     bool correctGeometry_;
 
     bool built_ = false;
+
+    //- Parallel used data
+    List<label> parNcells; //num of cells in each processor
+    List<List<label>> parCells; //cell index for each processor
+
+
 public:
 TypeName("rotorFvMeshSel");
 
@@ -107,6 +113,8 @@ protected:
         void findRotorRadius();
 
         void tryCorrectGeometry(rotorGeometry& rotorGeometry);
+
+        void syncCellData();
 };
 
 
