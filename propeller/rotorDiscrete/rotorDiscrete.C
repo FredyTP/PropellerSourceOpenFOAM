@@ -117,6 +117,7 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
     const labelList& cells = rotorFvMeshSel.cells(); 
     const vectorField& cellCenter = rotorFvMeshSel.mesh().C();
 
+
     List<point> centers(cells.size());
     List<label> cellis(cells.size());
     label iCent = 0;
@@ -140,13 +141,44 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
     centers.resize(iCent);
     cellis.resize(iCent);
 
+    //Gather ncell information
+    List<label> ncellis(Pstream::nProcs(),0);
+    ncellis[Pstream::myProcNo()]=cellis.size();
+    reduce(ncellis,sumOp<labelList>());
+    label totalCells = sum(ncellis);
+
+    List<label> coreIdx(ncellis.size());
+    label sum=0;
+    forAll(coreIdx,i)
+    {
+        coreIdx[i]=sum;
+        sum+=ncellis[i];
+        
+    }
+
+    Info<<ncellis<<endl;
+    Info<<totalCells<<endl;
+    Info<<"Coreidx: "<<coreIdx<<endl;
+    List<point> allCenter(totalCells,vector(0,0,0));
+    
+    auto it = centers.begin();
+    auto dstIt = allCenter.begin() + coreIdx[Pstream::myProcNo()];
+    while(it!=centers.end())
+    {
+        (*dstIt)=(*it);
+        it++;
+        dstIt++;
+    }
+    reduce(allCenter,sumOp<vectorList>());
+
+
     List<List<label>> voroCells;
     List<point> vertex;
 
     //Create voronoid diagram of proyected centers for 2D meshing
     delaunayTriangulation::Voronoid
     (
-        centers,
+        allCenter,
         vertex,  
         voroCells,
         refinementLevel,
@@ -158,39 +190,45 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
     carPoints_ = vertex;
     carPoints_.resize(vertex.size() + centers.size());
     integrationPoints_.resize(carPoints_.size());
+
     rotorCells_.resize(centers.size());
 
     area_ = 0.0;
     scalar ta = 0.0;
     // add cell centers to rotor points and create cells
-    forAll(voroCells,i)
+    forAll(rotorCells_,i)
     {
+        label globalIdx = i + coreIdx[Pstream::myProcNo()];
+
         vector c{0,0,0};
         if(correctCenters)
         {
-            forAll(voroCells[i],j)
+            forAll(voroCells[globalIdx],j)
             {
-                c += carPoints_[voroCells[i][j]];
+                c += carPoints_[voroCells[globalIdx][j]];
             }
-            c /= voroCells[i].size();
+            c /= voroCells[globalIdx].size();
         }
         else
         {
             c=centers[i];
         }
-        carPoints_[i+vertex.size()] = c;
+        carPoints_[i+vertex.size()] = c; //add center
 
         label celli = cellis[i]; //Now indexing is from cellis (used cells)
-        rotorCells_.set(i,rotorCell::New(integration,i+vertex.size(),voroCells[i],carPoints_,celli));
+        rotorCells_.set(i,rotorCell::New(integration,i+vertex.size(),voroCells[globalIdx],carPoints_,celli));
         rotorCells_[i].updateIntegrationList(integrationPoints_);
         area_ += rotorCells_[i].area();
-        ta += (static_cast<rotorTriCell*>(rotorCells_.get(i)))->areaTri();
+        //ta += (static_cast<rotorTriCell*>(rotorCells_.get(i)))->areaTri();
     }   
 
-    Info<< "Total disk area: "<<area_<<endl;
-    Info<< "Total diak tri area: "<<ta<<endl;
-    Info<< "Idea disk area: "<<idealArea<<endl;
+    totalArea_ = area_;
+    reduce(totalArea_,sumOp<scalar>());
 
+    Info<< "Total disk area: "<<totalArea_<<endl;
+    //Info<< "Total diak tri area: "<<ta<<endl;
+    Info<< "Ideal disk area: "<<idealArea<<endl;
+    Info<< "Area error = "<<(idealArea-totalArea_)/idealArea * 100.0<<"%"<<endl;
 
     
     //TODO: ?Add aditional integration points
@@ -207,8 +245,6 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
 
 
 //-------------BEGIN JUST TEST-------------//
-
-
         std::string x_string = "x = [";
         std::string y_string = "y = [";
         std::string xc_string = "xc = [";
@@ -288,7 +324,7 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
     pyplot+="\n";
     pyplot+="plot.plot(xc,yc,marker='o',linewidth = 0)\n";
     pyplot+="plot.show()\n";
-    std::ofstream file("triangulation.py",std::ios::out);
+    std::ofstream file("triangulation"+std::to_string(Pstream::myProcNo())+".py",std::ios::out);
     file<<pyplot;
     file.close();
 

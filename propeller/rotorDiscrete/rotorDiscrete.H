@@ -38,18 +38,22 @@ private:
     rotorGeometry rotorGeometry_;
     
     //- All points used in cilindrical coordinates
+    //Contains all cell vertex points(core-copied) and local core cell centers/extra points
     List<point> cylPoints_;//  (Cylindrical r-theta-z)
 
     //- All points used in local cartesian coordinates
+    //Contains all cell vertex points(core-copied) and local core cell centers/extra points
     List<point> carPoints_;
 
+    //- Contains which of the carPoints_ are required for integration
     List<bool> integrationPoints_;
     
-    //- All cells build
+    //- All cells build used in this core
     PtrList<rotorCell> rotorCells_;
 
-    //- Total disk area
+    //- Core disk area
     scalar area_ = 0.0;
+    scalar totalArea_ = 0.0;
 
     //- Rotation tensor from blade local reference to global reference frame
     List<tensor> localBlade_; //(x: LE->TE) (y: radial) (z: "up")
