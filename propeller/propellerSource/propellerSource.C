@@ -124,9 +124,6 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         /*----CREATE ROTOR DYNAMICS----*/
         dynamics_ = rotorDynamics::New(dict.subDict("dynamics"));
 
-        
-
-
         return true;
     }
 

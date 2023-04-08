@@ -156,9 +156,6 @@ void rotorDiscrete::fromRotorMesh(const rotorFvMeshSel &rotorFvMeshSel, word int
         
     }
 
-    Info<<ncellis<<endl;
-    Info<<totalCells<<endl;
-    Info<<"Coreidx: "<<coreIdx<<endl;
     List<point> allCenter(totalCells,vector(0,0,0));
     
     auto it = centers.begin();

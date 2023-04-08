@@ -133,6 +133,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);        
     }
 
+    reduce(aoaMax,maxOp<scalar>());
+    reduce(aoaMin,minOp<scalar>());
+
     Info<< "- Max AoA: "<<aoaMax * 180/pi <<"º"<<endl;
     Info<< "- Min AoA: "<<aoaMin * 180/pi <<"º"<<endl;
 
@@ -154,6 +157,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     //To rotor local coordinates
     result.force = rotorDiscrete_.cartesian().localVector(result.force);
     result.torque = rotorDiscrete_.cartesian().localVector(result.torque);
+
+    reduce(result.force,sumOp<vector>());
+    reduce(result.torque,sumOp<vector>());
 
     result.power = result.torque.z() * omega;
 
