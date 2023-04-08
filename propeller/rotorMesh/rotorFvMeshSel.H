@@ -90,6 +90,9 @@ TypeName("rotorFvMeshSel");
 
         void clear();
 
+        const List<label>& coreCellNumber() const {return parNcells;}
+        const List<List<label>>& coreCelli() const {return parCells;}
+
 protected:
     //Geometry
 
