@@ -22,6 +22,7 @@ protected:
     word integrationOrder;
     bool correctCenters;
     label refinementLevel;
+    word discreteMethod;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");

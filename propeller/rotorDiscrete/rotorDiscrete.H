@@ -68,7 +68,29 @@ TypeName("rotorDiscrete");
         //- Construct from dictionary
         rotorDiscrete();
 
-        void fromRotorMesh(const rotorFvMeshSel& rotorFvMeshSel, word integration, bool correctCenters,label refinementLevel);
+        /**
+         * @brief Creates voronoid based mesh from cell center proyection
+         * Robust and 100% tested
+         * @param rotorFvMeshSel 
+         * @param integration 
+         * @param correctCenters 
+         * @param refinementLevel 
+         */
+        void fromMeshVoronoid(const rotorFvMeshSel& rotorFvMeshSel, word integration, bool correctCenters,label refinementLevel);
+        
+        /**
+         * @brief Creates rotor mesh from intersecting mesh edges with the plane
+         * Not optimized, and edge intersections are computed more than once for each edge
+         * There are repeated points in the list
+         * 
+         * Also not accounting if rotordiscrete < rotormesh, no check on centers
+         * 
+         * @param rotorFvMeshSel 
+         * @param integration 
+         * @param correctCenters 
+         * @param refinementLevel 
+         */
+        void fromMeshIntersect(const rotorFvMeshSel &rotorFvMeshSel,word integration,bool correctCenters,label refinementLevel);
     //Destructor
         virtual ~rotorDiscrete() = default;
     //IO

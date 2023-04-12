@@ -27,6 +27,7 @@ Foam::bladeElementModel::bladeElementModel
     integrationOrder = dict.getOrDefault<word>("integration","tri");
     correctCenters = dict.getOrDefault<bool>("correctCenters",false);
     refinementLevel = dict.getOrDefault<label>("borderRefinement",0);
+    discreteMethod = dict.getOrDefault<word>("discreteMethod","voronoid");
 }
 
 Foam::scalar Foam::bladeElementModel::radius() const
@@ -37,7 +38,22 @@ Foam::scalar Foam::bladeElementModel::radius() const
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
-    rotorDiscrete_.fromRotorMesh(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel);
+    if(discreteMethod=="voronoid")
+    {
+        rotorDiscrete_.fromMeshVoronoid(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel);
+    }
+    else if(discreteMethod=="intersection")
+    {
+        rotorDiscrete_.fromMeshIntersect(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel);
+    }
+    else
+    {
+        FatalErrorInFunction
+            <<"Discrete method: "<<discreteMethod
+            <<", doesnt exit."<<endl
+            <<"Valid methods: (voronoid,intersection)"<<exit(FatalError);
+
+    }
 
     bladeModel_.setMaxRadius(rotorGeometry.radius());
 }

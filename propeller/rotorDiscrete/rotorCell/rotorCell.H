@@ -63,7 +63,7 @@ public:
     inline const point& position(label i) const { return (*pointData_)[i];} 
     inline const point& vertexPosition(label vertexi) const { return position(vertex_[vertexi]);}
     inline const point& centerPosition() const { return position(center_);}
-
+    inline const label nVertex() const {return vertex_.size();}
     inline const List<label>& vertex() const {return vertex_;}
     inline label center() const { return center_;}
              
