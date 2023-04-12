@@ -13,7 +13,7 @@
             "stopAtEntry": false,
             "cwd": "${env:WM_PROJECT_USER_DIR}/cases/freeFan",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
             "setupCommands": [

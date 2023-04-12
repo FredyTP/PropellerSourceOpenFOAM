@@ -242,6 +242,19 @@ static int VoronoidFromTri
          voronoid[i].clear();
          continue;
       }
+      /*bool anyInside = false;
+      forAll(poli,w)
+      {
+         if(isInRegion(orto[poli[w]]))
+         {
+            anyInside=true;
+         }
+      }
+      if(!anyInside)
+      {
+         voronoid[i].clear();
+         continue;
+      }*/
       for(label j = 0; j<poli.size();j++)
       {
             
@@ -283,21 +296,6 @@ static int VoronoidFromTri
                      findIntersection(orto[poli[o1]],p2,int2,true);
 
                      refineBorder(orto,insidePoli,int1,int2,refinementLevel,isInRegion,findIntersection);
-                     /*insidePoli.append(orto.size());
-                     orto.append(int1);
-                     
-
-                     point mid = (int1+int2)/2;
-                     point out = mid + 1000*mid;
-
-                     point extra;
-                     findIntersection(out,mid,extra,true);
-
-                     insidePoli.append(orto.size());
-                     orto.append(extra);
-
-                     insidePoli.append(orto.size());
-                     orto.append(int2);*/
                   }
                   else
                   {
@@ -308,23 +306,6 @@ static int VoronoidFromTri
                      findIntersection(pout2,p2,int2,true);
 
                      refineBorder(orto,insidePoli,int1,int2,refinementLevel,isInRegion,findIntersection);
-
-                     /*insidePoli.append(orto.size());
-                     orto.append(int1);
-
-                     
-
-                     point mid = (int1+int2)/2;
-                     point out = mid + 1000*mid;
-
-                     point extra;
-                     findIntersection(out,mid,extra,true);
-
-                     insidePoli.append(orto.size());
-                     orto.append(extra);
-
-                     insidePoli.append(orto.size());
-                     orto.append(int2);*/
                   }
                   
                }
