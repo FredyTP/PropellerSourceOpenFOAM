@@ -56,6 +56,7 @@ private:
 
     bool findClosestCenter_;
     bool correctGeometry_;
+    bool includeIfVertex_;
 
     bool built_ = false;
 

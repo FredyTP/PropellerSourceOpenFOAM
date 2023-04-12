@@ -151,11 +151,12 @@ bool rotorFvMeshSel::read(const dictionary &dict)
     case selectionMode::smGeometry2 :
           
         findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
+        includeIfVertex_ = dict.getOrDefault<bool>("includeIfVertex",true);
         Info<<"FindClosestCenter: "<< findClosestCenter_<<endl;
 
         //If rotorFvMeshSel is build from geometry, the resulting mesh geometry
-        // may be used to update the provided geometry
-        correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
+        // may not be used to update the provided geometry
+        correctGeometry_ = false;//dict.getOrDefault<bool>("correctGeometry",false);
 
         break;
 
@@ -333,27 +334,51 @@ void rotorFvMeshSel::createMeshSelection()
     scalar radiusSqr = radius * radius;
     //- Local cartesian position
     //Build local coordinate system
-    coordSystem::cartesian localCartesianCS        (
+    coordSystem::cartesian localCartesianCS(
             meshGeometry_.center(), //centerd to local
             meshGeometry_.direction(), //z-axis 
             meshGeometry_.psiRef()  //x-axis
         );
      
-
+    const labelListList& cellVertex = mesh_.cellPoints(); 
+    const pointField& meshPoints = mesh_.points();
     //Select only cells which centroid proyected over the disk results inside the disk
     forAll(planeCells,i)
     { 
         label celli = planeCells[i];
 
-        vector cellCentroid = mesh_.C()[celli];
-        vector localPos = localCartesianCS.localPosition(cellCentroid);
-        localPos.z()=0; //set on rotor plane 
-        scalar distanceSqr = magSqr(localPos);
-
-        if( distanceSqr <= radiusSqr )
+        if(!includeIfVertex_)
         {
-            cells_.append(celli);
+            //Include cell if the centroid proyects inside the rotor
+            vector cellCentroid = mesh_.C()[celli];
+            vector localPos = localCartesianCS.localPosition(cellCentroid);
+            localPos.z()=0; //set on rotor plane 
+            scalar distanceSqr = magSqr(localPos);
+
+            if( distanceSqr <= radiusSqr )
+            {
+                cells_.append(celli);
+            }
         }
+        else
+        {
+            //Include if any cell vertex lies inside the rotor
+            forAll(cellVertex[celli],j)
+            {
+                vector point = meshPoints[cellVertex[celli][j]];
+                vector localPos = localCartesianCS.localPosition(point);
+                localPos.z()=0; //set on rotor plane 
+                scalar distanceSqr = magSqr(localPos);
+
+                if( distanceSqr <= radiusSqr )
+                {
+                    cells_.append(celli);
+                    break;
+                }
+            }
+
+        }
+
     }
 
     //Sync selection data arround processes
