@@ -39,9 +39,86 @@ static bool Voronoid
    delaunayTriangulation::VoronoidFromTri(nodeP,triangles,vertex,cells,refinementLevel,isInRegion,intersectRegion);
    return true;
 }
-
-static List<label> sortCounterClockwise(const List<point>& points, List<label>& poli,const point center)
+static bool isConvex(const List<point>& points, const List<label>& cell)
 {
+   bool pos = true;
+   forAll(cell,i)
+   {
+      label i1 = i;
+      label i2 = (i+1)%(cell.size());
+      label i3 = (i+2)%(cell.size());
+
+
+      vector v1 = points[cell[i2]]-points[cell[i1]];
+      vector v2 = points[cell[i3]]-points[cell[i2]];
+
+      scalar dotprod = v2.x()*v1.y()-v1.x()*v2.y();
+      if(i==0)
+      {
+         pos = dotprod > 0;
+      }
+      else if(pos != (dotprod>=0))
+      {
+         return false;
+      }
+   }
+   return true;
+}
+/**
+ * @brief Check if the point is inside the cell 
+ * 
+ * @param cell counterClockWise sorted cells
+ * @param center 
+ * @return true if the center is inside the cell
+ * @return false otherwise
+ */
+static bool isInsideCell(const List<point>& points, const List<label>& cell, const point& center)
+{
+   bool pos = true;
+   forAll(cell,i)
+   {
+      label i1 = i;
+      label i2 = (i+1)%(cell.size());
+
+      vector v1 = points[cell[i1]]-center;
+      vector v2 = points[cell[i2]]-center;
+
+      scalar dotprod = v2.x()*v1.y()-v1.x()*v2.y();
+      if(i==0)
+      {
+         pos = dotprod > 0;
+      }
+      else if(pos != (dotprod>=0))
+      {
+         return false;
+      }
+      
+   }
+   return true;
+
+}
+static void correctCenter(const List<point>& points, const List<label>& cell, point& center)
+{
+   center = vector(0,0,0);
+   forAll(cell,i)
+   {
+      center += points[cell[i]];  
+   }
+   center /= cell.size();
+}
+static List<label> sortCounterClockwise(const List<point>& points, List<label>& poli)
+{
+   if(poli.size()<3)
+   {
+      return List<label>();
+   }
+
+   vector center(0,0,0);
+   forAll(poli,i)
+   {
+      center+=points[poli[i]];
+   }
+   center/=poli.size();
 
    List<scalar> angles(poli.size());
    List<label> policopy = poli;
@@ -226,7 +303,7 @@ static int VoronoidFromTri
    for(label i=0;i<voronoid.size();i++)
    {
       // Sort voronoid points in conterclockwise direction
-      sortCounterClockwise(orto,voronoid[i],nucli[i]);
+      sortCounterClockwise(orto,voronoid[i]);
 
       //Create temp poligon
       List<label> poli = voronoid[i];
@@ -237,12 +314,12 @@ static int VoronoidFromTri
       List<bool> visited(poli.size(),false);
 
       //If point is outside continue
-      if(!isInRegion(nucli[i]))
+      /*if(!isInRegion(nucli[i]))
       {
          voronoid[i].clear();
          continue;
-      }
-      /*bool anyInside = false;
+      }*/
+      bool anyInside = false;
       forAll(poli,w)
       {
          if(isInRegion(orto[poli[w]]))
@@ -254,8 +331,8 @@ static int VoronoidFromTri
       {
          voronoid[i].clear();
          continue;
-      }*/
-      for(label j = 0; j<poli.size();j++)
+      }
+      /*for(label j = 0; j<poli.size();j++)
       {
             
             point po;
@@ -315,8 +392,8 @@ static int VoronoidFromTri
                insidePoli.append(poli[j]);
             }
            
-      }
-      voronoid[i] = insidePoli;
+      }*/
+      //voronoid[i] = insidePoli;
    }
 
    //Last 3 points are from supertriangle

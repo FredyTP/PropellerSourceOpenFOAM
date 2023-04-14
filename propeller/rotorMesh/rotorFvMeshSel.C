@@ -74,8 +74,6 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
         //Update to closest center if it's asked to (revisar esto)
         this->tryUpdateCenter(); 
 
-       
-
         if(selMode_==selectionMode::smGeometry)
         {
             this->createMeshSelection(); //Create cell selection from a disk
@@ -228,6 +226,10 @@ void rotorFvMeshSel::tryUpdateCenter()
 }
 void rotorFvMeshSel::tryCorrectGeometry(rotorGeometry& rotorGeometry)
 {
+    if(findClosestCenter_)
+    {
+        rotorGeometry.setCenter(meshGeometry_.center());
+    }
     if(correctGeometry_)
     {
         rotorGeometry.setRadius(meshGeometry_.radius());

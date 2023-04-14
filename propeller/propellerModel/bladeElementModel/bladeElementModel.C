@@ -38,22 +38,9 @@ Foam::scalar Foam::bladeElementModel::radius() const
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
-    if(discreteMethod=="voronoid")
-    {
-        rotorDiscrete_.fromMeshVoronoid(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel);
-    }
-    else if(discreteMethod=="intersection")
-    {
-        rotorDiscrete_.fromMeshIntersect(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel);
-    }
-    else
-    {
-        FatalErrorInFunction
-            <<"Discrete method: "<<discreteMethod
-            <<", doesnt exit."<<endl
-            <<"Valid methods: (voronoid,intersection)"<<exit(FatalError);
+    
+    rotorDiscrete_.fromMesh(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel,discreteMethod);
 
-    }
 
     bladeModel_.setMaxRadius(rotorGeometry.radius());
 }

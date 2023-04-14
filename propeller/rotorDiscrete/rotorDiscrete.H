@@ -61,6 +61,12 @@ private:
     discreteMode discreteMode_ = discreteMode::dmNone;
 
     word integrationMode_;
+    word discreteMethod_;
+
+    bool correctCenters_ = false;
+    bool includeVertex_ = true;
+
+    label refinementLevel_;
 public:
 TypeName("rotorDiscrete");
 
@@ -69,28 +75,103 @@ TypeName("rotorDiscrete");
         rotorDiscrete();
 
         /**
-         * @brief Creates voronoid based mesh from cell center proyection
-         * Robust and 100% tested
+         * @brief Create a Mesh Voronoid object, 
+         * needs to gather all points from all the cores
+         * 
          * @param rotorFvMeshSel 
-         * @param integration 
-         * @param correctCenters 
-         * @param refinementLevel 
+         * @param vertex 
+         * @param centers 
+         * @param cells 
          */
-        void fromMeshVoronoid(const rotorFvMeshSel& rotorFvMeshSel, word integration, bool correctCenters,label refinementLevel);
+        void createMeshVoronoid
+        (
+            List<point> &vertex, 
+            List<point> &centers,
+            List<List<label>> &cells
+        );
         
         /**
-         * @brief Creates rotor mesh from intersecting mesh edges with the plane
-         * Not optimized, and edge intersections are computed more than once for each edge
-         * There are repeated points in the list
+         * @brief Create a Mesh Intersect object
+         * Obtain a list of cell points indexing to carPoints_
          * 
-         * Also not accounting if rotordiscrete < rotormesh, no check on centers
+         * @param rotorFvMeshSel 
+         * @param cellPoints 
+         */
+        void createMeshIntersect
+        (
+            const rotorFvMeshSel& rotorFvMeshSel, 
+            List<point> &vertex, 
+            List<label>& cellidx, 
+            List<List<label>> &cellPoints
+        );
+
+        /**
+         * @brief Select cells inside the rotor (center or vertex based)
+         * 
+         * @param rotorFvMeshSel 
+         * @param cellidx 
+         */
+        void selectInnerCells
+        (
+            const rotorFvMeshSel& rotorFvMeshSel, 
+            List<label>& cellidx
+        );
+        
+        /**
+         * @brief 
          * 
          * @param rotorFvMeshSel 
          * @param integration 
          * @param correctCenters 
          * @param refinementLevel 
          */
-        void fromMeshIntersect(const rotorFvMeshSel &rotorFvMeshSel,word integration,bool correctCenters,label refinementLevel);
+        void fromMesh
+        (
+            const rotorFvMeshSel &rotorFvMeshSel,
+            word integration,
+            bool correctCenters,
+            label refinementLevel,
+            word discreteMethod
+        );
+
+
+        /**
+         * @brief 
+         * 
+         * @param vertex 
+         * @param cell 
+         * @param isInRegion 
+         * @param findIntersection 
+         * @return true 
+         * @return false 
+         */
+        bool cutWithCircle
+        (
+            List<point> &vertex,
+            List<label> &cell,
+            const std::function<bool(point)> &isInRegion,
+            const std::function<void(point, point, point &, bool)> &findIntersection
+        );
+        /**
+         * @brief Create a From Data object
+         * 
+         * @param vertex 
+         * @param centers 
+         * @param cellidx 
+         * @param cells 
+         */
+        void createFromData
+        (
+            const List<point> &vertex, 
+            const List<point> &centers,
+            const List<label>& cellidx, 
+            List<List<label>> &cells
+        );
+
+    void writePythonPlotter(word process="");
+    
+    
+    
     //Destructor
         virtual ~rotorDiscrete() = default;
     //IO
