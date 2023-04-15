@@ -28,7 +28,7 @@ namespace Foam
         //Get model Type name (Ex: fixedVelocity) 
         //From type key from dictionary (propellerModel)
         const word modelType(dict.get<word>("type")); 
-
+        Info<<endl;
         Info<< "Selecting " << typeName << " " << modelType << endl;
 
         //Find class contructor in tables

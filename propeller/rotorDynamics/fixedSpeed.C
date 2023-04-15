@@ -13,6 +13,8 @@ namespace Foam
 
     fixedSpeed::fixedSpeed(const dictionary &dict)
     {
+        Info.stream().incrIndent();
+
         bool isRpm = false;
         scalar rpm;
         isRpm = dict.readIfPresent("rpm",rpm);
@@ -26,7 +28,10 @@ namespace Foam
             dict.readEntry("angularRate",omega_);
         }
         
-
+        Info<<indent
+            <<"- Angular Rate: "<<omega_<<" (rad/s) / "
+            <<this->rpm()<<" (rpm)"<<endl;
+        Info.stream().decrIndent();
     }
 
 

@@ -19,8 +19,9 @@ Foam::autoPtr<Foam::rotorDynamics> rotorDynamics::New(const dictionary &dict)
      //Get model Type name (Ex: simpleAirfoil) 
     //From typeNkey from dictionary (airfoilModel)
     const word modelType(dict.get<word>("type")); 
-
-    Info<< " Selecting " << typeName << " " << modelType << endl;
+    
+    Info<<endl;    
+    Info<< "Selecting " << typeName << " " << modelType << endl;
 
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);
