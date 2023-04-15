@@ -23,7 +23,7 @@ rotorFvMeshSel::selectionModeNames_
     {selectionMode::smGeometry, "geometry"},
     {selectionMode::smCellSet, "cellSet"},
     {selectionMode::smCellZone, "cellZone"},
-    {selectionMode::smGeometry2, "geometry2"}
+    {selectionMode::smCylinder, "cylinder"}
 });
 
 
@@ -47,6 +47,9 @@ rotorFvMeshSel::rotorFvMeshSel
 
 void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
 {
+    Info<<endl;
+    Info<<"Building Mesh Selection: "<<endl;
+    Info.stream().incrIndent();
     // Fix rotor center specification
     //Provide geometry data if not data specified or ask for correction
     this->clear();
@@ -54,7 +57,7 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
     switch (selMode_)
     {
     case selectionMode::smGeometry :
-    case selectionMode::smGeometry2 :
+    case selectionMode::smCylinder :
     {
         meshGeometry_= rotorGeometry; //Use as input data
 
@@ -85,17 +88,19 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
 
         //Find "new" geometry --
         this->findRotorRadius();
+
+        if(meshGeometry_.radius() < rotorGeometry.radius())
+        {
+            FatalErrorInFunction
+                << "Mesh Selection radius is smaller than rotor radius"
+                << exit(FatalError);
+        }
         //Dont find rotor center because already selected cells from spec or aprox center
         //this->findRotorCenter();
         this->findRotorNormal(rotorGeometry);
         this->tryCorrectGeometry(rotorGeometry); //Update data if required
 
-        if(meshGeometry_.radius()<rotorGeometry.radius())
-        {
-            FatalErrorInFunction
-            <<"Mesh Selection radius is inferior to rotor radius"
-            <<endl;
-        }
+
     }
         break;
     case selectionMode::smCellZone :
@@ -125,10 +130,11 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
     default:
     break;
     }
-
-
     
     built_ = true;
+    Info.stream().decrIndent();
+    
+
 }
 void rotorFvMeshSel::clear()
 {
@@ -137,8 +143,9 @@ void rotorFvMeshSel::clear()
 }
 bool rotorFvMeshSel::read(const dictionary &dict)
 {
-    Info<<"Reading Rotor mesh config"<<endl;
-
+    Info<<endl;
+    Info<<"Reading Rotor mesh selection config: "<<endl;
+    Info.stream().incrIndent();
     bool ok = true;
 
     selMode_ = selectionModeNames_.getOrDefault("selectionMode",dict,selectionMode::smGeometry);
@@ -146,38 +153,44 @@ bool rotorFvMeshSel::read(const dictionary &dict)
     switch (selMode_)
     {
     case selectionMode::smGeometry :
-    case selectionMode::smGeometry2 :
-          
+    case selectionMode::smCylinder :
+        
         findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
         includeIfVertex_ = dict.getOrDefault<bool>("includeIfVertex",true);
-        Info<<"FindClosestCenter: "<< findClosestCenter_<<endl;
+        indent(Info)<<"- Selection mode: geometry"<<endl;
+        indent(Info)<<"- FindClosestCenter: "<< findClosestCenter_<<endl;
 
         //If rotorFvMeshSel is build from geometry, the resulting mesh geometry
         // may not be used to update the provided geometry
         correctGeometry_ = false;//dict.getOrDefault<bool>("correctGeometry",false);
+        indent(Info)<<"- Correct rotor geometry: "<<correctGeometry_<<endl;
 
         break;
 
     case selectionMode::smCellZone :
         ok &= dict.readEntry("cellZone",cellsName_);
-        Info<< "Reading cellSet from: " << cellsName_<<endl;
+        indent(Info)<< "- Selection mode: cellZone(" << cellsName_<<")"<<endl;
 
         //If rotorFvMeshSel is from cellset geometry may not be provided
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
+
+        indent(Info)<<"- Correct rotor geometry: "<<correctGeometry_<<endl;
 
         break;
     case selectionMode::smCellSet :
 
         ok &= dict.readEntry("cellSet",cellsName_);
-        Info<< "Reading cellSet from: " << cellsName_<<endl;
+        indent(Info)<< "- Selection mode: cellSet(" << cellsName_<<")"<<endl;
 
         //If rotorFvMeshSel is from cellset geometry may not be provided
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
+        indent(Info)<<"- Correct rotor geometry: "<<correctGeometry_<<endl;
 
         break;
     default:
         break;
     }
+    Info.stream().decrIndent();
 
     return ok;
 }
@@ -223,7 +236,7 @@ void rotorFvMeshSel::tryUpdateCenter()
             meshGeometry_.setCenter(newCenter);
         }
         
-        Info << "Using rotor center: " << meshGeometry_.center()
+        indent(Info) << "- Using rotor center: " << meshGeometry_.center()
         << " instead of: " << oldCenter 
         << endl;
         
@@ -277,7 +290,7 @@ void rotorFvMeshSel::syncCellData()
 
     reduce(parNcells,sumOp<labelList>());
      //Out total number of cells
-    Info<<"Total selected cells: "<<allCoreCells<<". In each core: "<<parNcells<<endl;
+    indent(Info)<<"- Total selected cells: "<<allCoreCells<<". In each core: "<<parNcells<<endl;
 
     //Get cell list for each core
     List<List<label>> coreCells;
@@ -298,6 +311,9 @@ void rotorFvMeshSel::syncCellData()
 */
 void rotorFvMeshSel::createMeshSelectionCilinder()
 {
+
+    Warning<<"Cylinder Selection is not currently working"<<endl;
+
     const vector& rotorDir = meshGeometry_.direction();
     const vector& rotorCenter = meshGeometry_.center();
     const scalar& radius = meshGeometry_.radius();
@@ -405,10 +421,6 @@ void rotorFvMeshSel::loadMeshSelection()
     case selectionMode::smCellZone:
     {
         //- LOAD FROM CELLZONE
-        Info<< indent
-        << "- selecting cells using cellZones "
-        << cellsName_ << nl;
-
         const auto& zones = mesh_.cellZones();
 
         label zoneId = zones.findIndex(cellsName_);
@@ -685,7 +697,7 @@ void rotorFvMeshSel::findRotorCenter()
     newCenter /= volume;
     meshGeometry_.setCenter(newCenter);
 
-    Info << "Volume avg rotor Center: "<<newCenter<<endl;
+    indent(Info) << "- Volume average rotor center: "<<newCenter<<endl;
 }
 
 void rotorFvMeshSel::findRotorNormal(rotorGeometry& rotorGeometry)
@@ -724,7 +736,7 @@ void rotorFvMeshSel::findRotorNormal(rotorGeometry& rotorGeometry)
     meshGeometry_.setDirection(newNormal);
     rotorGeometry.setDirection(newNormal);
 
-    Info << "Volume avg rotor Direction: "<<newNormal<<endl;
+    indent(Info) << "- Volume average rotor direction: "<<newNormal<<endl;
 }
 
 void rotorFvMeshSel::findRotorRadius()
@@ -772,14 +784,15 @@ void rotorFvMeshSel::findRotorRadius()
         }
     }
 
+    maxPointRadius = sqrt(maxRadSqr);
+
     reduce(maxPointRadius,maxOp<scalar>());
     reduce(maxCenterRadiusSqr,maxOp<scalar>());
 
-    maxPointRadius = sqrt(maxRadSqr);
     meshGeometry_.setRadius(sqrt(maxCenterRadiusSqr));
 
-    Info << "Max vertex radius: "<<maxPointRadius<<endl;
-    Info << "Max cell center radius: "<<meshGeometry_.radius()<<endl;
+    indent(Info) << "- Max vertex radius: "<<maxPointRadius<<endl;
+    indent(Info) << "- Max cell center radius: "<<meshGeometry_.radius()<<endl;
 }
 
 

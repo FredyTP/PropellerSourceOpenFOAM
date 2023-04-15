@@ -14,6 +14,10 @@
 namespace Foam
 {
 
+/**
+ * @brief Creates a mesh selection from geometry or cellSet/cellZone
+ * 
+ */
 class rotorFvMeshSel
 {
 public:
@@ -28,7 +32,7 @@ public:
         {
             smNone,
             smGeometry,
-            smGeometry2,
+            smCylinder,
             smCellSet,
             smCellZone
         };
