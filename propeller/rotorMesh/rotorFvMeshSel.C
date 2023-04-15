@@ -186,41 +186,46 @@ void rotorFvMeshSel::tryUpdateCenter()
 
     if(findClosestCenter_)
     {
-        if(Pstream::parRun())
-        {
-            Info<<"Find closest center feature not available for parallel runs. "
-                <<"Using provided center instead: "<<meshGeometry_.center()<<endl;
-            return;
-        }
         //Use closest cell centroid to center the plane used
         //to find rotor geometry, usually provides better results
         //in an oriented mesh
         vector oldCenter = meshGeometry_.center();
+        vector newCenter(0,0,0);
         label centercell = mesh_.findCell(oldCenter);
-        if(centercell == -1)
+        label found = 0;
+        if(centercell != -1)
         {
-            //Maybe check before if point is inside of boundaries
-            //FatalErrorInFunction << "Rotor center is outside of mesh" 
-            //<< exit(FatalError);
-            //Pstream::broadcast
+            newCenter = mesh_.C()[centercell];
+            found=1;
         }
         else
         {
-            meshGeometry_.setCenter(mesh_.C()[centercell]);
-            //Pstream::scatter(meshGeometry_.center());
+            if(!Pstream::parRun())
+            {
+                Warning<<"Closest center is outside mesh"<<endl;
+                return;
+            }
+        }
+        reduce(found,sumOp<label>());
+        if(found==0)
+        {
+            Warning<<"Center cell is outside boundaries, using provided center to cut the cells"<<endl;
+            return;
+        }
+        else if(found>1)
+        {
+            Warning<<"Multiple cells found, using provided center to cut the cells"<<endl;
+            return;
+        }
+        else
+        {
+            reduce(newCenter,sumOp<vector>());
+            meshGeometry_.setCenter(newCenter);
         }
         
-        //reduce(centercell,maxOp<scalar>());
-        if(centercell==-1)
-        {
-            Info<<"Center cell is outside boundaries, using provided center to cut the cells"<<endl;
-        }
-        else
-        {
-            Info << "Using rotor center: " << meshGeometry_.center()
-            << " instead of: " << oldCenter 
-            << endl;
-        }
+        Info << "Using rotor center: " << meshGeometry_.center()
+        << " instead of: " << oldCenter 
+        << endl;
         
     }
 }
