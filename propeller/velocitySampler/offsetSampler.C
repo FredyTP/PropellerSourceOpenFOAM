@@ -22,14 +22,14 @@ bool offsetSampler::read(const dictionary &dict)
         offset=0.0;
     }
     atCellCenter = dict.getOrDefault<bool>("atCellCenter",true);
-    
-    Info<< "offset = "<<offset<<endl;
-    Info<< "sample atCellCenter = "<<atCellCenter<<endl;
+    Info.stream().incrIndent();
+    Info<<indent<< "- Offset: "<<offset<<endl;
+    Info<<indent<< "- Sample atCellCenter: "<<atCellCenter<<endl;
 
     //For parallel computation only 0 offset anc cell-center integration is available
     if(Pstream::parRun())
     {
-        if(offset != 0.0 || rDiscrete->integrationMode() != "center")
+        if(offset != 0.0 || rDiscrete->integrationMode() != rotorCell::integrationMode::imCenter)
         {
             Info<<indent<<"In parallel runs, only 0 offset and cell center integration is available"<<endl;
             FatalErrorInFunction<<exit(FatalError);
@@ -38,6 +38,7 @@ bool offsetSampler::read(const dictionary &dict)
     
     this->build();
 
+    Info.stream().decrIndent();
     return true;
 }
  
@@ -45,7 +46,7 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
 {
     //If no offset and rotorDiscrete is integrated in cell centers
     //Then the correspondence is cell to cell
-    if(offset == 0.0 && rDiscrete->integrationMode() == "center")
+    if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
     {
         const PtrList<rotorCell>& rotorCells = rDiscrete->rotorCells();
         forAll(rotorCells,i)
@@ -82,7 +83,7 @@ bool offsetSampler::build()
     //If offset is 0.0 and rotorDiscrete is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
-    if(offset == 0.0 && rDiscrete->integrationMode() == "center")
+    if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
     {
         return true;
     }

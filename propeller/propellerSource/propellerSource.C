@@ -98,6 +98,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
         propellerModel_->rDiscrete().writeArea(this->name(),mesh_);
+        Info<<endl;
         Info<<"Rotor Geometry of: "<< fv::option::name()<<endl
         << rotorGeometry_;
 

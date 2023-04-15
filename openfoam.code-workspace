@@ -249,7 +249,8 @@
 			"faePatchField.C": "cpp",
 			"force.C": "cpp",
 			"regIOobjectWrite.C": "cpp",
-			"interpolationTableNew.C": "cpp"
+			"interpolationTableNew.C": "cpp",
+			"Ostream.C": "cpp"
 		}
 	}
 }

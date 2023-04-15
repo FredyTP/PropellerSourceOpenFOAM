@@ -156,7 +156,7 @@ bool rotorFvMeshSel::read(const dictionary &dict)
     case selectionMode::smCylinder :
         
         findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
-        includeIfVertex_ = dict.getOrDefault<bool>("includeIfVertex",true);
+        //includeIfVertex_ = dict.getOrDefault<bool>("includeIfVertex",true);
         indent(Info)<<"- Selection mode: geometry"<<endl;
         indent(Info)<<"- FindClosestCenter: "<< findClosestCenter_<<endl;
 

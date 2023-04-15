@@ -29,7 +29,7 @@ namespace Foam
         //From type key from dictionary (propellerModel)
         const word modelType(dict.get<word>("type")); 
 
-        Info<< "    Selecting " << typeName << " " << modelType << endl;
+        Info<< "Selecting " << typeName << " " << modelType << endl;
 
         //Find class contructor in tables
         auto* ctorPtr = dictionaryConstructorTable(modelType);

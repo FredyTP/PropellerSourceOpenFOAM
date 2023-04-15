@@ -17,6 +17,8 @@ fixedVelocity::fixedVelocity(const dictionary& dict,const rotorDiscrete* rDiscre
 
 bool fixedVelocity::read(const dictionary &dict)
 {
+    Info.stream().incrIndent();
+
     bool normal = dict.getOrDefault<bool>("normal","false");
     bool ok=true;
     
@@ -27,19 +29,21 @@ bool fixedVelocity::read(const dictionary &dict)
         ok &=dict.readEntry("velocity",speed);
         //Positive speed towards the disk
         velocity = - speed * rDiscrete->geometry().direction();
-        Info<< "normal to rotor speed = "<<speed<<endl;
+        indent(Info)<< "- Normal to rotor speed: "<<speed<<endl;
     }
     else
     {
         ok &=dict.readEntry("velocity",velocity);
     }
 
-    Info<< "rotor input velocity = "<<velocity<<endl;
+    indent(Info)<< "- Rotor input velocity: "<<velocity<<endl;
 
     forAll(this->sampledVel,i)
     {
         this->sampledVel[i]=velocity;
     }
+
+    Info.stream().decrIndent();
     return ok;
     
 }

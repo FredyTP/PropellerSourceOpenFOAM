@@ -19,15 +19,10 @@ Foam::bladeElementModel::bladeElementModel
 ) : 
     airfoils_(dict.subDict("airfoils")),
     bladeModel_(airfoils_,dict.subDict("bladeModel")),
+    rotorDiscrete_(dict.subDict("discrete")),
     propellerModel(dict,typeName)
-{
-    Info<<"Creating blade Element Model"<<endl;
-    
+{    
     dict.readEntry("nBlades",nBlades_);
-    integrationOrder = dict.getOrDefault<word>("integration","tri");
-    correctCenters = dict.getOrDefault<bool>("correctCenters",false);
-    refinementLevel = dict.getOrDefault<label>("borderRefinement",0);
-    discreteMethod = dict.getOrDefault<word>("discreteMethod","voronoid");
 }
 
 Foam::scalar Foam::bladeElementModel::radius() const
@@ -38,10 +33,7 @@ Foam::scalar Foam::bladeElementModel::radius() const
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
-    
-    rotorDiscrete_.fromMesh(*rotorFvMeshSel_,integrationOrder,correctCenters,refinementLevel,discreteMethod);
-
-
+    rotorDiscrete_.fromMesh(*rotorFvMeshSel_);
     bladeModel_.setMaxRadius(rotorGeometry.radius());
 }
 
