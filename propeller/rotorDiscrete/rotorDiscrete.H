@@ -8,6 +8,7 @@
 #include "cartesianCS.H"
 #include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
+#include "rotorCell.H"
 
 namespace Foam
 {
@@ -22,6 +23,13 @@ public:
         dmPolar, //Polar discretization from radial and azimutal vectors
         dmUniform, //Uniformly distributed points
     };
+    enum discreteMethod
+    {
+        dmeVoronoid,
+        dmeIntersection,
+    };
+    static const Enum<discreteMethod> discreteMethodNames_;
+
 
 private:
 
@@ -60,20 +68,69 @@ private:
 
     discreteMode discreteMode_ = discreteMode::dmNone;
 
-    word integrationMode_;
-    word discreteMethod_;
+    rotorCell::integrationMode integrationMode_;
+    discreteMethod discreteMethod_;
 
     bool correctCenters_ = false;
     bool includeVertex_ = true;
-
     label refinementLevel_;
+    
 public:
 TypeName("rotorDiscrete");
 
     //Contructors
         //- Construct from dictionary
-        rotorDiscrete();
+        rotorDiscrete(const dictionary& dict);
 
+
+    //Builders
+        /**
+         * @brief Construct rotor discre from mesh
+         * 
+         * @param rotorFvMeshSel 
+         */
+        void fromMesh
+        (
+            const rotorFvMeshSel &rotorFvMeshSel
+        );
+
+    //Output
+        /**
+         * @brief creates a python file to plot the discrete
+         * 
+         * @param process 
+         */
+        void writePythonPlotter(word process="");
+    //Destructor
+        virtual ~rotorDiscrete() = default;
+    //IO
+        //- Read source dictionary
+        virtual bool read(const dictionary& dict);
+
+        void buildCoordinateSystem(const rotorGeometry& geometry);
+
+     //Getters
+        const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
+        const coordSystem::cartesian& cartesian() const {return carCS_;}
+        const List<point>& cylPoints() const {return cylPoints_;}
+
+        const rotorGeometry& geometry() const {return rotorGeometry_;}
+        
+        const List<tensor>& localBladeCS() const {return localBlade_;}
+
+        label size() const {return cylPoints_.size();}
+
+        const PtrList<rotorCell>& rotorCells() const {return rotorCells_;}
+
+        discreteMode mode() const {return discreteMode_;}
+
+        const List<bool>& integrationPoints() const { return integrationPoints_; }
+
+        rotorCell::integrationMode integrationMode() const { return integrationMode_;}
+
+        void writeArea(word propName,const fvMesh& mesh) const ;
+
+private:
         /**
          * @brief Create a Mesh Voronoid object, 
          * needs to gather all points from all the cores
@@ -116,24 +173,6 @@ TypeName("rotorDiscrete");
             const rotorFvMeshSel& rotorFvMeshSel, 
             List<label>& cellidx
         );
-        
-        /**
-         * @brief 
-         * 
-         * @param rotorFvMeshSel 
-         * @param integration 
-         * @param correctCenters 
-         * @param refinementLevel 
-         */
-        void fromMesh
-        (
-            const rotorFvMeshSel &rotorFvMeshSel,
-            word integration,
-            bool correctCenters,
-            label refinementLevel,
-            word discreteMethod
-        );
-
 
         /**
          * @brief 
@@ -167,39 +206,7 @@ TypeName("rotorDiscrete");
             const List<label>& cellidx, 
             List<List<label>> &cells
         );
-
-    void writePythonPlotter(word process="");
-    
-    
-    
-    //Destructor
-        virtual ~rotorDiscrete() = default;
-    //IO
-        //- Read source dictionary
-        virtual bool read(const dictionary& dict);
-
-        void buildCoordinateSystem(const rotorGeometry& geometry);
-
-     //Getters
-        const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
-        const coordSystem::cartesian& cartesian() const {return carCS_;}
-        const List<point>& cylPoints() const {return cylPoints_;}
-
-        const rotorGeometry& geometry() const {return rotorGeometry_;}
-        
-        const List<tensor>& localBladeCS() const {return localBlade_;}
-
-        label size() const {return cylPoints_.size();}
-
-        const PtrList<rotorCell>& rotorCells() const {return rotorCells_;}
-
-        discreteMode mode() const {return discreteMode_;}
-
-        const List<bool>& integrationPoints() const { return integrationPoints_; }
-
-        word integrationMode() const { return integrationMode_;}
-
-        void writeArea(word propName,const fvMesh& mesh) const ;
+       
 protected:
         tensor bladeLocalFromPoint(const point& localPoint) const;
 

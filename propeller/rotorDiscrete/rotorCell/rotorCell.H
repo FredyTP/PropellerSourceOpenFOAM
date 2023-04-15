@@ -4,7 +4,7 @@
 #include "point.H"
 #include "dictionary.H"
 #include "autoPtr.H"
-
+#include "Enum.H"
 namespace Foam
 {
 
@@ -12,6 +12,14 @@ namespace Foam
 class rotorCell
 {
 public:
+
+    enum integrationMode
+    {
+        imCenter,
+        imTri,
+        imTriCenter
+    };
+    static const Enum<integrationMode> integrationModeNames_;
 
     rotorCell(label center, List<label>& vertex,const List<point>& points,label cellIdx)
         :center_(center), vertex_(vertex), pointData_(&points), celli_(cellIdx)
@@ -67,7 +75,7 @@ public:
     inline const List<label>& vertex() const {return vertex_;}
     inline label center() const { return center_;}
              
-    static autoPtr<rotorCell> New(word type, label center, List<label>& vertex, const List<point> &points, label cellIdx);
+    static autoPtr<rotorCell> New(integrationMode type, label center, List<label>& vertex, const List<point> &points, label cellIdx);
 
 protected:
 
@@ -105,7 +113,6 @@ private:
     scalar area_;
 
 };
-
 
 
 }

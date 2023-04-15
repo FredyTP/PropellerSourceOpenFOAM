@@ -4,18 +4,29 @@
 
 namespace Foam
 {
-autoPtr<rotorCell> rotorCell::New(word type, label center, List<label>& vertex, const List<point> &points, label cellIdx)
+const Enum
+<
+    rotorCell::integrationMode
+>
+rotorCell::integrationModeNames_
+({
+    {integrationMode::imCenter, "center"},
+    {integrationMode::imTri, "tri"},
+    {integrationMode::imTriCenter, "tricenter"}
+});
+
+autoPtr<rotorCell> rotorCell::New(integrationMode type, label center, List<label>& vertex, const List<point> &points, label cellIdx)
 {
-    if(type == "center")
+    if(type == integrationMode::imCenter)
     {
         return autoPtr<rotorCell>::NewFrom<rotorCenterCell>(center,vertex,points,cellIdx);
     }
-    else if(type == "tri")
+    else if(type == integrationMode::imTri)
     {
         //Triangulated mesh cells without center 
         return autoPtr<rotorCell>::NewFrom<rotorTriCell>(center,vertex,points,cellIdx,false);
     }
-    else if(type == "tricenter")
+    else if(type == integrationMode::imTriCenter)
     {
         //Triangulated mesh cells with center included
         return autoPtr<rotorCell>::NewFrom<rotorTriCell>(center,vertex,points,cellIdx,true);

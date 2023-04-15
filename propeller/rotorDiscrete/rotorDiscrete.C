@@ -13,8 +13,21 @@ namespace Foam
 
 defineTypeNameAndDebug(rotorDiscrete, 0);
 
-rotorDiscrete::rotorDiscrete()
+const Enum
+<
+    rotorDiscrete::discreteMethod
+>
+rotorDiscrete::discreteMethodNames_
+({
+    {discreteMethod::dmeVoronoid, "voronoid"},
+    {discreteMethod::dmeIntersection, "intersection"}
+});
+
+
+
+rotorDiscrete::rotorDiscrete(const dictionary& dict)
 {
+    this->read(dict);
 }
 void rotorDiscrete::buildCoordinateSystem(const rotorGeometry &geometry)
 {
@@ -394,11 +407,6 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
 
     totalArea_ = area_;
     reduce(totalArea_, sumOp<scalar>());
-
-    Info << "Total disk area: " << totalArea_ << endl;
-    Info << "Ideal disk area: " << idealArea << endl;
-    Info << "Area error = " << (idealArea - totalArea_) / idealArea * 100.0 << "%" << endl;
-
     // TODO: ?Add aditional integration points
 
     // Add cyl coord system and local blade tensor
@@ -498,14 +506,13 @@ void rotorDiscrete::writePythonPlotter(word process)
     file << pyplot;
     file.close();
 }
-void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel, word integration, bool correctCenters, label refinementLevel,word discreteMethod)
+void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
 {
-    Info << "Building rotor Discrete from mesh" << endl;
+    Info<<endl;
+    Info << "Building rotor Discrete from mesh:" << endl;
+    Info.stream().incrIndent();
+
     discreteMode_ = discreteMode::dmMesh;
-    integrationMode_ = integration;
-    refinementLevel_ = refinementLevel;
-    discreteMethod_=discreteMethod;
-    correctCenters_=correctCenters;
 
     // Selected rotor radius (real used, no from mesh)
     const scalar radius = rotorGeometry_.radius();
@@ -520,14 +527,12 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel, word integrat
     List<point> centers;
     List<label> cellis;
 
-    Info<<"Mesh selection: "<<rotorFvMeshSel.cells().size()<<endl;
     selectInnerCells(rotorFvMeshSel,cellis);
-    Info<<"Selected inner cells: "<<cellis.size()<<endl;
 
     List<List<label>> cellPoints;
     List<point> vertex;
 
-    if(discreteMethod=="voronoid")
+    if(discreteMethod_==discreteMethod::dmeVoronoid)
     {
         //Get cell centers
         centers.resize(cellis.size());
@@ -542,7 +547,6 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel, word integrat
     {
         this->createMeshIntersect(rotorFvMeshSel,vertex,cellis,cellPoints);
 
-        Info<<"After intersection: "<<cellis.size()<<endl;
         centers.resize(cellis.size());
         forAll(centers,i)
         {
@@ -553,6 +557,30 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel, word integrat
     }
 
     this->createFromData(vertex,centers,cellis,cellPoints);
+
+    //Join all core cell number
+    label allCoreCells = rotorCells_.size();
+    reduce(allCoreCells,sumOp<label>());
+
+    //Obtain number of cells for each core
+    labelList parNcells(Pstream::nProcs(),0);
+    parNcells[Pstream::myProcNo()]=rotorCells_.size();
+
+    reduce(parNcells,sumOp<labelList>());
+     //Out total number of cells
+    indent(Info)<<"- Total created rotorCells: "<<allCoreCells<<endl;
+    indent(Info)<<"    - In each core: "<<parNcells<<endl;
+
+    scalarList eachArea(Pstream::nProcs(),0);
+    eachArea[Pstream::myProcNo()]=area_;
+    reduce(eachArea,sumOp<scalarList>());
+
+    indent(Info) << "- Total disk area: " << totalArea_ << endl;
+    indent(Info) << "    - In each core: " << eachArea << endl;
+    indent(Info) << "- Ideal disk area: " << idealArea << endl;
+    indent(Info) << "- Area error = " << (idealArea - totalArea_) / idealArea * 100.0 << "%" << endl;
+
+    Info.stream().decrIndent();
 
     this->writePythonPlotter();
 }
@@ -566,11 +594,7 @@ void rotorDiscrete::createMeshVoronoid
     )
 {
 
-    // TODO
-    // integration, correct centers, and refinement level shouldnt be provided to this fuction, should be in the dictionary!!!
-    Info << "Creating voronoid discretization" << endl;
-
-    // Gather ncell information
+     // Gather ncell information
     List<label> ncellis(Pstream::nProcs(), 0);
     ncellis[Pstream::myProcNo()] = centers.size();
     reduce(ncellis, sumOp<labelList>());
@@ -623,6 +647,28 @@ void rotorDiscrete::createMeshVoronoid
 }
 bool rotorDiscrete::read(const dictionary &dict)
 {
-    return false;
+
+    integrationMode_ = rotorCell::integrationModeNames_.getOrDefault("integrationMode",dict,rotorCell::integrationMode::imCenter);
+    discreteMethod_ = discreteMethodNames_.getOrDefault("discreteMethod",dict,discreteMethod::dmeVoronoid);
+
+    //For voronoid method vertex cells are not needed, but for intersection is recommended
+    bool defaultVertex = discreteMethod_ == discreteMethod::dmeIntersection;
+    includeVertex_ = dict.getOrDefault<bool>("includeIfVertex",defaultVertex);
+
+    refinementLevel_ = dict.getOrDefault<label>("borderRefinement",0);
+
+    correctCenters_ = dict.getOrDefault<bool>("correctCenters",false);
+    
+    Info<<endl;    
+    Info << "Reading rotor Discrete dict:" << endl;
+    Info.stream().incrIndent();
+    indent(Info)<<"- Discrete method: "<<rotorDiscrete::discreteMethodNames_.get(discreteMethod_)<<endl;
+    indent(Info)<<"- Border refinement: "<<refinementLevel_<<endl;
+    indent(Info)<<"- Correct centers: "<<correctCenters_<<endl;
+    indent(Info)<<"- Integration mode: "<<rotorCell::integrationModeNames_.get(integrationMode_)<<endl;
+    indent(Info)<<"- Include if vertex: "<<includeVertex_<<endl;
+    Info.stream().decrIndent();
+
+    return true;
 }
 }
