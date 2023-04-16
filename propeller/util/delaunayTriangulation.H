@@ -270,7 +270,7 @@ static int VoronoidFromTri
    /*Compute orto centers*/
    for(label i=0;i <tri.size();i++)
    {
-      double xc,yc,r;
+      double xc=0,yc=0,r=0;
       double x1,y1,x2,y2,x3,y3;
       
       //Get triangle vertex
@@ -476,7 +476,7 @@ static int Triangulate(List<point>& points,List<ITRIANGLE>& v,std::function<bool
 
    int inside;
    int i,j,k;
-   double xp,yp,x1,y1,x2,y2,x3,y3,xc,yc,r;
+   double xp,yp,x1,y1,x2,y2,x3,y3,xc=0,yc=0,r=0;
    double xmin,xmax,ymin,ymax,xmid,ymid;
    double dx,dy,dmax;
 
@@ -493,18 +493,9 @@ static int Triangulate(List<point>& points,List<ITRIANGLE>& v,std::function<bool
    //Set vector to check complete triangles
    complete.resize(trimax);
    v.resize(trimax);
-   
-   /*if ((complete = new int[trimax]) == NULL) {
-      status = 1;
-      goto skip;
-   }*/
 
    /* Allocate memory for the edge list */
    edges.resize(emax);
-   /*if ((edges = new IEDGE[emax]) == NULL) {
-      status = 2;
-      goto skip;
-   }*/
 
    /*
       Find the maximum and minimum vertex bounds.

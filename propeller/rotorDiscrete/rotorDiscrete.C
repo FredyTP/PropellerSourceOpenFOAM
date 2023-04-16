@@ -111,13 +111,7 @@ void rotorDiscrete::createMeshIntersect
     List<List<label>> &cellPoints
 )
 {
-    // Selected rotor radius (real used, no from mesh)
-    const scalar radius = rotorGeometry_.radius();
-    const scalar sqrRadius = radius * radius;
-    const scalar idealArea = constant::mathematical::pi * sqrRadius;
-
     // List ref.
-    const vectorField &cellCenter = rotorFvMeshSel.mesh().C();
     const labelListList &cellEdges = rotorFvMeshSel.mesh().cellEdges();
     const edgeList &edges = rotorFvMeshSel.mesh().edges();
     const vectorField &points = rotorFvMeshSel.mesh().points();
@@ -184,7 +178,6 @@ void rotorDiscrete::selectInnerCells(const rotorFvMeshSel &rotorFvMeshSel, List<
     List<label> cellSel = rotorFvMeshSel.cells();
     // Selected rotor radius (real used, no from mesh)
     const scalar radius = rotorGeometry_.radius();
-    const scalar radiusSqr = radius * radius;
 
     const labelListList& cellVertex = rotorFvMeshSel.mesh().cellPoints(); 
     const pointField& meshPoints = rotorFvMeshSel.mesh().points();  
@@ -335,16 +328,13 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
 
     // Selected rotor radius (real used, no from mesh)
     const scalar radius = rotorGeometry_.radius();
-    const scalar sqrRadius = radius * radius;
-    const scalar idealArea = constant::mathematical::pi * sqrRadius;
-
 
     auto isInsideRotor = delaunayTriangulation::circularRegion(radius);
     auto intersectRotor = delaunayTriangulation::intersectCircle(radius);
     area_ = 0.0;
-    scalar ta = 0.0;
     rotorCells_.resize(cellidx.size());
     label goodIdx = 0;
+    labelList layOut;
     // add cell centers to rotor points and create cells
     forAll(cellidx, i)
     {
@@ -354,8 +344,7 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
         {
             continue;
         }
-        
-
+    
         vector c{0, 0, 0};
         // Centers the cell_center in the middle of the cell
         if (correctCenters_)
@@ -365,11 +354,11 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
         // Keeps the original cell_center
         else
         {
+            
             //Correct only the centers outside the cell
             if(!delaunayTriangulation::isInsideCell(carPoints_,cells[i],centers[i]))
             {
-                Warning<<"Center "<<i<<" :"<<centers[i] <<" lays outside the cell"<<endl;
-                Warning<<"Size: "<<cells[i].size()<<endl;
+                layOut.append(cells[i]);
                 
                 delaunayTriangulation::correctCenter(carPoints_,cells[i],c);
                 if(!delaunayTriangulation::isInsideCell(carPoints_,cells[i],c))
@@ -402,13 +391,17 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
         area_ += rotorCells_[goodIdx].area();
         goodIdx++;
     }
-
     rotorCells_.resize(goodIdx);
 
     totalArea_ = area_;
     reduce(totalArea_, sumOp<scalar>());
     // TODO: ?Add aditional integration points
-
+    if(layOut.size()>0)
+    {
+        Warning
+            <<layOut.size()<<" cells centers lay outsid rotorCell and have been corrected"
+            <<endl;
+    }
     // Add cyl coord system and local blade tensor
 
     cylPoints_.resize(carPoints_.size());
@@ -521,7 +514,6 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
 
     //
     // List ref.
-    const labelList &cells = rotorFvMeshSel.cells();
     const vectorField &cellCenter = rotorFvMeshSel.mesh().C();
 
     List<point> centers;

@@ -44,7 +44,7 @@ public:
 
     virtual bool valid();
 
-    ~polar();
+    virtual ~polar() = default;
     
     static autoPtr<Foam::polar> New(const word modelType,const word interpolation, const fileName filename, scalar Re, scalar Ma);
     static autoPtr<Foam::polar> New(const word modelType,const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma);

@@ -28,6 +28,8 @@ public:
 
     rotorDynamics();
 
+    virtual ~rotorDynamics() = default;
+
     virtual void integrate(scalar aeroMoment,scalar dt) = 0;
 
 

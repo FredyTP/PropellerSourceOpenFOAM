@@ -17,6 +17,7 @@ class irregularInterpolation
 public:
     virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const=0;
 
+    virtual ~irregularInterpolation() = default;
 protected:
 
     static typeIn SqrDistance(const FixedList<typeIn,dim>& p1, const FixedList<typeIn,dim>& p2) 

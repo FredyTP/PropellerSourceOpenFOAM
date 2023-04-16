@@ -76,7 +76,7 @@ public:
     
 
 private:
-    const label globalIndex(label localIndex) {return integrationPoints_[localIndex];}
+    label globalIndex(label localIndex) const {return integrationPoints_[localIndex];}
     
     /**
      * Comput tri area

@@ -43,6 +43,8 @@ public:
         ),
         (dict,rDiscrete_,rMesh_)
     );
+    
+    virtual ~velocitySampler() = default;
 
     /**
      * @brief Return sampled velocities on rotor discrete positions(rotor positions goes from 0 to N)
@@ -81,8 +83,8 @@ protected:
      */
     velocitySampler(const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
 
-    const rotorFvMeshSel* rMesh;
     const rotorDiscrete* rDiscrete;
+    const rotorFvMeshSel* rMesh;
 
     /**
      * @brief velocity sampled vector, to return by reference

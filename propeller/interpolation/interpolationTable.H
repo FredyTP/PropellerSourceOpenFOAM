@@ -35,6 +35,8 @@ public:
 
     
     interpolationTable(){}
+
+    virtual ~interpolationTable() = default;
     
     /**
      * Return interpolated value from input

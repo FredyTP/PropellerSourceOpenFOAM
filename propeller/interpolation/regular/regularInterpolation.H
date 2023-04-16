@@ -26,6 +26,8 @@ class regularInterpolation : public interpolationTable<typeIn,typeOu,dim>
 
 public:
 
+    virtual ~regularInterpolation() = default;
+    
     /**
      * @brief returns a list of interpolated coefficients and nodes
      * 

@@ -92,7 +92,8 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
         if(meshGeometry_.radius() < rotorGeometry.radius())
         {
             FatalErrorInFunction
-                << "Mesh Selection radius is smaller than rotor radius"
+                << "Mesh Selection radius is smaller than rotor radius: "
+                << "("<<meshGeometry_.radius() <<" < "<<rotorGeometry.radius()<<")"<<endl
                 << exit(FatalError);
         }
         //Dont find rotor center because already selected cells from spec or aprox center

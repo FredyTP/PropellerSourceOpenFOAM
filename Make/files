@@ -24,3 +24,4 @@ propeller/velocitySampler/fixedVelocity.C
 propeller/velocitySampler/offsetSampler.C
 
 EXE = $(FOAM_USER_APPBIN)/rotorSolver
+//LIB = $(FOAM_USER_LIBBIN)/rotorSolver

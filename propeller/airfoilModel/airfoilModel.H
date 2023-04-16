@@ -28,6 +28,7 @@ public:
 
     airfoilModel(const word name);
     
+    virtual ~airfoilModel() = default;
     
     const word& airfoilName() const {return name_;}
     

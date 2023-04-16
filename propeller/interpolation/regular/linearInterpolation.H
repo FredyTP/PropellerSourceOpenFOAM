@@ -100,6 +100,7 @@ public:
                     delta[i] = 0;
                     break;
                 default:
+                    delta[i] = 0;
                     break;
                 }
                 

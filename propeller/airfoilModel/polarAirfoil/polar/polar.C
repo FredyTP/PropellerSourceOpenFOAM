@@ -113,11 +113,6 @@ bool polar::valid()
     return true;
 }
 
-polar::~polar()
-{
-    Info<<"Deleted polar"<<endl;
-}
-
 void polar::processData(List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd)
 {
     //Check if alpha is in ascending order
