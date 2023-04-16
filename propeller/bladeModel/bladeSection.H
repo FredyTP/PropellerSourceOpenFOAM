@@ -1,6 +1,7 @@
 #ifndef PROPELLER_BLADE_MODEL_BLADE_SECTION
 #define PROPELLER_BLADE_MODEL_BLADE_SECTION
 #include "interpolated.H"
+#include "constants.H"
 namespace Foam
 {
 
@@ -30,6 +31,16 @@ public:
     bladeSection()
     {
 
+    }
+
+    friend Ostream& operator<<(Ostream& os, bladeSection& sec)
+    {
+        os  <<sec.airfoil->airfoilName()
+            <<", "<<sec.radius<<", "
+            <<sec.chord<<", "
+            <<sec.twistAngle * 180/constant::mathematical::pi
+            <<", "<<sec.sweepAngle * 180/constant::mathematical::pi;
+        return os;
     }
 };
 

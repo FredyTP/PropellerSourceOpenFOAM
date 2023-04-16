@@ -49,9 +49,6 @@ bool polarAirfoil::readTable(const dictionary& dict)
 
 bool polarAirfoil::read(const dictionary& dict)
 {
-
-    Info<<"Reading polar airfoil data for: " << this->airfoilName() << endl;
-
     //Extrapolation mode: none, viterna, symmetry ... (?)
     word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
 
@@ -103,8 +100,7 @@ bool polarAirfoil::readFromPolars(word extrapolation)
     List<Tuple2<word,FixedList<scalar,2>>> polarFiles;
     csvTable<scalar,word> csvReader(true);
     //Read airfoil data
-
-    Info<<"Reading polar data from: "<<file_<<endl;
+    
     Foam::IFstream is(file_);
     is  >> polarFiles;
 

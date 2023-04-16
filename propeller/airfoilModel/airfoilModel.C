@@ -26,7 +26,7 @@ Foam::autoPtr<Foam::airfoilModel> Foam::airfoilModel::New
     //From typeNkey from dictionary (airfoilModel)
     const word modelType(dict.get<word>("type")); 
 
-    Info<< "    Selecting " << typeName << " " << modelType << endl;
+    Info<< "    - Loading " << modelType <<": "<<name<< endl;
 
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);

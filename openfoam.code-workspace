@@ -250,7 +250,8 @@
 			"force.C": "cpp",
 			"regIOobjectWrite.C": "cpp",
 			"interpolationTableNew.C": "cpp",
-			"Ostream.C": "cpp"
+			"Ostream.C": "cpp",
+			"SortableListDRGEP.C": "cpp"
 		}
 	}
 }

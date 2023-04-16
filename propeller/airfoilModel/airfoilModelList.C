@@ -6,7 +6,8 @@ Foam::airfoilModelList::airfoilModelList(const dictionary& dict)
 : PtrList<airfoilModel>()
 {
     wordList airfoilNames(dict.toc());
-    Info<< "Reading airfoils" <<endl;
+    Info<<endl;
+    Info<< "Creating airfoils:" <<endl;
 
     if(airfoilNames.size())
     {

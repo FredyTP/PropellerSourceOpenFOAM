@@ -15,26 +15,25 @@ Foam::devel::bladeModel::bladeModel
     List<bladeSection> bladeSections;
     List<scalar> radius;
 
+    Info<<endl;
     adimensional_ = dict.getOrDefault<bool>("adimensionalRadius",false);
     fName_=dict.getOrDefault<fileName>("file","");
     if(!fName_.empty())
     {
-        Info<<"Reading blade data from: " << fName_<<endl;
         Foam::IFstream is(fName_);
         is  >> sections;
     }
     else
     {
-        Info <<"Reading blade data from dict: " << endl;
         dict.readEntry("sections",sections);       
     }
 
     if(sections.size())
     {
-        Info <<"   Building blade ... " << endl;
+        Info <<"Building blade: " << endl;
         bladeSections.setSize(sections.size());
         radius.setSize(sections.size());
-
+        Info<<"     AirfoilName, radius, chord, twist[º], sweep[º]"<<endl;
         forAll(sections,i)
         {
             //Check for airfoil exist
@@ -46,6 +45,7 @@ Foam::devel::bladeModel::bladeModel
             bladeSections[i].chord = sections[i].second()[1];
             bladeSections[i].twistAngle = degToRad(sections[i].second()[2]);
             bladeSections[i].sweepAngle = degToRad(sections[i].second()[3]);
+            Info<<"     - "<<bladeSections[i]<<endl;
         }
 
         if(!adimensional_)
