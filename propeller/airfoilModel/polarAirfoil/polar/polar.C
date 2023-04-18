@@ -20,23 +20,27 @@ namespace Foam
     addToRunTimeSelectionTable(polar,polar,dictionary);
 
 
-polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re, scalar Ma)
+polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re, scalar Ma, bool isRadian)
 {
     //The polar needs atleast 2 data-points to be functional
     processData(alpha,cl,cd);
     FixedList<List<scalar>,1> alphaIn;
     alphaIn[0]=alpha;
-    forAll(alphaIn[0],i)
+    if(!isRadian)
     {
-        alphaIn[0][i] *= constant::mathematical::pi/180;
+        forAll(alphaIn[0],i)
+        {
+            alphaIn[0][i] *= constant::mathematical::pi/180;
+        }
     }
+
     cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cl);
     cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cd);
     reynolds_ = Re;
     mach_ = Ma;
 }
 
-polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma)
+polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma, bool isRadian)
 {
     reynolds_ = Re;
     mach_ = Ma;
@@ -75,7 +79,15 @@ polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma)
     forAll(data,i)
     {
         vector vec = data[i].second();
-        alpha[0][i]=vec[0]*constant::mathematical::pi/180;
+        if(isRadian)
+        {
+            alpha[0][i]=vec[0];
+        }
+        else
+        {
+            alpha[0][i]=vec[0]*constant::mathematical::pi/180;
+        }
+        
         cl[i]=vec[1];
         cd[i]=vec[2];
     }
@@ -133,7 +145,7 @@ void polar::processData(List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd)
 
 }
 
-autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, const fileName filename, scalar Re, scalar Ma)
+autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian)
 {
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);
@@ -156,10 +168,10 @@ autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, 
     cl = csvReader.col("CL");
     cd = csvReader.col("CD");
 
-    return autoPtr<Foam::polar>(ctorPtr(interpolation,aoa,cl,cd,Re,Ma));
+    return autoPtr<Foam::polar>(ctorPtr(interpolation,aoa,cl,cd,Re,Ma,isRadian));
 }
 
-autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd, scalar Re, scalar Ma)
+autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd, scalar Re, scalar Ma, bool isRadian)
 {
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);
@@ -175,7 +187,7 @@ autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, 
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<Foam::polar>(ctorPtr(interpolation,alpha,cl,cd,Re,Ma));
+    return autoPtr<Foam::polar>(ctorPtr(interpolation,alpha,cl,cd,Re,Ma,isRadian));
 }
 
 

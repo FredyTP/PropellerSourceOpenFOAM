@@ -31,8 +31,8 @@ public:
 
     };
     
-    viterna(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re,scalar Ma);
-    viterna(const word interpolation, const fileName filename, scalar Re, scalar Ma);
+    viterna(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re,scalar Ma, bool isRadian);
+    viterna(const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian);
 
     virtual scalar cl(scalar alpha) const;
     virtual scalar cd(scalar alpha) const;

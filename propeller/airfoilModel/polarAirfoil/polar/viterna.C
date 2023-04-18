@@ -13,14 +13,14 @@ namespace Foam
     addToRunTimeSelectionTable(polar,viterna,dictionary);
 
 
-viterna::viterna(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re, scalar Ma)
- : polar(interpolation,alpha,cl,cd,Re,Ma)
+viterna::viterna(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re, scalar Ma, bool isRadian)
+ : polar(interpolation,alpha,cl,cd,Re,Ma,isRadian)
 {
     setParameters();
 }
 
-viterna::viterna(const word interpolation, const fileName filename, scalar Re, scalar Ma)
-: polar(interpolation,filename,Re,Ma)
+viterna::viterna(const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian)
+: polar(interpolation,filename,Re,Ma,isRadian)
 {
     setParameters();
 }

@@ -52,6 +52,7 @@ bool polarAirfoil::read(const dictionary& dict)
     //Extrapolation mode: none, viterna, symmetry ... (?)
     word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
 
+    isRadian_ = dict.getOrDefault<bool>("isRadian",false);
     bool ok;
     ok = dict.readIfPresent("polars",file_);
     if(ok)
@@ -116,7 +117,7 @@ bool polarAirfoil::readFromPolars(word extrapolation)
         fileName polarpath = file_;
         polarpath.replace_name(polarfile);
     
-        auto ptrPolar = polar::New(extrapolation,"lineal",polarpath,Re,Ma);
+        auto ptrPolar = polar::New(extrapolation,"lineal",polarpath,Re,Ma,isRadian_);
         polars_[i].reset(ptrPolar.release());
     }
 
@@ -141,7 +142,6 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     ma = csvReader.col(maName());
 
     label len = aoa.size();
-
     //If no valid data (empty or inconsistent)
     if(len == 0 || len != cl.size() || len != cd.size())
     {   
@@ -149,7 +149,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         << "Cannot find some " 
         << colNames 
         << " columns."
-        << exit(FatalIOError);
+        << exit(FatalError);
     }
 
     //If only Reynold provided, set mach to 0s
@@ -165,7 +165,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     //If neither mach or reynolds, set both to 0s and read as single polar
     else
     {
-        auto ptrPolar = polar::New(extrapolation,"lineal",file_,0,0);
+        auto ptrPolar = polar::New(extrapolation,"lineal",file_,0,0,isRadian_);
         polars_.resize(1);
         polars_[0].reset(ptrPolar.release());
         return true;
@@ -213,7 +213,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     for(label i = 0;i<aoas.size();i++)
     {
         //Create polar
-        auto ptrPolar = polar::New(extrapolation,"lineal",aoas[i],cls[i],cds[i],reMa[i].first(),reMa[i].second());
+        auto ptrPolar = polar::New(extrapolation,"lineal",aoas[i],cls[i],cds[i],reMa[i].first(),reMa[i].second(),isRadian_);
         if(ptrPolar->valid())
         {
             //Increment size by 1
@@ -241,7 +241,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         {
 
             //Create polar
-            auto ptrPolar = polar::New(extrapolation,"lineal",aoaPolar,clPolar,cdPolar,rePolar,maPolar);
+            auto ptrPolar = polar::New(extrapolation,"lineal",aoaPolar,clPolar,cdPolar,rePolar,maPolar,isRadian_);
             if(ptrPolar->valid())
             {
                 //Increment size by 1
