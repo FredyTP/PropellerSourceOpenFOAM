@@ -20,7 +20,7 @@ Foam::bladeElementModel::bladeElementModel
     propellerModel(dict,typeName),
     airfoils_(dict.subDict("airfoils")),
     bladeModel_(airfoils_,dict.subDict("bladeModel")),
-    rotorDiscrete_(dict.subDict("discrete"))
+    rotorDiscrete_(dict.subOrEmptyDict("discrete"))
 {    
     dict.readEntry("nBlades",nBlades_);
 }
