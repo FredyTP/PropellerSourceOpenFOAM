@@ -126,10 +126,9 @@ bool polarAirfoil::readFromPolars(word extrapolation)
 }
 bool polarAirfoil::readFromCSV(word extrapolation)
 {
-    
     csvTable<scalar,word> csvReader(true);
     csvReader.readFile(file_);
-
+    
     if(csvReader.nCol() == 0)
     {
         return false;
@@ -175,10 +174,62 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     List<scalar> aoaPolar;
     List<scalar> clPolar;
     List<scalar> cdPolar;
-    scalar maPolar = ma[0];
-    scalar rePolar = re[0];
+    scalar maPolar = -1;//ma[0];
+    scalar rePolar = -1;//re[0];
 
+    List<List<scalar>> aoas;
+    List<List<scalar>> cls;
+    List<List<scalar>> cds;
+    List<Tuple2<scalar,scalar>> reMa;
+
+    label idx = 0;
+    label maxSize = 0;
     for(label i = 0; i<aoa.size();i++)
+    {   
+        if(ma[i] != maPolar || re[i] != rePolar)
+        {
+            rePolar = re[i];
+            maPolar = ma[i];
+            label mareIdx = reMa.find({rePolar,maPolar});
+            if(mareIdx==-1)
+            {
+                maxSize++;
+                idx=maxSize-1;
+                reMa.append({rePolar,maPolar});
+                aoas.resize(maxSize);
+                cls.resize(maxSize);
+                cds.resize(maxSize);
+            }
+            else
+            {
+                idx=mareIdx;
+            }
+        }
+        aoas[idx].append(aoa[i]);
+        cls[idx].append(cl[i]);
+        cds[idx].append(cd[i]);
+    }
+
+    for(label i = 0;i<aoas.size();i++)
+    {
+        //Create polar
+        auto ptrPolar = polar::New(extrapolation,"lineal",aoas[i],cls[i],cds[i],reMa[i].first(),reMa[i].second());
+        if(ptrPolar->valid())
+        {
+            //Increment size by 1
+            polars_.resize(polars_.size()+1);
+            polars_[polars_.size()-1].reset(ptrPolar.release());
+
+        }
+        else
+        {
+            Info<<"PolarAirfoil: "<<this->name_
+            <<" in Polar (Re = "<<rePolar<<", Ma = "<<maPolar
+            <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
+        }
+    }
+
+    /*for(label i = 0; i<aoa.size();i++)
     {
         if(i == aoa.size()-1)
         {
@@ -215,7 +266,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         aoaPolar.append(aoa[i]);
         clPolar.append(cl[i]);
         cdPolar.append(cd[i]);
-    }
+    }*/
 
     if(polars_.size()>0)
     {
