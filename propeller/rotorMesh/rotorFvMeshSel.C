@@ -122,6 +122,9 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
         this->findRotorNormal(rotorGeometry); //ROTOR NORMAL ALWAYS UPDATES ROTOR GEOMETRY NORMAL
         this->findRotorRadius();
 
+        //Update to closest center if it's asked to (revisar esto)
+        this->tryUpdateCenter();
+ 
         //For mesh selection, the used radius is the maximum
         //(It is supposed that when a selection is used, a smooth circular disk is provided)
         meshGeometry_.setRadius(maxRadius());
@@ -170,7 +173,9 @@ bool rotorFvMeshSel::read(const dictionary &dict)
 
     case selectionMode::smCellZone :
         ok &= dict.readEntry("cellZone",cellsName_);
+        findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
         indent(Info)<< "- Selection mode: cellZone(" << cellsName_<<")"<<endl;
+        indent(Info)<<"- FindClosestCenter: "<< findClosestCenter_<<endl;
 
         //If rotorFvMeshSel is from cellset geometry may not be provided
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
@@ -181,7 +186,9 @@ bool rotorFvMeshSel::read(const dictionary &dict)
     case selectionMode::smCellSet :
 
         ok &= dict.readEntry("cellSet",cellsName_);
+        findClosestCenter_ = dict.getOrDefault<bool>("closestCenter",false);
         indent(Info)<< "- Selection mode: cellSet(" << cellsName_<<")"<<endl;
+        indent(Info)<<"- FindClosestCenter: "<< findClosestCenter_<<endl;
 
         //If rotorFvMeshSel is from cellset geometry may not be provided
         correctGeometry_ = dict.getOrDefault<bool>("correctGeometry",false);
@@ -234,6 +241,15 @@ void rotorFvMeshSel::tryUpdateCenter()
         else
         {
             reduce(newCenter,sumOp<vector>());
+            vector n = meshGeometry_.direction();
+            scalar d = -n.inner(oldCenter);
+            scalar dist = newCenter.inner(n)+d;
+
+            vector v0 = newCenter-oldCenter;
+            scalar dir = v0.inner(n);
+            if(dir<0) dist*=-1;
+
+            newCenter = oldCenter + n*dist;
             meshGeometry_.setCenter(newCenter);
         }
         
