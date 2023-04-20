@@ -61,6 +61,8 @@ protected:
     volVectorField force;
 
     regIOpropellerResult propResult_;
+
+    scalar kDot_=0;
     
 public:
     //Defines the runtime name of this class
@@ -99,6 +101,13 @@ public:
         virtual void addSup
         (
             fvMatrix<vector>& eqn,
+            const label fieldi
+        );
+
+        //- Add explicit contribution to scalar equations <- "i guess"
+        virtual void addSup
+        (
+            fvMatrix<scalar>& eqn,
             const label fieldi
         );
 

@@ -64,9 +64,11 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         //Read fields names to apply the source, if not present
         //source won't be apllied
         coeffs_.readEntry("fields", fieldNames_);
+        Info<<"Applying to fields: "<<fieldNames_<<endl;
         fv::option::resetApplied();
         /*-----------------------------------------*/
 
+        kDot_ = coeffs_.getOrDefault("kDot",0);
 
         /*----------READ USER SPECIFIED ROTOR GEOMETRY---------------*/
         //- Read geometry data, SET TO EMPTY VALUE IF NOT PRESENT
@@ -136,7 +138,34 @@ void Foam::fv::propellerSource::writeData(Ostream &os) const
 {
     os<<"TESTING AUTO OUTPUT"<<endl;
 }
+void Foam::fv::propellerSource::addSup
+(
+    fvMatrix<scalar>& eqn,
+    const label fieldi
+)
+{
+    Info<<"ScalarFieldi: "<<fieldi<<endl;
+    Info<< name() << ": applying source to " << eqn.psi().name() << endl;
+    volScalarField k
+        (
+            IOobject
+            (
+                fv::option::name_ + ":rotorForce",
+                mesh_.time().timeName(),
+                mesh_,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh_,
+            dimensionedScalar(dimArea/pow(dimTime,3), Zero)
+        );
+    forAll(propellerModel_->rDiscrete().rotorCells(),i)
+    {
+        k[propellerModel_->rDiscrete().rotorCells()[i].celli()]=kDot_;
+    }
+    eqn+=k;
 
+}
 void Foam::fv::propellerSource::addSup
 (
     fvMatrix<vector>& eqn,
@@ -145,6 +174,8 @@ void Foam::fv::propellerSource::addSup
 {
     //Create force vector field from mesh and set dimensions
 
+    Info<<"VectorFieldi: "<<fieldi<<endl;
+    Info<< name() << ": applying source to " << eqn.psi().name() << endl;
 
     const volVectorField& Uin(eqn.psi());
 

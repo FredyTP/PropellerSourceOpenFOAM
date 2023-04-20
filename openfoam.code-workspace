@@ -251,7 +251,12 @@
 			"regIOobjectWrite.C": "cpp",
 			"interpolationTableNew.C": "cpp",
 			"Ostream.C": "cpp",
-			"SortableListDRGEP.C": "cpp"
+			"SortableListDRGEP.C": "cpp",
+			"constrainPressure.C": "cpp",
+			"jouleHeatingSource.C": "cpp",
+			"jouleHeatingSourceTemplates.C": "cpp",
+			"atmAmbientTurbSource.C": "cpp",
+			"dimensionSets.C": "cpp"
 		}
 	}
 }
