@@ -7,6 +7,7 @@
 #include "delaunayTriangulation.H"
 #include <fstream>
 #include "rotorTriCell.H"
+#include "syncTools.H"
 
 namespace Foam
 {
@@ -66,6 +67,139 @@ void rotorDiscrete::writeArea(word propName, const fvMesh &mesh) const
     }
 
     areainfo.write();
+}
+void rotorDiscrete::createMeshOld(const rotorFvMeshSel& rotorFvMeshSel)
+{
+    vector axis = rotorGeometry_.direction();
+
+    const auto& mesh_ = rotorFvMeshSel.mesh(); 
+    const auto& cells_ = rotorFvMeshSel.cells();
+    scalarField area_(cells_.size(),1.0);
+
+    static const scalar tol = 0.8;
+
+    const label nInternalFaces = mesh_.nInternalFaces();
+    const polyBoundaryMesh& pbm = mesh_.boundaryMesh();
+    const vectorField& Sf = mesh_.Sf();
+    const scalarField& magSf = mesh_.magSf();
+
+    vector n = Zero;
+
+    // Calculate cell addressing for selected cells
+    labelList cellAddr(mesh_.nCells(), -1);
+    labelUIndList(cellAddr, cells_) = identity(cells_.size());
+    labelList nbrFaceCellAddr(mesh_.nBoundaryFaces(), -1);
+    forAll(pbm, patchi)
+    {
+        const polyPatch& pp = pbm[patchi];
+
+        if (pp.coupled())
+        {
+            forAll(pp, i)
+            {
+                label facei = pp.start() + i;
+                label nbrFacei = facei - nInternalFaces;
+                label own = mesh_.faceOwner()[facei];
+                nbrFaceCellAddr[nbrFacei] = cellAddr[own];
+            }
+        }
+    }
+
+    // Correct for parallel running
+    syncTools::swapBoundaryFaceList(mesh_, nbrFaceCellAddr);
+
+    //Only computes de area of the cellSet boundary which has the same normal than rotor normal, because only takes
+    //Into account the face that have no owner or no neighbour in the selection
+
+    // Add internal field contributions
+    for (label facei = 0; facei < nInternalFaces; facei++)
+    {
+        const label own = cellAddr[mesh_.faceOwner()[facei]];
+        const label nbr = cellAddr[mesh_.faceNeighbour()[facei]];
+
+        if ((own != -1) && (nbr == -1))
+        {
+            vector nf = Sf[facei]/magSf[facei];
+
+            if ((nf & axis) > tol)
+            {
+                area_[own] += magSf[facei];
+                n += Sf[facei];
+            }
+        }
+        else if ((own == -1) && (nbr != -1))
+        {
+            vector nf = Sf[facei]/magSf[facei];
+
+            if ((-nf & axis) > tol)
+            {
+                area_[nbr] += magSf[facei];
+                n -= Sf[facei];
+            }
+        }
+    }
+
+
+    // Add boundary contributions
+    /*forAll(pbm, patchi)
+    {
+        const polyPatch& pp = pbm[patchi];
+        const vectorField& Sfp = mesh_.Sf().boundaryField()[patchi];
+        const scalarField& magSfp = mesh_.magSf().boundaryField()[patchi];
+
+        if (pp.coupled())
+        {
+            forAll(pp, j)
+            {
+                const label facei = pp.start() + j;
+                const label own = cellAddr[mesh_.faceOwner()[facei]];
+                const label nbr = nbrFaceCellAddr[facei - nInternalFaces];
+                const vector nf = Sfp[j]/magSfp[j];
+
+                if ((own != -1) && (nbr == -1) && ((nf & axis) > tol))
+                {
+                    area_[own] += magSfp[j];
+                    n += Sfp[j];
+                }
+            }
+        }
+        else
+        {
+            forAll(pp, j)
+            {
+                const label facei = pp.start() + j;
+                const label own = cellAddr[mesh_.faceOwner()[facei]];
+                const vector nf = Sfp[j]/magSfp[j];
+
+                if ((own != -1) && ((nf & axis) > tol))
+                {
+                    area_[own] += magSfp[j];
+                    n += Sfp[j];
+                }
+            }
+        }
+    }*/
+
+    volScalarField areaIO
+    (
+        IOobject
+        (
+            "oldArea",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar(dimArea, Zero)
+    );
+    UIndirectList<scalar>(areaIO.primitiveField(), cells_) = area_;
+
+    Info<< " writing field " << areaIO.name()
+        << endl;
+
+    areaIO.write();
+    
 }
 tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
 {
@@ -512,6 +646,7 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
     const scalar sqrRadius = radius * radius;
     const scalar idealArea = constant::mathematical::pi * sqrRadius;
 
+    this->createMeshOld(rotorFvMeshSel);
     //
     // List ref.
     const vectorField &cellCenter = rotorFvMeshSel.mesh().C();

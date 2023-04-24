@@ -31,6 +31,8 @@ protected:
     extrapolationMode exMode = extrapolationMode::emConstant;
 public:
 
+    typedef interpolationTable<typeIn,typeOu,dim> baseTable;
+
     void setExtrapolationMode(extrapolationMode mode) {exMode = mode;}
 
     
@@ -72,10 +74,30 @@ public:
     //static autoPtr<interpolationTable> New();
     static autoPtr<interpolationTable> NewFromRaw(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
 
+    /**
+     * @brief Checks if the input list grown monotonically
+     * 
+     * @tparam type 
+     * @param checkList 
+     * @return true 
+     * @return false 
+     */
     
     
 };
 
+template<class type>
+    static bool isMonotonic(const List<type>& checkList)
+    {
+        for(label i=0;i<checkList.size()-1;i++)
+        {
+            if(checkList[i]>checkList[i+1])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
 
 }

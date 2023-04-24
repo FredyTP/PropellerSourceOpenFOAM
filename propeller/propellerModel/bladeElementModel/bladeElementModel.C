@@ -19,10 +19,11 @@ Foam::bladeElementModel::bladeElementModel
 ) : 
     propellerModel(dict,typeName),
     airfoils_(dict.subDict("airfoils")),
-    bladeModel_(airfoils_,dict.subDict("bladeModel")),
+    bladeModel_(airfoils_,dict.subDict("bladeTest")),
     rotorDiscrete_(dict.subOrEmptyDict("discrete"))
 {    
     dict.readEntry("nBlades",nBlades_);
+    tipFactor_ = dict.getOrDefault<scalar>("tipFactor",1);
 }
 
 Foam::scalar Foam::bladeElementModel::radius() const
@@ -65,14 +66,15 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         }
         //Get local radius
         scalar radius = cylPoints[i].x();
-        auto bladeSec = bladeModel_.sectionAtRadius(radius);
-        scalar chord = bladeSec.chord();
+        scalar chord,twist,sweep;
+        interpolatedAirfoil airfoil;
+        bladeModel_.sectionAtRadius(radius,chord,twist,sweep,airfoil);
 
         if(chord == 0)
         {
             continue;
         }
-        scalar twist = bladeSec.twist();
+        
         
         scalar average_fact = nBlades_ / (2 * pi * radius);
                 
@@ -110,8 +112,14 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         scalar c = 345;
         scalar mach = relativeSpeed/c;
 
-        scalar cl = bladeSec.cl(AoA,re,mach);
-        scalar cd = bladeSec.cd(AoA,re,mach);
+        scalar cl = airfoil.cl(AoA,re,mach);
+        scalar cd = airfoil.cd(AoA,re,mach);
+
+        //Add tip factor effect:
+        if(radius/rotorDiscrete_.geometry().radius()>=tipFactor_)
+        {
+            cl=0.0;
+        }
        
         //Calculate aerodinamic forces
         scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed;

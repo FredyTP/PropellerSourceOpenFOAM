@@ -27,6 +27,7 @@ public:
     {
         dmeVoronoid,
         dmeIntersection,
+        dmeOld
     };
     static const Enum<discreteMethod> discreteMethodNames_;
 
@@ -131,6 +132,11 @@ TypeName("rotorDiscrete");
         void writeArea(word propName,const fvMesh& mesh) const ;
 
 private:
+
+        void createMeshOld
+        (
+            const rotorFvMeshSel& rotorFvMeshSel
+        );
         /**
          * @brief Create a Mesh Voronoid object, 
          * needs to gather all points from all the cores

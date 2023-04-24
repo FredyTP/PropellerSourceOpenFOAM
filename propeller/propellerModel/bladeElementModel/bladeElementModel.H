@@ -2,7 +2,7 @@
 #define PROPELLER_PROPELLER_MODEL_BLADE_ELEMENT_MODEL_BLADE_ELEMENT_MODEL
 #include "propellerModel.H"
 #include "airfoilModelList.H"
-#include "bladeModelDev.H"
+#include "bladeModelS.H"
 #include "rotorDiscrete.H"
 #include "velocitySampler.H"
 namespace Foam
@@ -15,10 +15,11 @@ class bladeElementModel
 protected:
 
     airfoilModelList airfoils_;
-    Foam::devel::bladeModel bladeModel_;
+    bladeModelS bladeModel_;
     rotorDiscrete rotorDiscrete_;
 
     scalar nBlades_; 
+    scalar tipFactor_;
     word integrationOrder;
     bool correctCenters;
     label refinementLevel;

@@ -78,6 +78,9 @@ public:
         }
         return os;
     }
+
+    const FixedList<List<typeIn>,dim>& getInputs() const { return inputs; }
+    const List<typeOu>& getOutputs() const { return outputs;}
 protected:
 
     //Inputs of the N-dimensional cube iterated in specified order

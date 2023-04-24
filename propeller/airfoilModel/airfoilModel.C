@@ -10,8 +10,12 @@ namespace Foam
     defineRunTimeSelectionTable(airfoilModel, dictionary);   
 
 }
+Foam::airfoilModel::airfoilModel()
+{
+    
+}
 Foam::airfoilModel::airfoilModel(const word name)
-: name_(name)
+    : name_(name)
 {
 
 }

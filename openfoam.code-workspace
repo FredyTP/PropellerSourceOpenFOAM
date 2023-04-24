@@ -256,7 +256,14 @@
 			"jouleHeatingSource.C": "cpp",
 			"jouleHeatingSourceTemplates.C": "cpp",
 			"atmAmbientTurbSource.C": "cpp",
-			"dimensionSets.C": "cpp"
+			"dimensionSets.C": "cpp",
+			"seriesProfile.C": "cpp",
+			"faPatch.C": "cpp",
+			"syncToolsTemplates.C": "cpp",
+			"bladeModelDev copy.C": "cpp",
+			"bladeModelS.C": "cpp",
+			"interpolatedAirfoil.C": "cpp",
+			"turbulentTransportModel.C": "cpp"
 		}
 	}
 }

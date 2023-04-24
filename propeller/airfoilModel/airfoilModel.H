@@ -4,7 +4,7 @@
 #include "dictionary.H"
 #include "scalar.H"
 #include "autoPtr.H"
-
+#include "interpolated.H"
 namespace Foam
 {
 
@@ -26,6 +26,7 @@ public:
             (name, dict)
         );
 
+    airfoilModel();
     airfoilModel(const word name);
     
     virtual ~airfoilModel() = default;
@@ -43,6 +44,8 @@ protected:
     const word name_;
 
 };
+
+
 
 }
 

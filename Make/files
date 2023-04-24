@@ -8,12 +8,14 @@ propeller/propellerModel/froudeModel/froudeModel.C
 propeller/propellerModel/bladeElementModel/bladeElementModel.C
 propeller/airfoilModel/airfoilModel.C
 propeller/airfoilModel/simpleAirfoil/simpleAirfoil.C
+propeller/airfoilModel/interpolatedAirfoil/interpolatedAirfoil.C
 propeller/airfoilModel/cylinderAirfoil/cylinderAirfoil.C
 propeller/airfoilModel/polarAirfoil/polar/polar.C
 propeller/airfoilModel/polarAirfoil/polar/viterna.C
 propeller/airfoilModel/polarAirfoil/polarAirfoil.C
 propeller/airfoilModel/airfoilModelList.C
 propeller/bladeModel/bladeModelDev.C
+propeller/bladeModel/bladeModelS.C
 propeller/rotorMesh/rotorFvMeshSel.C
 propeller/rotorDynamics/rotorDynamics.C
 propeller/rotorDynamics/fixedPower.C

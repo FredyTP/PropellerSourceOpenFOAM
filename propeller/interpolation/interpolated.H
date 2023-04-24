@@ -23,7 +23,7 @@ public:
     List<typeOu>& points(){return nodes;}
 
     typeRet value(std::function<typeRet(typeIn,typeOu)> aggregate=
-    [](typeIn a, typeOu b){return a*b;})
+    [](typeIn a, typeOu b){return a*b;}) const
     {
         typeRet acc = 0;
         for(label i = 0; i<coeff.size();i++)
