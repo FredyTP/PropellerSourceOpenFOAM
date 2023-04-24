@@ -1,7 +1,7 @@
 #include "bladeElementModel.H"
 #include "bladeSection.H"
 #include "addToRunTimeSelectionTable.H"
-
+#include "rotorGrid.H"
 
 namespace Foam
 {
@@ -38,7 +38,150 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
     bladeModel_.setMaxRadius(rotorGeometry.radius());
 }
 
+Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,scalar angularVelocity, volVectorField& force)
+{
+    propellerResult result;
+    //Puntos de la discretizacion
+    const List<vector>& cylPoints = rotorDiscrete_.cylPoints();
+    //Tensor de cada punto local to global
+    const List<tensor>& bladeCS = rotorDiscrete_.localBladeCS();
 
+    
+
+    const PtrList<gridCell>& cells = rotorDiscrete_.grid.cells();
+
+
+    //Velocidad angular
+    const scalar pi = Foam::constant::mathematical::pi;
+    const scalar omega = angularVelocity;
+    
+    scalar aoaMax = -VGREAT;
+    scalar aoaMin = VGREAT;
+
+    List<vector> pressOnPoints(cells.size(),vector(0,0,0));
+    scalar forcetot = 0.0;
+    scalar momenttot = 0.0;
+    //---CALCULATE VALUE ON INTEGRATION POINTS---//
+    forAll(cells, i)
+    {
+        //Get local radius
+        scalar radius = cells[i].radius();
+        scalar chord,twist,sweep;
+        interpolatedAirfoil airfoil;
+        bladeModel_.sectionAtRadius(radius,chord,twist,sweep,airfoil);
+
+        if(chord == 0)
+        {
+            continue;
+        }
+        
+        
+        scalar average_fact = nBlades_ * cells[i].dt() / (2 * pi);
+                
+        //Local rotation tensor
+        tensor bladeTensor = rotorDiscrete_.bladeLocalFromPoint(cells[i].center());
+
+        //Global coordinate vector
+        vector airVel = U[0];
+        vector localAirVel = invTransform(bladeTensor,airVel);
+        
+        //Get blade velocity
+        vector relativeBladeVel(omega*radius,0,0);
+
+        //Get relative air velocity
+        vector relativeVel = localAirVel + relativeBladeVel;
+
+        //y component is radial, thus "doesn't contribute to aerodinamic forces"
+        relativeVel.y()=0;
+        scalar relativeSpeed = mag(relativeVel);
+
+        //Airspeed angle (positive when speed is from "below" airfoil)
+        scalar phi = atan2(-relativeVel.z(),relativeVel.x());
+        //Info<<"Phi: "<<phi<<endl;
+
+        //Angle of atack
+        scalar AoA = twist - phi;
+
+        if(AoA < aoaMin) aoaMin = AoA;
+        if(AoA > aoaMax) aoaMax = AoA;
+
+
+        scalar rho = this->refRho;
+        scalar nu = 1e-5;
+        scalar re = rho*relativeSpeed*chord/nu;
+        scalar c = 345;
+        scalar mach = relativeSpeed/c;
+
+        scalar cl = airfoil.cl(AoA,re,mach);
+        scalar cd = airfoil.cd(AoA,re,mach);
+
+        //Add tip factor effect:
+        if(radius/rotorDiscrete_.geometry().radius()>=tipFactor_)
+        {
+            cl=0.0;
+        }
+       
+        //Calculate aerodinamic forces
+        scalar lift = average_fact * 0.5 * rho * cl * chord * relativeSpeed * relativeSpeed * cells[i].dr();
+        scalar drag = average_fact * 0.5 * rho * cd * chord * relativeSpeed * relativeSpeed * cells[i].dr();
+
+        //Open foam code is not decomposing Lift and drag
+        //from wind axis to blade axis
+        //Project over normal components
+        vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
+        vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
+        
+        forcetot += normalForce.z();
+        momenttot += tangentialForce.x()*radius;
+        pressOnPoints[i] = normalForce + tangentialForce;
+        //Back to global ref frame
+        pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);        
+    }
+
+
+    Info<<"Force: "<<forcetot<<endl;
+    Info<<"Moment: "<<momenttot<<endl;
+
+    reduce(aoaMax,maxOp<scalar>());
+    reduce(aoaMin,minOp<scalar>());
+
+    Info<< "- Max AoA: "<<aoaMax * 180/pi <<"º"<<endl;
+    Info<< "- Min AoA: "<<aoaMin * 180/pi <<"º"<<endl;
+
+    const PtrList<rotorCell>& rotorCells = rotorDiscrete_.rotorCells();
+    const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
+
+    //-----INTEGRATE PRESSURE FIELD------//
+    forAll(rotorCells,i)
+    {
+        const auto & rCell = rotorCells[i];
+        vector bladeForce = rCell.integrateField(pressOnPoints);
+        label celli = rCell.celli();
+        force[celli] = - bladeForce/cellVol[celli];
+
+        result.force += bladeForce;
+        result.torque += bladeForce ^(cylPoints[rCell.center()].x() * bladeCS[rCell.center()].col<1>()) ;        
+    }
+
+    //To rotor local coordinates
+    result.force = rotorDiscrete_.cartesian().localVector(result.force);
+    result.torque = rotorDiscrete_.cartesian().localVector(result.torque);
+
+    reduce(result.force,sumOp<vector>());
+    reduce(result.torque,sumOp<vector>());
+
+    result.power = result.torque.z() * omega;
+
+    result.updateEta(this->refV);
+    //Use J definition Vref/(rps * D)
+    result.updateJ(this->refV,omega,rotorDiscrete_.geometry().radius());
+    result.updateCT(this->refRho,omega,rotorDiscrete_.geometry().radius());
+    result.updateCP(this->refRho,omega,rotorDiscrete_.geometry().radius());
+
+    return result;
+
+}
+/*
 Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,scalar angularVelocity, volVectorField& force)
 {
     propellerResult result;
@@ -174,4 +317,4 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
     return result;
 
-}
+}*/

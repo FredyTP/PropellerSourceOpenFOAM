@@ -263,7 +263,11 @@
 			"bladeModelDev copy.C": "cpp",
 			"bladeModelS.C": "cpp",
 			"interpolatedAirfoil.C": "cpp",
-			"turbulentTransportModel.C": "cpp"
+			"turbulentTransportModel.C": "cpp",
+			"rotorGrid.C": "cpp",
+			"fvcSup.C": "cpp",
+			"gridCell.C": "cpp",
+			"BitOps.C": "cpp"
 		}
 	}
 }
