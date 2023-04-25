@@ -714,7 +714,7 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
     this->writePythonPlotter();
 
     scalar maxRadius = geometry().radius();
-    grid = rotorGrid(6,4,0.1*maxRadius,maxRadius);
+    grid = rotorGrid(16,16,0.02*maxRadius,maxRadius);
 
     forAll(rotorCells_,i)
     {

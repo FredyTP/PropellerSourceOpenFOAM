@@ -18,12 +18,12 @@ public:
     //rotorGrid(List<scalar>& radius, List<scalar> theta);
 
     void build();
-    
+
     const PtrList<gridCell>& cells() const { return cells_;}
     gridCell& cell(label i, label j) { return cells_[index(i,j,0)];}
     const List<scalar>& radius() const {return radius_;}
     const List<scalar>& theta() const {return theta_;}
-
+    const List<vector>& centers() const {return centers_;}
 private:
 
     scalar minRadius_;
@@ -34,6 +34,7 @@ private:
 
     //Acces with ijkAdressing
     PtrList<gridCell> cells_;
+    List<vector> centers_;
     
 
     void buildGrid();

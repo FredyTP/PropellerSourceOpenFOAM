@@ -58,6 +58,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     scalar aoaMax = -VGREAT;
     scalar aoaMin = VGREAT;
 
+    const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
     List<vector> pressOnPoints(cells.size(),vector(0,0,0));
     scalar forcetot = 0.0;
     scalar momenttot = 0.0;
@@ -82,7 +83,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         tensor bladeTensor = rotorDiscrete_.bladeLocalFromPoint(cells[i].center());
 
         //Global coordinate vector
-        vector airVel = U[0];
+        vector airVel = U[i];
         vector localAirVel = invTransform(bladeTensor,airVel);
         
         //Get blade velocity
@@ -131,41 +132,25 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         vector normalForce(0,0,lift * cos(phi) - drag * sin(phi));
         vector tangentialForce(lift*sin(phi) + drag * cos(phi),0,0);
         
-        forcetot += normalForce.z();
-        momenttot += tangentialForce.x()*radius;
         pressOnPoints[i] = normalForce + tangentialForce;
         //Back to global ref frame
-        pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);        
+        pressOnPoints[i] = transform(bladeTensor,pressOnPoints[i]);       
+        result.force += normalForce;
+        result.torque += vector(0,0,tangentialForce.x()*radius);    
+
+        const List<label>& cellis = cells[i].cellis();
+        const List<scalar>& we = cells[i].weights();
+
+        forAll(cellis,k)
+        {
+            force[cellis[k]] = - we[k]*pressOnPoints[i]/cellVol[cellis[k]];
+        }
+
     }
 
-
-    Info<<"Force: "<<forcetot<<endl;
-    Info<<"Moment: "<<momenttot<<endl;
 
     reduce(aoaMax,maxOp<scalar>());
     reduce(aoaMin,minOp<scalar>());
-
-    Info<< "- Max AoA: "<<aoaMax * 180/pi <<"º"<<endl;
-    Info<< "- Min AoA: "<<aoaMin * 180/pi <<"º"<<endl;
-
-    const PtrList<rotorCell>& rotorCells = rotorDiscrete_.rotorCells();
-    const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
-
-    //-----INTEGRATE PRESSURE FIELD------//
-    forAll(rotorCells,i)
-    {
-        const auto & rCell = rotorCells[i];
-        vector bladeForce = rCell.integrateField(pressOnPoints);
-        label celli = rCell.celli();
-        force[celli] = - bladeForce/cellVol[celli];
-
-        result.force += bladeForce;
-        result.torque += bladeForce ^(cylPoints[rCell.center()].x() * bladeCS[rCell.center()].col<1>()) ;        
-    }
-
-    //To rotor local coordinates
-    result.force = rotorDiscrete_.cartesian().localVector(result.force);
-    result.torque = rotorDiscrete_.cartesian().localVector(result.torque);
 
     reduce(result.force,sumOp<vector>());
     reduce(result.torque,sumOp<vector>());
@@ -177,6 +162,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     result.updateJ(this->refV,omega,rotorDiscrete_.geometry().radius());
     result.updateCT(this->refRho,omega,rotorDiscrete_.geometry().radius());
     result.updateCP(this->refRho,omega,rotorDiscrete_.geometry().radius());
+    Info<< "- Max AoA: "<<aoaMax * 180/pi <<"º"<<endl;
+    Info<< "- Min AoA: "<<aoaMin * 180/pi <<"º"<<endl;
 
     return result;
 

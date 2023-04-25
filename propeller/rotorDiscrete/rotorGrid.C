@@ -26,9 +26,11 @@ rotorGrid::rotorGrid(label nRadius, label nTheta, scalar minRadius, scalar maxRa
 
 void rotorGrid::build()
 {
+    centers_.resize(cells_.size());
     forAll(cells_,i)
     {
         cells_[i].build();
+        centers_[i]=cells_[i].center();
     }
 }
 

@@ -66,14 +66,16 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
     }
     else
     {
+        Info<<"Interpolating vel field..."<<endl;
         interpolationCellPoint<vector> interp(U);
         forAll(this->sampledVel,i)
         {
-            if(rDiscrete->integrationPoints()[i])
+            if(true)//rDiscrete->integrationPoints()[i])
             {
                 this->sampledVel[i]=interp.interpolate(*(cellWeights[i].get()));
             }          
-        }        
+        }
+        Info<<"Okey"<<endl;        
     }
 
     return this->sampledVel;
@@ -87,7 +89,7 @@ bool offsetSampler::build()
     {
         return true;
     }
-    const List<point>& cylPoints = rDiscrete->cylPoints();
+    const List<point>& cylPoints = rDiscrete->grid.centers();
     cellToSample.resize(cylPoints.size());
     if(!atCellCenter)
     {
@@ -99,10 +101,10 @@ bool offsetSampler::build()
     forAll(cylPoints, i)
     {
         //Just get on the integration points
-        if(!rDiscrete->integrationPoints()[i])
+        /*if(!rDiscrete->integrationPoints()[i])
         {
             continue;
-        }
+        }*/
         //Get global coordinates
         point rPoint = rDiscrete->cylindrical().globalPosition(cylPoints[i]);
 
