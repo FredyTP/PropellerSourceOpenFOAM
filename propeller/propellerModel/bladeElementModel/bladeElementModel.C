@@ -47,10 +47,91 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     const List<vector>& cylPoints = rotorDiscrete_.cylPoints();
     //Tensor de cada punto local to global
     const List<tensor>& bladeCS = rotorDiscrete_.localBladeCS();
-
-    
-
     const PtrList<gridCell>& cells = rotorDiscrete_.grid.cells();
+
+
+    volScalarField radialGrid
+    (
+        IOobject
+        (
+            "radialGrid",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+    volScalarField azimutalGrid
+    (
+        IOobject
+        (
+            "azimutalGrid",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+
+    volScalarField aoaField
+    (
+        IOobject
+        (
+            "aoa",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+
+    volScalarField areaFactor
+    (
+        IOobject
+        (
+            "areaFactor",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+
+    volVectorField interpolatedVel
+    (
+        IOobject
+        (
+            "interpolatedU",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedVector(dimless, Zero)
+    );
+
+    volVectorField computedForce
+    (
+        IOobject
+        (
+            "calcForce",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedVector(dimless, Zero)
+    );
 
 
     //Velocidad angular
@@ -146,6 +227,30 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         forAll(cellis,k)
         {
             force[cellis[k]] = - we[k]*pressOnPoints[i]/cellVol[cellis[k]];
+
+            if(mag(force[cellis[k]])>8000)
+            {
+                Warning<<"Force too strong"<<endl;
+                Info<<"Radius: "<<radius<<endl;
+                Info<<"ZoneForce: "<<pressOnPoints[i]<<endl;
+                Info<<"Cell vol: "<<cellVol[cellis[k]]<<endl;
+                Info<<"C: "<<chord<<endl;
+                Info<<"RelSpeed: "<<relativeSpeed<<endl;
+                Info<<"CL: "<<cl<<endl;
+                Info<<"CD: "<<cd<<endl;
+                Info<<"Re: "<<re<<endl;
+                Info<<"AoA: "<<AoA<<endl;
+                Info<<"U: "<<airVel<<endl;
+                Info<<"Dr: "<<cells[i].dr()<<endl;
+                Info<<"Dt: "<<cells[i].dt()<<endl;
+
+            }
+            azimutalGrid[cellis[k]]=rotorDiscrete_.grid.index(i)[1];
+            radialGrid[cellis[k]]=rotorDiscrete_.grid.index(i)[0];
+            aoaField[cellis[k]]=AoA;
+            areaFactor[cellis[k]]=we[k];
+            interpolatedVel[cellis[k]]=airVel;
+            computedForce[cellis[k]]=pressOnPoints[i];
         }
 
     }
@@ -167,6 +272,15 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     Info<< "- Max AoA: "<<aoaMax * 180/pi <<"º"<<endl;
     Info<< "- Min AoA: "<<aoaMin * 180/pi <<"º"<<endl;
 
+    if(rotorFvMeshSel_->mesh().time().writeTime())
+    {
+        azimutalGrid.write();
+        radialGrid.write();
+        aoaField.write();
+        areaFactor.write();
+        interpolatedVel.write();
+        computedForce.write();
+    }
     return result;
 
 }

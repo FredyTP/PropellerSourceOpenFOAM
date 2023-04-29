@@ -58,10 +58,10 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
     {
         forAll(this->sampledVel,i)
         {
-            if(rDiscrete->integrationPoints()[i])
-            {
+            //if(rDiscrete->integrationPoints()[i])
+            //{
                 this->sampledVel[i]=U.primitiveField()[cellToSample[i]];
-            }
+            //}
         }     
     }
     else
