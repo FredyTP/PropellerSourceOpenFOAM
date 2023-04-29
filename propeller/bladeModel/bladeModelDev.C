@@ -16,6 +16,7 @@ Foam::devel::bladeModel::bladeModel
     List<scalar> radius;
 
     Info<<endl;
+    
     adimensional_ = dict.getOrDefault<bool>("adimensionalRadius",false);
     fName_=dict.getOrDefault<fileName>("file","");
     if(!fName_.empty())
