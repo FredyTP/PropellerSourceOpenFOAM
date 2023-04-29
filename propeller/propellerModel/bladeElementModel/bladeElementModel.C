@@ -56,6 +56,89 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
     List<vector> pressOnPoints(cylPoints.size(),vector(0,0,0));
 
+        volScalarField radialGrid
+    (
+        IOobject
+        (
+            "radialGrid",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+    volScalarField azimutalGrid
+    (
+        IOobject
+        (
+            "azimutalGrid",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+
+    volScalarField aoaField
+    (
+        IOobject
+        (
+            "aoa",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+
+    volScalarField areaFactor
+    (
+        IOobject
+        (
+            "areaFactor",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, -1)
+    );
+
+    volVectorField interpolatedVel
+    (
+        IOobject
+        (
+            "interpolatedU",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedVector(dimless, Zero)
+    );
+
+    volVectorField computedForce
+    (
+        IOobject
+        (
+            "calcForce",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedVector(dimless, Zero)
+    );
+
     //---CALCULATE VALUE ON INTEGRATION POINTS---//
     forAll(cylPoints, i)
     {
@@ -157,6 +240,17 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         result.torque += bladeForce ^(cylPoints[rCell.center()].x() * bladeCS[rCell.center()].col<1>()) ;        
     }
 
+    if(rotorFvMeshSel_->mesh().time().writeTime())
+    {
+        azimutalGrid.write();
+        radialGrid.write();
+        aoaField.write();
+        areaFactor.write();
+        interpolatedVel.write();
+        computedForce.write();
+    }
+    
+    
     //To rotor local coordinates
     result.force = rotorDiscrete_.cartesian().localVector(result.force);
     result.torque = rotorDiscrete_.cartesian().localVector(result.torque);
