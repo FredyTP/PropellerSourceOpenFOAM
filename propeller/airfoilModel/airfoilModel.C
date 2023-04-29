@@ -1,5 +1,7 @@
 #include "airfoilModel.H"
 #include "runTimeSelectionTables.H"
+#include "csvTable.H"
+#include "OFstream.H"
 
 namespace Foam
 {
@@ -47,4 +49,25 @@ Foam::autoPtr<Foam::airfoilModel> Foam::airfoilModel::New
     }
 
     return autoPtr<Foam::airfoilModel>(ctorPtr(name, dict));
+}
+
+void Foam::airfoilModel::writeAirfoil(fileName path,scalar alfaBegin, scalar alfaEnd, label nAlfa, scalar Reyn, scalar Mach)
+{
+    scalar da = (alfaEnd-alfaBegin)/(nAlfa-1);
+    csvTable<scalar,word> csv(true);
+    List<word> title({"alphaRad","cl","cd"});
+    csv.setHeader(title);
+    for(label i = 0;i < nAlfa;i++)
+    {
+        scalar alfa = alfaBegin + i*da;
+        scalar cl = this->cl(alfa,Reyn,Mach);
+        scalar cd = this->cd(alfa,Reyn,Mach);
+
+        List<scalar> row({alfa,cl,cd});
+        csv.addRow(row);
+    }
+
+    OFstream file(path);
+    file<<csv;
+
 }

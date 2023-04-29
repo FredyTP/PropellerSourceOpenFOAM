@@ -147,10 +147,10 @@ void offsetSampler::writeSampled(const word& name)
 
     forAll(cellToSample,i)
     {
-        if(!rDiscrete->integrationPoints()[i])
+        /*if(!rDiscrete->integrationPoints()[i])
         {
             continue;
-        }
+        }*/
 
         sampled[cellToSample[i]]=1.0;   
 

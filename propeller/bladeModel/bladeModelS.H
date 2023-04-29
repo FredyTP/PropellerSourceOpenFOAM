@@ -43,6 +43,7 @@ protected:
         //- Optional input file
         fileName fName_;
 
+        
 
         void readField(const dictionary& dict,csvTable<scalar,word>& table,linearInterpolation<scalar,scalar,1>& field, bool isAngle = false);
 
@@ -61,6 +62,8 @@ public:
     scalar maxRadius() const;
 
     void setMaxRadius(scalar radius);
+
+    void writeBlade(label np,fileName path);
 
 };
 

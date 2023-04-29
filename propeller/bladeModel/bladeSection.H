@@ -60,27 +60,27 @@ public:
     }
     scalar radius()
     {
-        return this->value([](scalar coeff, bladeSection b){return coeff*b.radius;});
+        return this->value<scalar>([](scalar coeff, bladeSection b){return coeff*b.radius;});
     }
     scalar chord()
     {
-        return this->value([](scalar coeff, bladeSection b){return coeff*b.chord;});
+        return this->value<scalar>([](scalar coeff, bladeSection b){return coeff*b.chord;});
     }
     scalar twist()
     {
-        return this->value([](scalar coeff, bladeSection b){return coeff*b.twistAngle;});
+        return this->value<scalar>([](scalar coeff, bladeSection b){return coeff*b.twistAngle;});
     }
     scalar sweep()
     {
-        return this->value([](scalar coeff, bladeSection b){return coeff*b.sweepAngle;});
+        return this->value<scalar>([](scalar coeff, bladeSection b){return coeff*b.sweepAngle;});
     }
     scalar cl(scalar alpha, scalar reynolds, scalar mach)
     {
-        return this->value([=](scalar coeff, bladeSection b){return coeff*b.airfoil->cl(alpha,reynolds,mach);});
+        return this->value<scalar>([=](scalar coeff, bladeSection b){return coeff*b.airfoil->cl(alpha,reynolds,mach);});
     }
     scalar cd(scalar alpha, scalar reynolds, scalar mach)
     {
-        return this->value([=](scalar coeff, bladeSection b){return coeff*b.airfoil->cd(alpha,reynolds,mach);});
+        return this->value<scalar>([=](scalar coeff, bladeSection b){return coeff*b.airfoil->cd(alpha,reynolds,mach);});
     }
 };
 

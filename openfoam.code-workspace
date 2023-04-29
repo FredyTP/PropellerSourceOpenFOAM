@@ -267,7 +267,11 @@
 			"rotorGrid.C": "cpp",
 			"fvcSup.C": "cpp",
 			"gridCell.C": "cpp",
-			"BitOps.C": "cpp"
+			"BitOps.C": "cpp",
+			"NURBS3DSurface.C": "cpp",
+			"fixedVelocity copy.C": "cpp",
+			"fileVelocity.C": "cpp",
+			"fileSampler.C": "cpp"
 		}
 	}
 }

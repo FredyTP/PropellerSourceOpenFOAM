@@ -21,6 +21,8 @@ public:
     virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const;
 
     virtual label size();
+
+    bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
    
 };
 }

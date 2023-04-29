@@ -38,6 +38,7 @@ public:
 
     static Foam::autoPtr<Foam::airfoilModel> New(const word name, const dictionary& dict);
 
+    void writeAirfoil(fileName path, scalar alfaBegin, scalar alfaEnd, label nAlfa, scalar Reyn, scalar Mach);
     //virtual scalar cm(scalar alfaRad, scalar reynolds, scalar mach);
 protected:
 

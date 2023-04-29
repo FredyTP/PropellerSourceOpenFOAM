@@ -36,6 +36,8 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
     rotorDiscrete_.buildCoordinateSystem(rotorGeometry);
     rotorDiscrete_.fromMesh(*rotorFvMeshSel_);
     bladeModel_.setMaxRadius(rotorGeometry.radius());
+
+    bladeModel_.writeBlade(300,"blade.csv");
 }
 
 Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,scalar angularVelocity, volVectorField& force)
