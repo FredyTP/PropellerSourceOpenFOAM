@@ -727,7 +727,6 @@ void rotorDiscrete::createMeshVoronoid
     reduce(ncellis, sumOp<labelList>());
     label totalCells = sum(ncellis);
 
-
     List<label> coreIdx(ncellis.size());
     label sum = 0;
     forAll(coreIdx, i)

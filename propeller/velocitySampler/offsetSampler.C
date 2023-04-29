@@ -118,6 +118,7 @@ bool offsetSampler::build()
                 << rPoint 
                 <<", is outside computational domain"
                 <<exit(FatalError);
+                
         }
 
         if(!atCellCenter)
