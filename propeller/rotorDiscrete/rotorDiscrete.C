@@ -8,8 +8,6 @@
 #include <fstream>
 #include "rotorTriCell.H"
 #include "syncTools.H"
-#include "rotorGrid.H"
-#include "regularInterpolation.H"
 
 namespace Foam
 {
@@ -712,27 +710,6 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
     Info.stream().decrIndent();
 
     this->writePythonPlotter();
-
-    scalar maxRadius = geometry().radius();
-    grid = rotorGrid(16,16,0.1*maxRadius,maxRadius);
-
-    forAll(rotorCells_,i)
-    {
-        vector p = rotorCells_[i].centerPosition();
-        vector polar = carToCylCS_.localPosition(p);
-        label ir=0;
-        label unused;
-        label it=0;
-        int result = regularInterpolation<scalar,scalar,1>::FindIndex(polar.x(),grid.radius(),ir,unused);
-        regularInterpolation<scalar,scalar,1>::FindIndex(polar.y()+3.1416,grid.theta(),it,unused);
-
-        if(result == 1)
-        {
-            grid.cell(ir,it).addCelli(rotorCells_[i].celli(),rotorCells_[i].area());
-        }
-    }
-
-    grid.build();
 }
 
 
