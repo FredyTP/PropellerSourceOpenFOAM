@@ -9,6 +9,8 @@
 #include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
 #include "rotorCell.H"
+#include "rotorGrid.H"
+
 
 namespace Foam
 {
@@ -31,6 +33,8 @@ public:
     };
     static const Enum<discreteMethod> discreteMethodNames_;
 
+   
+    rotorGrid grid;
 
 private:
 
@@ -75,6 +79,7 @@ private:
     bool correctCenters_ = false;
     bool includeVertex_ = true;
     label refinementLevel_;
+    
     
 public:
 TypeName("rotorDiscrete");
@@ -213,7 +218,7 @@ private:
             List<List<label>> &cells
         );
        
-protected:
+public:
         tensor bladeLocalFromPoint(const point& localPoint) const;
 
 };        //TODO:

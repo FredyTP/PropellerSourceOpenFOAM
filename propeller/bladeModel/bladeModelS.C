@@ -2,8 +2,46 @@
 #include "unitConversion.H"
 #include "interpolateXY.H"
 #include "IFstream.H"
+#include "csvTable.H"
+#include "OFstream.H"
 
-void Foam::bladeModelS::readField(const dictionary &dict, csvTable<scalar,word>& table, linearInterpolation<scalar,scalar,1>& field, bool isAngle)
+void Foam::bladeModelS::writeBlade(label np, fileName path)
+{
+    scalar dr = 1.0/(np-1);
+    List<word> header = {"r","c","twist","sweep"};
+    List<scalar> bladeSection(4);
+    csvTable<scalar,word> csv(true);
+    csv.setHeader(header);
+    interpolatedAirfoil airofil;
+    Info<<"creating csv.."<<endl;
+    for(int i = 0; i< np;i++)
+    {
+        scalar r = i*dr;
+        scalar c,t,s;
+        bladeSection[0]=r;
+
+        if(this->sectionAtRadius(r*maxRadius_,c,t,s,airofil))
+        {
+            bladeSection[1]=c;
+            bladeSection[2]=t;
+            bladeSection[3]=s;
+        }
+        else
+        {
+            bladeSection[1]=0;
+            bladeSection[2]=0;
+            bladeSection[3]=0;
+        }
+
+        csv.addRow(bladeSection);
+    }
+
+    OFstream file(path);
+    file<<csv;
+
+}
+
+void Foam::bladeModelS::readField(const dictionary &dict, csvTable<scalar, word> &table, linearInterpolation<scalar, scalar, 1> &field, bool isAngle)
 {
     word from = dict.get<word>("from");
 
@@ -159,6 +197,8 @@ Foam::bladeModelS::bladeModelS(
     Info<<"Sweep: " <<sweepAngle_<<endl;
 
     checkBlade();
+
+    
 
 }
 

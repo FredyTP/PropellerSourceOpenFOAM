@@ -21,10 +21,13 @@ propeller/rotorDynamics/rotorDynamics.C
 propeller/rotorDynamics/fixedPower.C
 propeller/rotorDynamics/fixedSpeed.C
 propeller/rotorDiscrete/rotorCell/rotorCellNew.C
+propeller/rotorDiscrete/rotorGrid.C
+propeller/rotorDiscrete/gridCell.C
 
 propeller/velocitySampler/velocitySampler.C
 propeller/velocitySampler/fixedVelocity.C
 propeller/velocitySampler/offsetSampler.C
+propeller/velocitySampler/fileSampler.C
 
 EXE = $(FOAM_USER_APPBIN)/rotorSolver
 //LIB = $(FOAM_USER_LIBBIN)/rotorSolver

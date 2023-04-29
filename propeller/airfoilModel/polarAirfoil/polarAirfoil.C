@@ -276,11 +276,11 @@ bool polarAirfoil::readFromCSV(word extrapolation)
 }
 scalar polarAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return polarInterpolated->interpolate({reynolds,mach}).value([=](scalar val,polar* p){return val*p->cl(alfaRad);});
+    return polarInterpolated->interpolate({reynolds,mach}).value<scalar>([=](scalar val,polar* p){return val*p->cl(alfaRad);});
 }
 scalar polarAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return polarInterpolated->interpolate({reynolds,mach}).value([=](scalar val,polar* p){return val*p->cd(alfaRad);});
+    return polarInterpolated->interpolate({reynolds,mach}).value<scalar>([=](scalar val,polar* p){return val*p->cd(alfaRad);});
 }
 
 

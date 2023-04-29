@@ -23,12 +23,12 @@ interpolatedAirfoil::interpolatedAirfoil(interpolated<scalar, const airfoilModel
 
 scalar Foam::interpolatedAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return this->value([=](scalar coeff, const airfoilModel* air){return coeff*air->cl(alfaRad,reynolds,mach);});
+    return this->value<scalar>([=](scalar coeff, const airfoilModel* air){return coeff*air->cl(alfaRad,reynolds,mach);});
 }
 
 scalar interpolatedAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return this->value([=](scalar coeff, const airfoilModel* air){return coeff*air->cd(alfaRad,reynolds,mach);});
+    return this->value<scalar>([=](scalar coeff, const airfoilModel* air){return coeff*air->cd(alfaRad,reynolds,mach);});
 }
 
 }
