@@ -652,7 +652,7 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
     //
     // List ref.
     const vectorField &cellCenter = rotorFvMeshSel.mesh().C();
-
+    const scalarField& cellVol = rotorFvMeshSel.mesh().V();
     List<point> centers;
     List<label> cellis;
 
@@ -714,7 +714,7 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
     this->writePythonPlotter();
 
     scalar maxRadius = geometry().radius();
-    grid = rotorGrid(25,25,0.1*maxRadius,maxRadius);
+    grid = rotorGrid(nRadial,nAzimutal,0.1*maxRadius,maxRadius);
 
     forAll(rotorCells_,i)
     {
@@ -724,11 +724,11 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
         label unused;
         label it=0;
         int result = regularInterpolation<scalar,scalar,1>::FindIndex(polar.x(),grid.radius(),ir,unused);
-        regularInterpolation<scalar,scalar,1>::FindIndex(polar.y()+3.1416,grid.theta(),it,unused);
+        regularInterpolation<scalar,scalar,1>::FindIndex(polar.y(),grid.theta(),it,unused);
 
         if(result == 1)
         {
-            grid.cell(ir,it).addCelli(rotorCells_[i].celli(),rotorCells_[i].area());
+            grid.cell(ir,it).addCelli(rotorCells_[i].celli(),cellVol[rotorCells_[i].celli()]);
         }
     }
 

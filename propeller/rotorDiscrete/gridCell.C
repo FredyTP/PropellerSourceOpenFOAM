@@ -23,8 +23,8 @@ void gridCell::build()
     if(cellis_.size()==0)
     {
         //FatalErrorInFunction
-         //   <<"Some gridCells doesnt contain any fvCell"
-         //   <<exit(FatalError);
+        //    <<"Some gridCells doesnt contain any fvCell"
+        //    <<exit(FatalError);
     }
     
     forAll(weights_,i)

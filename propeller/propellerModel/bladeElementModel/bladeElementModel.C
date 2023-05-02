@@ -195,11 +195,11 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         vector relativeVel = localAirVel + relativeBladeVel;
 
         //y component is radial, thus "doesn't contribute to aerodinamic forces"
-        relativeVel.y()=0;
+        //relativeVel.y()=0;
         scalar relativeSpeed = mag(relativeVel);
 
         //Airspeed angle (positive when speed is from "below" airfoil)
-        scalar phi = atan2(-relativeVel.z(),relativeVel.x());
+        scalar phi = atan2(-relativeVel.z(),sign(relativeVel.x())*sqrt(pow(relativeVel.x(),2)+pow(relativeVel.y(),2)));
         //Info<<"Phi: "<<phi<<endl;
 
         //Angle of atack
@@ -247,7 +247,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         {
             force[cellis[k]] = - we[k]*pressOnPoints[i]/cellVol[cellis[k]];
 
-            if(mag(force[cellis[k]])>10000)
+            /*if(mag(force[cellis[k]])>10000)
             {
                 Info<<cellis.size()<<endl;
                 Warning<<"Force too strong"<<endl;
@@ -265,9 +265,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
                 Info<<"Dr: "<<cells[i].dr()<<endl;
                 Info<<"Dt: "<<cells[i].dt()<<endl;
 
-            }
-            azimutalGrid[cellis[k]]=rotorDiscrete_.grid.index(i)[1];
-            radialGrid[cellis[k]]=rotorDiscrete_.grid.index(i)[0];
+            }*/
+            azimutalGrid[cellis[k]]=rotorDiscrete_.grid.theta()[rotorDiscrete_.grid.index(i)[1]];
+            radialGrid[cellis[k]]=rotorDiscrete_.grid.radius()[rotorDiscrete_.grid.index(i)[0]];
             aoaField[cellis[k]]=AoA;
             areaFactor[cellis[k]]=we[k];
             interpolatedVel[cellis[k]]=airVel;
