@@ -17,7 +17,7 @@ rotorGrid::rotorGrid(label nRadius, label nTheta, scalar minRadius, scalar maxRa
 
     for(label i = 0; i <nTheta+1;i++)
     {
-        theta_[i]=0+dt*i;
+        theta_[i]=-constant::mathematical::pi+dt*i;
     }
     //Closed loop
 

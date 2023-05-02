@@ -714,7 +714,7 @@ void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
     this->writePythonPlotter();
 
     scalar maxRadius = geometry().radius();
-    grid = rotorGrid(10,10,0.1*maxRadius,maxRadius);
+    grid = rotorGrid(25,25,0.1*maxRadius,maxRadius);
 
     forAll(rotorCells_,i)
     {
@@ -809,6 +809,9 @@ bool rotorDiscrete::read(const dictionary &dict)
 
     correctCenters_ = dict.getOrDefault<bool>("correctCenters",false);
     
+    nRadial = dict.get<label>("nRadial");
+    nAzimutal = dict.get<label>("nAzimutal");
+
     Info<<endl;    
     Info << "Reading rotor Discrete dict:" << endl;
     Info.stream().incrIndent();

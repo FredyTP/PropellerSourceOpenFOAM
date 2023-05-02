@@ -29,5 +29,5 @@ propeller/velocitySampler/fixedVelocity.C
 propeller/velocitySampler/offsetSampler.C
 propeller/velocitySampler/fileSampler.C
 
-EXE = $(FOAM_USER_APPBIN)/rotorSolver
+EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid
 //LIB = $(FOAM_USER_LIBBIN)/rotorSolver

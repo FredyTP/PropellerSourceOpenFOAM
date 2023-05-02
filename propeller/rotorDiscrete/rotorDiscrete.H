@@ -79,6 +79,9 @@ private:
     bool correctCenters_ = false;
     bool includeVertex_ = true;
     label refinementLevel_;
+
+    label nRadial;
+    label nAzimutal;
     
     
 public:

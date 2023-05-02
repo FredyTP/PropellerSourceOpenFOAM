@@ -119,6 +119,19 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         dimensionedVector(dimless, Zero)
     );
 
+    volScalarField cellvol
+    (
+        IOobject
+        (
+            "cellVolume",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimVolume, Zero)
+    );
     volVectorField computedForce
     (
         IOobject
@@ -142,6 +155,12 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     scalar aoaMin = VGREAT;
 
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
+
+    forAll(cellVol,i)
+    {
+        cellvol[i]=cellVol[i];
+    }
+
     List<vector> pressOnPoints(cells.size(),vector(0,0,0));
     scalar forcetot = 0.0;
     scalar momenttot = 0.0;
@@ -228,9 +247,11 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         {
             force[cellis[k]] = - we[k]*pressOnPoints[i]/cellVol[cellis[k]];
 
-            if(mag(force[cellis[k]])>8000)
+            if(mag(force[cellis[k]])>10000)
             {
+                Info<<cellis.size()<<endl;
                 Warning<<"Force too strong"<<endl;
+                Info<<"Force: "<<mag(force[cellis[k]])<<endl;
                 Info<<"Radius: "<<radius<<endl;
                 Info<<"ZoneForce: "<<pressOnPoints[i]<<endl;
                 Info<<"Cell vol: "<<cellVol[cellis[k]]<<endl;
@@ -280,6 +301,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         areaFactor.write();
         interpolatedVel.write();
         computedForce.write();
+        cellvol.write();
     }
     return result;
 
