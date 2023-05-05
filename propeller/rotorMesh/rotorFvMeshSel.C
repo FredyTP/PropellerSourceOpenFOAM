@@ -98,7 +98,7 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
         }
         //Dont find rotor center because already selected cells from spec or aprox center
         //this->findRotorCenter();
-        this->findRotorNormal(rotorGeometry);
+        //this->findRotorNormal(rotorGeometry);
         this->tryCorrectGeometry(rotorGeometry); //Update data if required
 
 

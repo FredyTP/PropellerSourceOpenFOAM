@@ -5,7 +5,7 @@
 #include "List.H"
 #include "gridCell.H"
 #include "ijkAddressing.H"
-
+#include "cylindricalCS.H"
 namespace Foam
 {
 
@@ -17,9 +17,14 @@ public:
     rotorGrid(label nRadius,label nTheta, scalar minRadius, scalar maxRadius);
     //rotorGrid(List<scalar>& radius, List<scalar> theta);
 
+
+    void assignFvCells(const coordSystem::cylindrical& cylCS, const vectorField& cellCenter, const scalarField& weights, const labelList& cellis);
     void build();
+    void setCenterFromClosestCell(coordSystem::cylindrical& cylCS, const vectorField& cellCenter);
+
 
     const PtrList<gridCell>& cells() const { return cells_;}
+    PtrList<gridCell>& cells() { return cells_;}
     gridCell& cell(label i, label j) { return cells_[index(i,j,0)];}
     const List<scalar>& radius() const {return radius_;}
     const List<scalar>& theta() const {return theta_;}
@@ -35,8 +40,8 @@ private:
     //Acces with ijkAdressing
     PtrList<gridCell> cells_;
     List<vector> centers_;
-    
 
+    
     void buildGrid();
 
 };

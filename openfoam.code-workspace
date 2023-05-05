@@ -272,7 +272,9 @@
 			"fixedVelocity copy.C": "cpp",
 			"fileVelocity.C": "cpp",
 			"fileSampler.C": "cpp",
-			"C.C": "cpp"
+			"C.C": "cpp",
+			"laminarModel.C": "cpp",
+			"cylinderAirfoil.C": "cpp"
 		}
 	}
 }

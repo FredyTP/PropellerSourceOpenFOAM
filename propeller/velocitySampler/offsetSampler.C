@@ -46,15 +46,15 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
 {
     //If no offset and rotorDiscrete is integrated in cell centers
     //Then the correspondence is cell to cell
-    if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
+    /*if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
     {
         const PtrList<rotorCell>& rotorCells = rDiscrete->rotorCells();
         forAll(rotorCells,i)
         {
             this->sampledVel[rotorCells[i].center()] = U.primitiveField()[rotorCells[i].celli()];
         } 
-    }
-    else if(atCellCenter)
+    }*/
+    if(atCellCenter)
     {
         forAll(this->sampledVel,i)
         {
@@ -85,10 +85,10 @@ bool offsetSampler::build()
     //If offset is 0.0 and rotorDiscrete is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
-    if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
+    /*if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
     {
         return true;
-    }
+    }*/
     const List<point>& cylPoints = rDiscrete->grid.centers();
     cellToSample.resize(cylPoints.size());
     if(!atCellCenter)
@@ -96,7 +96,7 @@ bool offsetSampler::build()
         cellWeights.resize(cylPoints.size());
     }
 
-
+    const vectorField& cellCenter = rMesh->mesh().C();
     //Iterate over all discretization points
     forAll(cylPoints, i)
     {
@@ -112,6 +112,25 @@ bool offsetSampler::build()
         rPoint += rDiscrete->geometry().direction() * offset;
         //Find the cell where the point is and set to the list
         cellToSample[i] = rMesh->mesh().findCell(rPoint); 
+
+        auto& cellis = rDiscrete->grid.cells()[i].cellis();
+
+        scalar minDist = 1e10;
+        vector minVect;
+        vector cp = rDiscrete->cylindrical().globalPosition(rDiscrete->grid.cells()[i].center());
+        label mincelli=-1;
+        forAll(cellis,j)
+        {
+            vector pcell = cellCenter[cellis[j]];
+
+            scalar dist = mag(cp-pcell);
+            if(dist<minDist)
+            {
+                minDist=dist;
+                mincelli=cellis[j];
+            } 
+        }
+        cellToSample[i]=mincelli;
 
         if(cellToSample[i]==-1)
         {
@@ -152,7 +171,7 @@ void offsetSampler::writeSampled(const word& name)
             continue;
         }*/
 
-        sampled[cellToSample[i]]=1.0;   
+        sampled[cellToSample[i]]+=1.0;   
 
         
     }

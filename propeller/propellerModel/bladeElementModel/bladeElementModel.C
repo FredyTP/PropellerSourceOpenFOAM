@@ -63,6 +63,19 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         rotorFvMeshSel_->mesh(),
         dimensionedScalar(dimless, -1)
     );
+    volScalarField cdField
+    (
+        IOobject
+        (
+            "cd",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, 0)
+    );
     volScalarField azimutalGrid
     (
         IOobject
@@ -91,25 +104,25 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         dimensionedScalar(dimless, -1)
     );
 
-    volScalarField areaFactor
+    volScalarField clField
     (
         IOobject
         (
-            "areaFactor",
+            "cl",
             rotorFvMeshSel_->mesh().time().timeName(),
             rotorFvMeshSel_->mesh(),
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
         rotorFvMeshSel_->mesh(),
-        dimensionedScalar(dimless, -1)
+        dimensionedScalar(dimless, 0)
     );
 
     volVectorField interpolatedVel
     (
         IOobject
         (
-            "interpolatedU",
+            "relativeVel",
             rotorFvMeshSel_->mesh().time().timeName(),
             rotorFvMeshSel_->mesh(),
             IOobject::NO_READ,
@@ -132,6 +145,21 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         rotorFvMeshSel_->mesh(),
         dimensionedScalar(dimVolume, Zero)
     );
+
+    volScalarField torqueM
+    (
+        IOobject
+        (
+            "torque",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
+
     volVectorField computedForce
     (
         IOobject
@@ -179,7 +207,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         }
         
         
-        scalar average_fact = nBlades_ * cells[i].dt() / (2 * pi);
+        scalar average_fact = nBlades_ * cells[i].dt() / (constant::mathematical::twoPi);
                 
         //Local rotation tensor
         tensor bladeTensor = rotorDiscrete_.bladeLocalFromPoint(cells[i].center());
@@ -199,7 +227,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         scalar relativeSpeed = mag(relativeVel);
 
         //Airspeed angle (positive when speed is from "below" airfoil)
-        scalar phi = atan2(-relativeVel.z(),sign(relativeVel.x())*sqrt(pow(relativeVel.x(),2)+pow(relativeVel.y(),2)));
+        scalar phi = atan2(-relativeVel.z(),sign(relativeVel.x())*sqrt(pow(relativeVel.x(),2)+pow(relativeVel.y(),2))); //as starccm+
+        //scalar phi = atan2(-relativeVel.z(),relativeVel.x());
         //Info<<"Phi: "<<phi<<endl;
 
         //Angle of atack
@@ -266,12 +295,14 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
                 Info<<"Dt: "<<cells[i].dt()<<endl;
 
             }*/
-            azimutalGrid[cellis[k]]=rotorDiscrete_.grid.theta()[rotorDiscrete_.grid.index(i)[1]];
-            radialGrid[cellis[k]]=rotorDiscrete_.grid.radius()[rotorDiscrete_.grid.index(i)[0]];
+            cdField[cellis[k]]=cd;
+            torqueM[cellis[k]]=tangentialForce.x()*radius/cells[i].dr();
+            azimutalGrid[cellis[k]]=cells[i].theta();
+            radialGrid[cellis[k]]=cells[i].radius();
             aoaField[cellis[k]]=AoA;
-            areaFactor[cellis[k]]=we[k];
-            interpolatedVel[cellis[k]]=airVel;
-            computedForce[cellis[k]]=pressOnPoints[i];
+            clField[cellis[k]]=cl;
+            interpolatedVel[cellis[k]]=U[i];
+            computedForce[cellis[k]]=pressOnPoints[i]/cells[i].dr();
         }
 
     }
@@ -295,13 +326,15 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
     if(rotorFvMeshSel_->mesh().time().writeTime())
     {
+        clField.write();
         azimutalGrid.write();
         radialGrid.write();
         aoaField.write();
-        areaFactor.write();
+        cdField.write();
         interpolatedVel.write();
         computedForce.write();
         cellvol.write();
+        torqueM.write();
     }
     return result;
 

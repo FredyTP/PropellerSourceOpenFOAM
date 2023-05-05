@@ -24,6 +24,26 @@ rotorGrid::rotorGrid(label nRadius, label nTheta, scalar minRadius, scalar maxRa
     buildGrid();
 }
 
+void rotorGrid::assignFvCells(const coordSystem::cylindrical &cylCS, const vectorField &cellCenter, const scalarField& weights, const labelList& cellis)
+{
+    forAll(cellis,i)
+    {
+        labell celli = cellis[i];
+        vector cc = cellCenter[celli];
+        vector polar = cylCS.localPosition(cc);
+        label ir=0;
+        label unused;
+        label it=0;
+        int result = regularInterpolation<scalar,scalar,1>::FindIndex(polar.x(),this->radius(),ir,unused);
+        regularInterpolation<scalar,scalar,1>::FindIndex(polar.y(),this->theta(),it,unused);
+
+        if(result == 1)
+        {
+            this->cell(ir,it).addCelli(rotorCells_[i].celli(),weights[rotorCells_[i].celli()]);
+        }
+    }
+}
+
 void rotorGrid::build()
 {
     centers_.resize(cells_.size());
@@ -31,6 +51,14 @@ void rotorGrid::build()
     {
         cells_[i].build();
         centers_[i]=cells_[i].center();
+    }
+}
+
+void rotorGrid::setCenterFromClosestCell(coordSystem::cylindrical &cylCS, const vectorField &cellCenter)
+{
+    forAll(cells_,i)
+    {
+        cells_[i].centerFromClosestCell(cellCenter,cylCS);
     }
 }
 
@@ -45,7 +73,7 @@ void rotorGrid::buildGrid()
     {
         for(label j = 0; j<thetaCells;j++)
         {
-            cells_.emplace(index(i,j,0),i,j,radius_,theta_);
+            cells_.emplace(index(i,j,0),radius_[i],radius_[i+1],theta_[i],theta_[i+1]);
         }
     }
 }
