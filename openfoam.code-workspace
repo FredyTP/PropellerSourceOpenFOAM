@@ -274,7 +274,9 @@
 			"fileSampler.C": "cpp",
 			"C.C": "cpp",
 			"laminarModel.C": "cpp",
-			"cylinderAirfoil.C": "cpp"
+			"cylinderAirfoil.C": "cpp",
+			"SstreamsPrint.C": "cpp",
+			"StringStream.C": "cpp"
 		}
 	}
 }

@@ -32,3 +32,4 @@ scalar interpolatedAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) con
 }
 
 }
+

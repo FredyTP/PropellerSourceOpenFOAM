@@ -11,7 +11,8 @@ EXE_INC = \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerSource \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete/rotorCell \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete/grid \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete/grid/cell \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/regular \

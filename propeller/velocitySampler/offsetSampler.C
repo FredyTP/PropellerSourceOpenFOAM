@@ -29,7 +29,7 @@ bool offsetSampler::read(const dictionary &dict)
     //For parallel computation only 0 offset anc cell-center integration is available
     if(Pstream::parRun())
     {
-        if(offset != 0.0 || rDiscrete->integrationMode() != rotorCell::integrationMode::imCenter)
+        if(offset != 0.0)
         {
             Info<<indent<<"In parallel runs, only 0 offset and cell center integration is available"<<endl;
             FatalErrorInFunction<<exit(FatalError);
@@ -66,7 +66,6 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
     }
     else
     {
-        Info<<"Interpolating vel field..."<<endl;
         interpolationCellPoint<vector> interp(U);
         forAll(this->sampledVel,i)
         {
@@ -74,8 +73,7 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
             {
                 this->sampledVel[i]=interp.interpolate(*(cellWeights[i].get()));
             }          
-        }
-        Info<<"Okey"<<endl;        
+        }      
     }
 
     return this->sampledVel;
@@ -89,7 +87,7 @@ bool offsetSampler::build()
     {
         return true;
     }*/
-    const List<point>& cylPoints = rDiscrete->grid.centers();
+    const List<point>& cylPoints = rDiscrete->grid().centers();
     cellToSample.resize(cylPoints.size());
     if(!atCellCenter)
     {
@@ -109,28 +107,11 @@ bool offsetSampler::build()
         point rPoint = rDiscrete->cylindrical().globalPosition(cylPoints[i]);
 
         //Add the offset normal to the geometry
-        rPoint += rDiscrete->geometry().direction() * offset;
+        rPoint += rDiscrete->geometry().direction().get() * offset;
         //Find the cell where the point is and set to the list
-        cellToSample[i] = rMesh->mesh().findCell(rPoint); 
+        //cellToSample[i] = rMesh->mesh().findCell(rPoint); 
 
-        auto& cellis = rDiscrete->grid.cells()[i].cellis();
-
-        scalar minDist = 1e10;
-        vector minVect;
-        vector cp = rDiscrete->cylindrical().globalPosition(rDiscrete->grid.cells()[i].center());
-        label mincelli=-1;
-        forAll(cellis,j)
-        {
-            vector pcell = cellCenter[cellis[j]];
-
-            scalar dist = mag(cp-pcell);
-            if(dist<minDist)
-            {
-                minDist=dist;
-                mincelli=cellis[j];
-            } 
-        }
-        cellToSample[i]=mincelli;
+        cellToSample[i]=rDiscrete->grid().cells()[i].interpolatingCelli();
 
         if(cellToSample[i]==-1)
         {

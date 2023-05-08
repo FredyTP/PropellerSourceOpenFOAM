@@ -71,49 +71,38 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         kDot_ = coeffs_.getOrDefault("kDot",0);
 
         /*----------READ USER SPECIFIED ROTOR GEOMETRY---------------*/
-        //- Read geometry data, SET TO EMPTY VALUE IF NOT PRESENT
-        rotorGeometry_.readIfPresent(coeffs_);
+        //- Read geometry data if present
+        rotorGeometry_.readIfPresent(coeffs_.subOrEmptyDict("geometry"));
 
         /*----------READ USER DESIRED ROTOR MODEL(BEMT ...)---------------*/
         //- Read propeller Model
-        const dictionary& propellerModelDict = coeffs_.subDict("propellerModel");
-        propellerModel_ = propellerModel::New(propellerModelDict);
-
-        /*---------IF NO RADIUS SPECIFIED CHECK FROM MODEL DATA---------------*/
-        //- If no radius from dict, check on rotor Model
-        if(!rotorGeometry_.isRadiusSet())
-        {
-            //From blade data if not adimensional
-            if(propellerModel_->radius() != NO_RADIUS) 
-                rotorGeometry_.setRadius(propellerModel_->radius());
-        }
+        propellerModel_ = propellerModel::New(coeffs_.subDict("propellerModel"));
 
         /*----------READ FV ROTOR MESH CONFIG---------------*/
-        const dictionary& rotorFvMeshSelDict = coeffs_.subDict("rotorMesh");
-        rotorFvMeshSel_.read(rotorFvMeshSelDict);
+        rotorFvMeshSel_.read(coeffs_.subDict("rotorMesh"));
 
         /*-----BUILD MESH AND UPDATE PROVIDED ROTOR GEOMETRY-----*/
         rotorFvMeshSel_.build(rotorGeometry_);  //- Building rotor mesh may or may not modify rotorGeometry
        
-        /*-----SET THE FV MESH TO THE ROTOR MODEL-----*/
+        /*-----CONFIGURE THE PROPELLER MODEL-----*/
         propellerModel_->setRotorMesh(&rotorFvMeshSel_);
         //Build propeller model with 100% definitive rotorGeometry
         propellerModel_->build(rotorGeometry_);
-        propellerModel_->rDiscrete().writeArea(this->name(),mesh_);
-        Info<<endl;
-        Info<<"Rotor Geometry of: "<< fv::option::name()<<endl
-        << rotorGeometry_;
-
-        if(!rotorGeometry_.isReady())
-        {
-            FatalErrorInFunction
-                <<"Rotor geometry data of "<< fv::option::name() <<" is not determined:"
-                << exit(FatalError);
-        }
-
         //Set reference properties for aerodynamic forces and adim variables
         propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
         propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
+        //propellerModel_->rDiscrete().writeArea(this->name(),mesh_);
+        Info<<endl;
+        if(!rotorGeometry_.isReady())
+        {
+            FatalErrorInFunction
+                <<"Rotor geometry data of "<< fv::option::name() <<" is not determined:"<<endl
+                << rotorGeometry_
+                << exit(FatalError);
+        }
+
+        Info<<"Rotor Geometry of: "<< fv::option::name()<<endl
+        << rotorGeometry_;
 
         /*-----CREATE VELOCITY SAMPLING METHOD-----*/
         //Create velocitySampler for specified rotor discrete and mesh
@@ -134,10 +123,6 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
 
 }
 
-void Foam::fv::propellerSource::writeData(Ostream &os) const
-{
-    os<<"TESTING AUTO OUTPUT"<<endl;
-}
 void Foam::fv::propellerSource::addSup
 (
     fvMatrix<scalar>& eqn,
@@ -146,7 +131,7 @@ void Foam::fv::propellerSource::addSup
 {
     Info<<"ScalarFieldi: "<<fieldi<<endl;
     Info<< name() << ": applying source to " << eqn.psi().name() << endl;
-    volScalarField k
+    /*volScalarField k
         (
             IOobject
             (
@@ -163,7 +148,7 @@ void Foam::fv::propellerSource::addSup
     {
         k[propellerModel_->rDiscrete().rotorCells()[i].celli()]=kDot_;
     }
-    eqn+=k;
+    eqn+=k;*/
 
 }
 void Foam::fv::propellerSource::addSup

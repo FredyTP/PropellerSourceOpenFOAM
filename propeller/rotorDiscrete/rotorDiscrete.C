@@ -6,7 +6,6 @@
 #include "rotorGeometry.H"
 #include "delaunayTriangulation.H"
 #include <fstream>
-#include "rotorTriCell.H"
 #include "syncTools.H"
 #include "rotorGrid.H"
 #include "regularInterpolation.H"
@@ -32,21 +31,21 @@ rotorDiscrete::rotorDiscrete(const dictionary& dict)
 {
     this->read(dict);
 }
-void rotorDiscrete::buildCoordinateSystem(const rotorGeometry &geometry)
+void rotorDiscrete::createGrid(const rotorGeometry &geometry)
 {
-    rotorGeometry_ = geometry;
+    rotorGeometry_ = &geometry;
     
     carCS_ = coordSystem::cartesian(
-        rotorGeometry_.center(),    // centerd to local
-        rotorGeometry_.direction(), // z-axis
-        rotorGeometry_.psiRef()     // x-axis
+        rotorGeometry_->center().get(),    // centerd to local
+        rotorGeometry_->direction().get(), // z-axis
+        rotorGeometry_->psiRef().get()     // x-axis
     );
 
     cylCS_ = coordSystem::cylindrical // local Cartesian to cylindrical
         (
-            rotorGeometry_.center(),    // centerd to local
-            rotorGeometry_.direction(), // z-axis
-            rotorGeometry_.psiRef()     // x-axis
+            rotorGeometry_->center().get(),    // centerd to local
+            rotorGeometry_->direction().get(), // z-axis
+            rotorGeometry_->psiRef().get()     // x-axis
         );
 
     carToCylCS_ = coordSystem::cylindrical(
@@ -54,42 +53,15 @@ void rotorDiscrete::buildCoordinateSystem(const rotorGeometry &geometry)
         vector(0, 0, 1), // same z-axis
         vector(1, 0, 0)  // same x-axis
     );
-}
 
-tensor rotorDiscrete::bladeLocalFromPoint(const point &localPoint) const
-{
-    // z- up, y -outwards from center, x perpendicular y,z (leading edge to trailing edge)
-    point global, origin;
-
-    global = cylCS_.globalPosition(localPoint);
-    origin = cylCS_.origin();
-
-    tensor rotTensor(cylCS_.R());
-
-    // z-axis
-    const vector ax3 = rotTensor.col<2>(); // == e3 (already normalized)
-
-    // y-axis (radial direction)
-    vector ax2(global - origin);
-
-    ax2.removeCollinear(ax3);
-
-    const scalar magAxis2(mag(ax2));
-
-    // Trap zero size and colinearity
-    if (magAxis2 < SMALL)
-    {
-        return rotTensor;
-    }
-
-    ax2 /= magAxis2; // normalise
-
-    // Replace with updated local axes
-
-    rotTensor.col<0>(ax2 ^ ax3);
-    rotTensor.col<1>(ax2);
-
-    return rotTensor;
+    grid_ = rotorGrid
+    (
+        nRadial,
+        nAzimutal,
+        rotorGeometry_->innerRadius().get(),
+        rotorGeometry_->radius().get(),
+        cylCS_
+    );
 }
 
 
@@ -166,45 +138,34 @@ void rotorDiscrete::writePythonPlotter(word process)
     file << pyplot;
     file.close();*/
 }
-void rotorDiscrete::fromMesh(const rotorFvMeshSel &rotorFvMeshSel)
+void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel)
 {
     Info<<endl;
-    Info << "Building rotor Discrete from mesh:" << endl;
-    Info.stream().incrIndent();
-
-    discreteMode_ = discreteMode::dmMesh;
-
-    // Selected rotor radius (real used, no from mesh)
-    const scalar radius = rotorGeometry_.radius();
-
+    Info << "Assigning fvMeshCell to rotorGrid: " << endl;
+    rotorMeshSel_ = &rotorFvMeshSel;
     // List ref.
     const vectorField& cellCenter = rotorFvMeshSel.mesh().C();
     const scalarField& cellVol = rotorFvMeshSel.mesh().V();
-    const labelList& cellis = rotorFvMeshSel.cellis();
+    const labelList& cellis = rotorFvMeshSel.cells();
 
-    Info.stream().decrIndent();
-
-    //this->writePythonPlotter();
-    grid = rotorGrid(nRadial,nAzimutal,0.1*radius,radius);
-
-    grid.assignFvCells(cylCS_,cellCenter,cellVol,cellis);
-    grid.setCenterFromClosestCell(cylCS_,cellCenter);
-    grid.build();
+    grid_.assignFvCells(cellCenter,cellVol,cellis);
+    grid_.setCenterFromClosestCell(cellCenter);
+    grid_.build();
 }
 
 bool rotorDiscrete::read(const dictionary &dict)
 {
 
-    integrationMode_ = rotorCell::integrationModeNames_.getOrDefault("integrationMode",dict,rotorCell::integrationMode::imCenter);
-    discreteMethod_ = discreteMethodNames_.getOrDefault("discreteMethod",dict,discreteMethod::dmeVoronoid);
+    //integrationMode_ = rotorCell::integrationModeNames_.getOrDefault("integrationMode",dict,rotorCell::integrationMode::imCenter);
+    //discreteMethod_ = discreteMethodNames_.getOrDefault("discreteMethod",dict,discreteMethod::dmeVoronoid);
 
     //For voronoid method vertex cells are not needed, but for intersection is recommended
-    bool defaultVertex = discreteMethod_ == discreteMethod::dmeIntersection;
-    includeVertex_ = dict.getOrDefault<bool>("includeIfVertex",defaultVertex);
+    //bool defaultVertex = discreteMethod_ == discreteMethod::dmeIntersection;
+    //includeVertex_ = dict.getOrDefault<bool>("includeIfVertex",defaultVertex);
 
-    refinementLevel_ = dict.getOrDefault<label>("borderRefinement",0);
+    //refinementLevel_ = dict.getOrDefault<label>("borderRefinement",0);
 
-    correctCenters_ = dict.getOrDefault<bool>("correctCenters",false);
+    //correctCenters_ = dict.getOrDefault<bool>("correctCenters",false);
     
     nRadial = dict.get<label>("nRadial");
     nAzimutal = dict.get<label>("nAzimutal");
@@ -212,11 +173,14 @@ bool rotorDiscrete::read(const dictionary &dict)
     Info<<endl;    
     Info << "Reading rotor Discrete dict:" << endl;
     Info.stream().incrIndent();
-    indent(Info)<<"- Discrete method: "<<rotorDiscrete::discreteMethodNames_.get(discreteMethod_)<<endl;
-    indent(Info)<<"- Border refinement: "<<refinementLevel_<<endl;
-    indent(Info)<<"- Correct centers: "<<correctCenters_<<endl;
-    indent(Info)<<"- Integration mode: "<<rotorCell::integrationModeNames_.get(integrationMode_)<<endl;
-    indent(Info)<<"- Include if vertex: "<<includeVertex_<<endl;
+    indent(Info)<<"- Radial Cells: "<<nRadial<<endl;
+    indent(Info)<<"- Azimutal Cells: "<<nAzimutal<<endl;
+
+    //indent(Info)<<"- Discrete method: "<<rotorDiscrete::discreteMethodNames_.get(discreteMethod_)<<endl;
+    //indent(Info)<<"- Border refinement: "<<refinementLevel_<<endl;
+    //indent(Info)<<"- Correct centers: "<<correctCenters_<<endl;
+    //indent(Info)<<"- Integration mode: "<<rotorCell::integrationModeNames_.get(integrationMode_)<<endl;
+    //indent(Info)<<"- Include if vertex: "<<includeVertex_<<endl;
     Info.stream().decrIndent();
 
     return true;

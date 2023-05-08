@@ -8,7 +8,6 @@
 #include "cartesianCS.H"
 #include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
-#include "rotorCell.H"
 #include "rotorGrid.H"
 
 
@@ -45,14 +44,13 @@ private:
     coordSystem::cylindrical carToCylCS_;
 
     //- Used rotor geometry
-    rotorGeometry rotorGeometry_;
+    const rotorGeometry* rotorGeometry_;
+    const rotorFvMeshSel* rotorMeshSel_;
        
-    rotorGrid grid;
+    rotorGrid grid_;
 
     discreteMode discreteMode_ = discreteMode::dmNone;
 
-    rotorCell::integrationMode integrationMode_;
-    discreteMethod discreteMethod_;
 
     bool correctCenters_ = false;
     bool includeVertex_ = true;
@@ -76,7 +74,7 @@ TypeName("rotorDiscrete");
          * 
          * @param rotorFvMeshSel 
          */
-        void fromMesh
+        void setFvMeshSel
         (
             const rotorFvMeshSel &rotorFvMeshSel
         );
@@ -95,14 +93,19 @@ TypeName("rotorDiscrete");
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
 
-        void buildCoordinateSystem(const rotorGeometry& geometry);
+        void createGrid(const rotorGeometry& geometry);
      //Getters
-        const rotorGeometry& geometry() const {return rotorGeometry_;}
-
+        const rotorGeometry& geometry() const {return *rotorGeometry_;}
+        const rotorFvMeshSel& meshSel() const {return *rotorMeshSel_;}
+        rotorGrid& grid() {return grid_;}
+        const rotorGrid& grid() const {return grid_;}
         discreteMode mode() const {return discreteMode_;}
+        const coordSystem::cylindrical& carToCyl() const {return carToCylCS_;}
+        const coordSystem::cartesian& cartesian() const {return carCS_;}
+        const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
+
 
 private:
-        tensor bladeLocalFromPoint(const point& localPoint) const;
 
 };    
 

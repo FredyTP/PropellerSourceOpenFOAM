@@ -44,3 +44,4 @@ scalar cylinderAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const
 
 
 }
+

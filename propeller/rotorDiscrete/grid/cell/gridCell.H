@@ -4,7 +4,10 @@
 #include "scalar.H"
 #include "List.H"
 #include "vector.H"
-
+#include "tensor.H"
+#include "vectorField.H"
+#include "scalarField.H"
+#include "cylindricalCS.H"
 namespace Foam
 {
 class gridCell
@@ -135,9 +138,18 @@ public:
      *  (x: LE->TE) (y: radial) (z: "up")
      * @param localTensor 
      */
-    void setLocalTensor(tensor& localTensor);
+    void setLocalTensor(const tensor& localTensor);
 
+    vector scaleForce(const vector& globalForce);
 
+    void applySource(vectorField& source,const scalarField& cellVol, vector& scaledForce) const;
+    
+    template<class type>
+    void applyField(Field<type>& field, const type& value) const;
+    
+    template<class type>
+    void applyField(Field<type>& field,const List<type>& values) const;
+    
     label interpolatingCelli() const { return interpolatingCell_;}
 private:
     vector center_; //r-theta-0
@@ -156,8 +168,27 @@ private:
     List<scalar> weights_;
 
     label interpolatingCell_=-1;
+
+    vector globalForce_;
 };
 
+template <class type>
+inline void gridCell::applyField(Field<type> &field, const type &value) const
+{
+    forAll(cellis_,i)
+    {
+        field[cellis_[i]]=value;
+    }
+}
+
+template <class type>
+inline void gridCell::applyField(Field<type> &field, const List<type> &values) const
+{
+    forAll(cellis_,i)
+    {
+        field[cellis_[i]]=values[i];
+    }
+}
 }
 
 #endif /* PROPELLER_ROTOR_DISCRETE_GRID_CELL */

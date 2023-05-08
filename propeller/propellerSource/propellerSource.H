@@ -93,7 +93,6 @@ public:
     //IO
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
-        void writeData(Ostream& os) const;
 
     // Source term addition
 

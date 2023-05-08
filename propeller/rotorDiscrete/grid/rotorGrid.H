@@ -13,15 +13,32 @@ namespace Foam
 class rotorGrid : public ijkAddressing
 {
 public:
-    rotorGrid(){}
-    rotorGrid(label nRadius,label nTheta, scalar minRadius, scalar maxRadius);
+
+    rotorGrid() = default;
+
+    /**
+     * @brief Construct a new rotor Grid object with a structured grid
+     * 
+     * @param nRadius 
+     * @param nTheta 
+     * @param minRadius 
+     * @param maxRadius 
+     * @param cylCS 
+     */
+    rotorGrid
+    (
+        label nRadius,
+        label nTheta, 
+        scalar minRadius, 
+        scalar maxRadius,
+        const coordSystem::cylindrical &cylCS
+    );
     //rotorGrid(List<scalar>& radius, List<scalar> theta);
 
 
-    void assignFvCells(const coordSystem::cylindrical& cylCS, const vectorField& cellCenter, const scalarField& weights, const labelList& cellis);
+    void assignFvCells(const vectorField& cellCenter, const scalarField& weights, const labelList& cellis);
     void build();
-    void setCenterFromClosestCell(coordSystem::cylindrical& cylCS, const vectorField& cellCenter);
-
+    void setCenterFromClosestCell(const vectorField& cellCenter);
 
     const PtrList<gridCell>& cells() const { return cells_;}
     PtrList<gridCell>& cells() { return cells_;}
@@ -29,8 +46,10 @@ public:
     const List<scalar>& radius() const {return radius_;}
     const List<scalar>& theta() const {return theta_;}
     const List<vector>& centers() const {return centers_;}
-private:
 
+    static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
+private:
+    coordSystem::cylindrical cylCS_;
     scalar minRadius_;
     scalar maxRadius_;
     

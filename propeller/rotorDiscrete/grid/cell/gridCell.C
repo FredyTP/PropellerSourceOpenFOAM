@@ -19,7 +19,7 @@ void gridCell::addCelli(label celli,scalar weight)
 }
 void gridCell::build()
 {
-    scalar totalArea=0.0;
+    scalar totalw=0.0;
     if(cellis_.size()==0)
     {
         FatalErrorInFunction
@@ -29,12 +29,12 @@ void gridCell::build()
     
     forAll(weights_,i)
     {
-        totalArea+=weights_[i];
+        totalw+=weights_[i];
     }
 
     forAll(weights_,i)
     {
-        weights_[i]/=totalArea;
+        weights_[i]/=totalw;
     }
 
 
@@ -68,9 +68,21 @@ void gridCell::centerFromClosestCell(const vectorField &cellCenters, const coord
     center_.z()=0;
 }
 
-void gridCell::setLocalTensor(tensor &localTensor)
+void gridCell::setLocalTensor(const tensor& localTensor)
 {
     localBlade_=localTensor;
+}
+
+vector gridCell::scaleForce(const vector &globalForce)
+{
+   return globalForce * this->dr() * this->dt() / constant::mathematical::twoPi;
+}
+void gridCell::applySource(vectorField &source, const scalarField& cellVol, vector& scaledForce) const
+{
+    forAll(cellis_,k)
+    {
+        source[cellis_[k]] -=  (weights_[k] * scaledForce/cellVol[cellis_[k]]);
+    }
 }
 
 }

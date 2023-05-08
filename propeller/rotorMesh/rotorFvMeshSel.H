@@ -5,10 +5,7 @@
 #include "Enum.H"
 #include "cylindricalCS.H"
 #include "cartesianCS.H"
-
-#include "rotorCell.H"
 #include "rotorGeometry.H"
-#include "rotorCell.H"
 
 #define NO_AREA -1
 namespace Foam
@@ -85,9 +82,9 @@ TypeName("rotorFvMeshSel");
     //Getters        
         inline const labelList& cells() const { return cells_; }
         const fvMesh& mesh() const { return mesh_;}
-        inline const vector& direction() const {return meshGeometry_.direction();}
-        inline const vector& center() const {return meshGeometry_.center();}
-        inline scalar radius() const {return meshGeometry_.radius();}
+        inline const vector& direction() const {return meshGeometry_.direction().get();}
+        inline const vector& center() const {return meshGeometry_.center().get();}
+        inline scalar radius() const {return meshGeometry_.radius().get();}
         inline scalar maxRadius() const {return maxPointRadius;}
         inline bool isBuilt() const {return built_;}
     //BUILD SELECTION

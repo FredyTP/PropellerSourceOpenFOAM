@@ -7,7 +7,11 @@
 #include "velocitySampler.H"
 namespace Foam
 {
-
+struct bemDebugData
+{
+    scalar cl,cd,phi,aoa,radius,chord,twist,sweep;
+    vector localVel;
+};
 class bladeElementModel
 :
     public propellerModel
@@ -52,8 +56,16 @@ public:
     virtual void build(const rotorGeometry& rotorGeometry);
 
     virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force);
-
+    
     virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
+
+    vector calculatePoint(const vector& U,scalar angularVelocity, const gridCell& cell, bemDebugData& data);
+
+    
+    static inline scalar AngleOfIncidenceSTAR(const vector& relativeLocalVel);
+    static inline scalar AngleOfIncidence(const vector& relativeLocalVel);
+
+    
 
 };
 

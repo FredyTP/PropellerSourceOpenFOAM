@@ -2,7 +2,8 @@
 #define PROPELLER_ROTOR_MESH_ROTOR_GEOMETRY
 #include "scalar.H"
 #include "vector.H"
-
+#include "property.H"
+#include "StringStream.H"
 #define NO_RADIUS -1.0
 
 namespace Foam
@@ -10,33 +11,35 @@ namespace Foam
 class rotorGeometry
 {
 private:
-    scalar radius_ {NO_RADIUS};
-    vector center_ {0,0,0};
-    vector direction_ {0,0,0};
-    vector psiRef_ {0,0,1}; // not used yet
-
-    bool radiusSet = false;
-    bool centerSet = false;
-    bool directionSet = false;
-    bool psiRefSet = true; // do no care yet
+    util::property<scalar> innerRadius_;
+    util::property<scalar> radius_;
+    util::property<vector> center_;
+    util::property<vector> direction_;
+    util::property<vector> psiRef_;
 
 public:
 
-    scalar radius() const {return radius_;}
-    const vector& center() const {return center_;}
-    const vector& direction() const {return direction_;}
-    const vector& psiRef() const {return psiRef_;}
+    rotorGeometry()
+    {
+        innerRadius_.addCondition(util::property<scalar>::isPositive);
+        radius_.addCondition(util::property<scalar>::isGreaterThan(innerRadius_.get()));
+        direction_.addCondition(isValidVector);
+        psiRef_.addCondition(isValidVector);
+    }
+    
 
-    inline bool isRadiusSet() const { return radiusSet;}
-    inline bool isCenterSet() const { return centerSet;}
-    inline bool isDirectionSet() const {return directionSet;}
-    inline bool isPsiRefSet() const { return psiRefSet;}
+    util::property<scalar>& innerRadius() {return innerRadius_;}
+    util::property<scalar>& radius() {return radius_;}
+    util::property<vector>& center() {return center_;}
+    util::property<vector>& direction() {return direction_;}
+    util::property<vector>& psiRef() {return psiRef_;}
 
-    inline bool isRadiusReady() const {return radiusSet && radius_>0;}
-    inline bool isCenterReady() const {return centerSet;}
-    inline bool isDirectionReady() const {return directionSet && isValidVector(direction_);}
-    inline bool isPsiRefReady() const {return psiRefSet && isValidVector(psiRef_);}
 
+    const util::property<scalar>& innerRadius() const {return innerRadius_;}
+    const util::property<scalar>& radius() const {return radius_;}
+    const util::property<vector>& center() const {return center_;}
+    const util::property<vector>& direction() const {return direction_;}
+    const util::property<vector>& psiRef() const {return psiRef_;}
    
     /**
      * Read geometry presented data from dictionary
@@ -45,42 +48,25 @@ public:
     */
     bool readIfPresent(const dictionary& dict)
     {
-        bool ok;
-
-        ok = dict.readIfPresent("radius", radius_);
-        radiusSet |= ok;
-
-        ok = dict.readIfPresent("direction",direction_);
-        directionSet |= ok;
-
-        ok = dict.readIfPresent("center",center_);
-        centerSet |= ok;
-
-        ok = dict.readIfPresent("psiRef",psiRef_);
-        psiRefSet |= ok;
+        this->readIfPresent(dict,radius_,"radius");
+        this->readIfPresent(dict,innerRadius_,"innerRadius");
+        this->readIfPresent(dict,direction_,"direction");
+        this->readIfPresent(dict,center_,"center");
+        this->readIfPresent(dict,psiRef_,"psiRef");
 
         return isReady();
     }
-    void setRadius(scalar r)
-    {
-        radiusSet = true;
-        radius_ = r;
-    }
 
-    void setCenter(vector c)
+    template<class pType>
+    bool readIfPresent(const dictionary& dict,util::property<pType>& prop,word name)
     {
-        centerSet = true;
-        center_ = c;
-    }
-    void setDirection(vector d)
-    {
-        directionSet = true;
-        direction_ = d;
-    }
-    void setPsiRef(vector r)
-    {
-        psiRefSet=true;
-        psiRef_ = r;
+        pType temp;
+        bool ok = dict.readIfPresent(name,temp);
+        if(ok)
+        {
+            prop.set(temp);
+        }
+        return ok;
     }
 
     inline bool isReady()
@@ -90,31 +76,55 @@ public:
 
     inline bool isValid()
     {
-        return (radius_ != NO_RADIUS) &&
-               (isValidVector(direction_)) &&
-               (isValidVector(psiRef_));
+        return  innerRadius_.isValid() &&
+                radius_.isValid()      &&
+                direction_.isValid()   &&
+                center_.isValid()      &&
+                psiRef_.isValid();
     }
 
     inline bool isSet()
     {
-        return radiusSet && centerSet && directionSet && psiRefSet;
+        return  innerRadius_.isSet() && 
+                radius_.isSet()      && 
+                center_.isSet()      && 
+                direction_.isSet()   && 
+                psiRef_.isSet();
     }
-
+    template<class pType>
+    static string getFieldString(util::property<pType>& prop)
+    {
+        OStringStream field;
+        /*if(!prop.isSet())
+        {
+            field << "unset";
+        }
+        else if(!prop.isValid())
+        {
+            field << "invalid("<<prop.get()<<")";
+        }
+        else
+        {
+            field<<prop.get();
+        }*/
+        return field.str();
+    }
     friend Ostream& operator<<(Ostream& os, const rotorGeometry& r)
     {
         os.incrIndent();
-
-        indent(os) <<"- radius: "<<r.radius_<<endl;
-        indent(os) <<"- center: "<<r.center_<<endl;
-        indent(os) <<"- direction: "<<r.direction_<<endl;
-        indent(os) <<"- psiRef: "<< r.psiRef_<<endl;
+        word innerRadius,radius,center,direction,psiRef;
+        /*innerRadius <<"- innerRadius: "<<rotorGeometry::getFieldString(r.innerRadius())<<endl;
+        indent(os) <<"- radius: "<<rotorGeometry::getFieldString(r.radius())<<endl;
+        indent(os) <<"- center: "<<rotorGeometry::getFieldString(r.center())<<endl;
+        indent(os) <<"- direction: "<<rotorGeometry::getFieldString(r.direction())<<endl;
+        indent(os) <<"- psiRef: "<< rotorGeometry::getFieldString(r.psiRef())<<endl;*/
 
         os.decrIndent();
         return os;
     }
 protected: 
 
-    bool isValidVector(vector v) const { return magSqr(v) > VSMALL;}
+    static bool isValidVector(const vector& v) { return magSqr(v) > VSMALL;}
 
     
 };

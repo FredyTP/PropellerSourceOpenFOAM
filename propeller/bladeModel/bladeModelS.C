@@ -205,7 +205,7 @@ Foam::bladeModelS::bladeModelS(
 bool Foam::bladeModelS::sectionAtRadius(scalar radius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil)
 {
 
-    if(adimensional_)
+    /*if(adimensional_)
     {
         radius /= maxRadius_;
     }
@@ -214,7 +214,7 @@ bool Foam::bladeModelS::sectionAtRadius(scalar radius, scalar& chord, scalar& tw
     {
         chord=0.0;
         return false;
-    }
+    }*/
     
     chord = chord_.interpolate({radius}).value();
     twist = twistAngle_.interpolate({radius}).value();

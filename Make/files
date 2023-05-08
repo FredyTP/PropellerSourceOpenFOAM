@@ -14,15 +14,13 @@ propeller/airfoilModel/polarAirfoil/polar/polar.C
 propeller/airfoilModel/polarAirfoil/polar/viterna.C
 propeller/airfoilModel/polarAirfoil/polarAirfoil.C
 propeller/airfoilModel/airfoilModelList.C
-propeller/bladeModel/bladeModelDev.C
 propeller/bladeModel/bladeModelS.C
 propeller/rotorMesh/rotorFvMeshSel.C
 propeller/rotorDynamics/rotorDynamics.C
 propeller/rotorDynamics/fixedPower.C
 propeller/rotorDynamics/fixedSpeed.C
-propeller/rotorDiscrete/rotorCell/rotorCellNew.C
-propeller/rotorDiscrete/rotorGrid.C
-propeller/rotorDiscrete/gridCell.C
+propeller/rotorDiscrete/grid/rotorGrid.C
+propeller/rotorDiscrete/grid/cell/gridCell.C
 
 propeller/velocitySampler/velocitySampler.C
 propeller/velocitySampler/fixedVelocity.C

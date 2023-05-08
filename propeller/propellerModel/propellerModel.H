@@ -78,6 +78,8 @@ public:
 
     void setRefV(scalar v){refV=v;}
     void setRefRho(scalar rho){refRho = rho;}
+
+    const fvMesh& mesh() const { return rotorFvMeshSel_->mesh();}
 };
 
 }
