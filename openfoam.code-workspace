@@ -276,7 +276,16 @@
 			"laminarModel.C": "cpp",
 			"cylinderAirfoil.C": "cpp",
 			"SstreamsPrint.C": "cpp",
-			"StringStream.C": "cpp"
+			"StringStream.C": "cpp",
+			"offsetSampler copy.C": "cpp",
+			"diskSampler.C": "cpp",
+			"domainSampler.C": "cpp",
+			"EigenMatrix.C": "cpp",
+			"simpleMatrix.C": "cpp",
+			"scalarMatricesTemplates.C": "cpp",
+			"Euler.C": "cpp",
+			"solidChemistryModel.C": "cpp",
+			"LduMatrixSolver.C": "cpp"
 		}
 	}
 }

@@ -13,6 +13,7 @@
 #include "rotorGeometry.H"
 #include "csvTable.H"
 #include "interpolatedAirfoil.H"
+#include "regularInterpolation.H"
 
 namespace Foam
 {
@@ -25,9 +26,9 @@ protected:
         //------------BLADE SECTIONS-----------//
 
         //- Airfoil of each section
-        linearInterpolation<scalar,scalar,1> chord_;
-        linearInterpolation<scalar,scalar,1> twistAngle_;
-        linearInterpolation<scalar,scalar,1> sweepAngle_;
+        autoPtr<regularInterpolation<scalar,scalar,1>> chord_;
+        autoPtr<regularInterpolation<scalar,scalar,1>> twistAngle_;
+        autoPtr<regularInterpolation<scalar,scalar,1>> sweepAngle_;
         linearInterpolation<scalar,const airfoilModel*,1> airfoils_;
 
 
@@ -45,7 +46,7 @@ protected:
 
         
 
-        void readField(const dictionary& dict,csvTable<scalar,word>& table,linearInterpolation<scalar,scalar,1>& field, bool isAngle = false);
+        void readField(const dictionary& dict,csvTable<scalar,word>& table,autoPtr<regularInterpolation<scalar,scalar,1>>& field, bool isAngle = false);
 
         void checkBlade();
         void checkRadiusList(scalar maxRadius, scalar minRadius, const scalarList& radiuslist);

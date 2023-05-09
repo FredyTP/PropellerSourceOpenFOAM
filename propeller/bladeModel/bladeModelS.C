@@ -4,7 +4,7 @@
 #include "IFstream.H"
 #include "csvTable.H"
 #include "OFstream.H"
-
+#include "cubicSplineInterpolation.H"
 void Foam::bladeModelS::writeBlade(label np, fileName path)
 {
     scalar dr = 1.0/(np-1);
@@ -20,7 +20,7 @@ void Foam::bladeModelS::writeBlade(label np, fileName path)
         scalar c,t,s;
         bladeSection[0]=r;
 
-        if(this->sectionAtRadius(r*maxRadius_,c,t,s,airofil))
+        if(this->sectionAtRadius(r,c,t,s,airofil))
         {
             bladeSection[1]=c;
             bladeSection[2]=t;
@@ -41,26 +41,27 @@ void Foam::bladeModelS::writeBlade(label np, fileName path)
 
 }
 
-void Foam::bladeModelS::readField(const dictionary &dict, csvTable<scalar, word> &table, linearInterpolation<scalar, scalar, 1> &field, bool isAngle)
+void Foam::bladeModelS::readField(const dictionary &dict, csvTable<scalar, word> &table, autoPtr<regularInterpolation<scalar,scalar,1>> &field, bool isAngle)
 {
     word from = dict.get<word>("from");
 
     scalarList radiusList;
     scalarList valuesList;
-
+    bool isCubic=false;
+    
     if(from == "csv")
     {
         word dataCol = dict.get<word>("data");
         word radiusCol = dict.get<word>("radius");
-
         valuesList = table.col(dataCol);
         radiusList = table.col(radiusCol);
+        isCubic = dict.getOrDefault<bool>("cubicSpline",false);
     }
     else if(from == "list")
     {
         valuesList = dict.get<scalarList>("data");
         radiusList = dict.get<scalarList>("radius");
-
+        isCubic = dict.getOrDefault<bool>("cubicSpline",false);
     }
     else
     {
@@ -80,8 +81,15 @@ void Foam::bladeModelS::readField(const dictionary &dict, csvTable<scalar, word>
         }
     }
 
-    field.setData({radiusList},valuesList);
-    field.setExtrapolationMode(extrapolationMode::emZero);
+    if(isCubic && radiusList.size()>2)
+    {
+        field = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radiusList,valuesList);
+    }
+    else
+    {
+        field = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radiusList}),valuesList);
+    }
+    field->setExtrapolationMode(extrapolationMode::emConstant);
 
 }
 
@@ -91,12 +99,12 @@ void Foam::bladeModelS::checkBlade()
     scalar maxRadius=-1;
 
     //First radius
-    minRadius = chord_.getInputs()[0][0];
-    maxRadius = chord_.getInputs()[0].last();
+    minRadius = chord_->getInputs()[0][0];
+    maxRadius = chord_->getInputs()[0].last();
 
-    checkRadiusList(maxRadius,minRadius,chord_.getInputs()[0]);
-    checkRadiusList(maxRadius,minRadius,twistAngle_.getInputs()[0]);
-    checkRadiusList(maxRadius,minRadius,sweepAngle_.getInputs()[0]);
+    checkRadiusList(maxRadius,minRadius,chord_->getInputs()[0]);
+    checkRadiusList(maxRadius,minRadius,twistAngle_->getInputs()[0]);
+    checkRadiusList(maxRadius,minRadius,sweepAngle_->getInputs()[0]);
     checkRadiusList(maxRadius,minRadius,airfoils_.getInputs()[0]);
 
     if(!adimensional_)
@@ -192,33 +200,18 @@ Foam::bladeModelS::bladeModelS(
     airfoils_.setData({radius},airfoilModels);
     airfoils_.setExtrapolationMode(extrapolationMode::emZero);
 
-    Info<<"Chord: " <<chord_<<endl;
-    Info<<"Twist: " <<twistAngle_<<endl;
-    Info<<"Sweep: " <<sweepAngle_<<endl;
+    Info<<"Chord: " <<chord_.ref()<<endl;
+    Info<<"Twist: " <<twistAngle_.ref()<<endl;
+    Info<<"Sweep: " <<sweepAngle_.ref()<<endl;
 
     checkBlade();
-
-    
-
 }
 
 bool Foam::bladeModelS::sectionAtRadius(scalar radius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil)
 {
-
-    /*if(adimensional_)
-    {
-        radius /= maxRadius_;
-    }
-
-    if(radius>1.0 || radius < innerRadius_)
-    {
-        chord=0.0;
-        return false;
-    }*/
-    
-    chord = chord_.interpolate({radius}).value();
-    twist = twistAngle_.interpolate({radius}).value();
-    sweep = sweepAngle_.interpolate({radius}).value();
+    chord = chord_->interpolate({radius}).value();
+    twist = twistAngle_->interpolate({radius}).value();
+    sweep = sweepAngle_->interpolate({radius}).value();
     interpolated<scalar,const airfoilModel*> afl = airfoils_.interpolate({radius});
 
     airfoil = interpolatedAirfoil(afl);
