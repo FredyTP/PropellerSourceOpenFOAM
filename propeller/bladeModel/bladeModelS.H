@@ -3,7 +3,6 @@
 
 #include "linearInterpolation.H"
 #include "airfoilModelList.H"
-#include "bladeSection.H"
 #include "scalar.H"
 #include "label.H"
 #include "List.H"
@@ -18,12 +17,25 @@
 namespace Foam
 {
 
-
+/**
+ * @brief Class that represents a wing/blade, 
+ * has 4 properties:
+ *  - chord
+ *  - twist
+ *  - sweep
+ *  - airfoil
+ * The blade is made from diferent secctions or specifying the 
+ * properties from a csv a list or constant value, linear or cubic spline
+ * can be selected for the geometric properties (chord, twist, sweep).
+ * 
+ * The twist and sweep can be set from radian or degree, working internally in radian
+ * 
+ */
 class bladeModelS
 {
 protected:
         //-------------------------------------//
-        //------------BLADE SECTIONS-----------//
+        //------------BLADE PROPERTIES-----------//
 
         //- Airfoil of each section
         autoPtr<regularInterpolation<scalar,scalar,1>> chord_;
@@ -31,38 +43,24 @@ protected:
         autoPtr<regularInterpolation<scalar,scalar,1>> sweepAngle_;
         linearInterpolation<scalar,const airfoilModel*,1> airfoils_;
 
-
-        //- If radius is adimensional
-        bool adimensional_ = false;
         bool isRadian_ = false;
-        //- Holds max radius if dimensional and
-        //- specifies max radius for adimensional data
-        //- adimensional Radius = radius / maxRadius
-        scalar maxRadius_ = NO_RADIUS;
-        scalar innerRadius_ = 0.0;
 
         //- Optional input file
         fileName fName_;
 
-        
-
         void readField(const dictionary& dict,csvTable<scalar,word>& table,autoPtr<regularInterpolation<scalar,scalar,1>>& field, bool isAngle = false);
 
         void checkBlade();
-        void checkRadiusList(scalar maxRadius, scalar minRadius, const scalarList& radiuslist);
+        void checkRadiusList(const List<scalar>& radiuslist);
+
+        void readFromSections(const airfoilModelList &airfoilList, const dictionary& dict);
+        void readFromProperties(const airfoilModelList &airfoilList, const dictionary& dict);
 public:
 
     bladeModelS(const airfoilModelList& airfoilList, const dictionary& dict);
 
 
     bool sectionAtRadius(scalar radius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil);
-    /*scalar chordAtRadius(scalar radius) const;
-    scalar twistAtRadius(scalar radius) const;
-    scalar sweepAtRadius(scalar radius) const;*/
-
-    scalar maxRadius() const;
-
-    void setMaxRadius(scalar radius);
 
     void writeBlade(label np,fileName path);
 
