@@ -23,7 +23,7 @@ namespace Foam
 polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re, scalar Ma, bool isRadian)
 {
     //The polar needs atleast 2 data-points to be functional
-    processData(alpha,cl,cd);
+    
     FixedList<List<scalar>,1> alphaIn;
     alphaIn[0]=alpha;
     if(!isRadian)
@@ -33,7 +33,7 @@ polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, Li
             alphaIn[0][i] *= constant::mathematical::pi/180;
         }
     }
-
+    processData(alphaIn[0],cl,cd);
     cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cl);
     cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cd);
     reynolds_ = Re;
