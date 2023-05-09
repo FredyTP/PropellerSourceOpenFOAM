@@ -20,14 +20,14 @@ public:
             airfoilModel,
             dictionary,
             (
-                const word name,
+                word name,
                 const dictionary& dict
             ),
             (name, dict)
         );
 
     airfoilModel();
-    airfoilModel(const word name);
+    airfoilModel(word name);
     
     virtual ~airfoilModel() = default;
     
@@ -39,10 +39,11 @@ public:
     static Foam::autoPtr<Foam::airfoilModel> New(const word name, const dictionary& dict);
 
     void writeAirfoil(fileName path, scalar alfaBegin, scalar alfaEnd, label nAlfa, scalar Reyn, scalar Mach);
-    //virtual scalar cm(scalar alfaRad, scalar reynolds, scalar mach);
-protected:
 
-    const word name_;
+    //virtual scalar cm(scalar alfaRad, scalar reynolds, scalar mach);
+private:
+
+    word name_;
 
 };
 

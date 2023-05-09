@@ -16,14 +16,14 @@ Foam::airfoilModel::airfoilModel()
 {
     
 }
-Foam::airfoilModel::airfoilModel(const word name)
+Foam::airfoilModel::airfoilModel(word name)
     : name_(name)
 {
 
 }
 Foam::autoPtr<Foam::airfoilModel> Foam::airfoilModel::New
 (
-    const word name,
+    word name,
     const dictionary& dict
 )
 {

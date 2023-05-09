@@ -14,7 +14,7 @@ namespace Foam
 
     addToRunTimeSelectionTable(airfoilModel,polarAirfoil,dictionary);
 
-polarAirfoil::polarAirfoil(const word name, const dictionary& dict)
+polarAirfoil::polarAirfoil(word name, const dictionary& dict)
 :   airfoilModel(name)
 {
     if(!this->read(dict))
@@ -223,7 +223,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         }
         else
         {
-            Info<<"PolarAirfoil: "<<this->name_
+            Info<<"PolarAirfoil: "<<this->airfoilName()
             <<" in Polar (Re = "<<rePolar<<", Ma = "<<maPolar
             <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
         }

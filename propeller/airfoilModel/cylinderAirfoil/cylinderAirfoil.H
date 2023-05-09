@@ -21,8 +21,8 @@ public:
     TypeName("cylinderAirfoil");
 
 
-    cylinderAirfoil(const word name, scalar cd0);
-    cylinderAirfoil(const word name, const dictionary& dict);
+    cylinderAirfoil(word name, scalar cd0);
+    cylinderAirfoil(word name, const dictionary& dict);
 
     virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const;
     virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const;

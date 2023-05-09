@@ -11,13 +11,13 @@ namespace Foam
 
     addToRunTimeSelectionTable(airfoilModel,cylinderAirfoil,dictionary);
 
-cylinderAirfoil::cylinderAirfoil(const word name, scalar cd0)  
+cylinderAirfoil::cylinderAirfoil(word name, scalar cd0)  
 :   airfoilModel(name),
     cd0_(cd0)
 {
 
 }
-cylinderAirfoil::cylinderAirfoil(const word name, const dictionary& dict)
+cylinderAirfoil::cylinderAirfoil(word name, const dictionary& dict)
 :   airfoilModel(name)
 {
     this->read(dict);
@@ -25,9 +25,6 @@ cylinderAirfoil::cylinderAirfoil(const word name, const dictionary& dict)
 
 bool cylinderAirfoil::read(const dictionary& dict)
 {
-
-    Info<<"Reading cylinder airfoil data for:" << this->airfoilName() << endl;
-
     bool ok=true;
     ok &= dict.readEntry("cd0",cd0_);
 

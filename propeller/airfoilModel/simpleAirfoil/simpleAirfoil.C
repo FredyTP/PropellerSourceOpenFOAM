@@ -11,7 +11,7 @@ namespace Foam
 
     addToRunTimeSelectionTable(airfoilModel,simpleAirfoil,dictionary);
 
-simpleAirfoil::simpleAirfoil(const word name, scalar cl0, scalar cl_alfa, scalar K, scalar cd0)  
+simpleAirfoil::simpleAirfoil(word name, scalar cl0, scalar cl_alfa, scalar K, scalar cd0)  
 :   airfoilModel(name),
     cl0_(cl0),
     dcl_dalfa_(cl_alfa),
@@ -20,7 +20,7 @@ simpleAirfoil::simpleAirfoil(const word name, scalar cl0, scalar cl_alfa, scalar
 {
 
 }
-simpleAirfoil::simpleAirfoil(const word name, const dictionary& dict)
+simpleAirfoil::simpleAirfoil(word name, const dictionary& dict)
 :   airfoilModel(name)
 {
     this->read(dict);

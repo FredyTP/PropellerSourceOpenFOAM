@@ -17,7 +17,7 @@ public:
     
     TypeName("polarAirfoil");
 
-    polarAirfoil(const word name, const dictionary& dict);
+    polarAirfoil(word name, const dictionary& dict);
 
     virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const;
     virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const;
