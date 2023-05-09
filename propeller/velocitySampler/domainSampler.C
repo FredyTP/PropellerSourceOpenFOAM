@@ -1,27 +1,28 @@
-#include "offsetSampler.H"
+#include "domainSampler.H"
 #include "addToRunTimeSelectionTable.H"
 #include "interpolationCellPoint.H"
 
 namespace Foam
 {
  
-    defineTypeNameAndDebug(offsetSampler,0);
-    addToRunTimeSelectionTable(velocitySampler,offsetSampler, dictionary);
+    defineTypeNameAndDebug(domainSampler,0);
+    addToRunTimeSelectionTable(velocitySampler,domainSampler, dictionary);
 
-offsetSampler::offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
+domainSampler::domainSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
  : velocitySampler(rDiscrete_,rMesh_)
 {
     this->read(dict);
 }
 
-bool offsetSampler::read(const dictionary &dict)
+bool domainSampler::read(const dictionary &dict)
 {
     offset = dict.getOrDefault<scalar>("offset",0.0);
+    scale = dict.getOrDefault<scalar>("scale",1.0);
     if(std::abs(offset)<=VSMALL)
     {
         offset=0.0;
     }
-    atCellCenter = dict.getOrDefault<bool>("atCellCenter",true);
+    atCellCenter = dict.getOrDefault<bool>("atCellCenter",rDiscrete->samplingMode() == rotorDiscrete::sampleMode::spClosestCell);
     Info.stream().incrIndent();
     Info<<indent<< "- Offset: "<<offset<<endl;
     Info<<indent<< "- Sample atCellCenter: "<<atCellCenter<<endl;
@@ -42,26 +43,23 @@ bool offsetSampler::read(const dictionary &dict)
     return true;
 }
  
-const vectorField& offsetSampler::sampleVelocity(const volVectorField& U) 
+const vectorField& domainSampler::sampleVelocity(const volVectorField& U) 
 {
     //If no offset and rotorDiscrete is integrated in cell centers
     //Then the correspondence is cell to cell
-    /*if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
+    if(isDirectSample())
     {
-        const PtrList<rotorCell>& rotorCells = rDiscrete->rotorCells();
+        const PtrList<gridCell>& rotorCells = rDiscrete->grid().cells();
         forAll(rotorCells,i)
         {
-            this->sampledVel[rotorCells[i].center()] = U.primitiveField()[rotorCells[i].celli()];
+            this->sampledVel[i] = U.primitiveField()[rotorCells[i].interpolatingCelli()];
         } 
-    }*/
-    if(atCellCenter)
+    }
+    else if(atCellCenter)
     {
         forAll(this->sampledVel,i)
         {
-            //if(rDiscrete->integrationPoints()[i])
-            //{
-                this->sampledVel[i]=U.primitiveField()[cellToSample[i]];
-            //}
+            this->sampledVel[i]=U.primitiveField()[cellToSample[i]];
         }     
     }
     else
@@ -69,24 +67,21 @@ const vectorField& offsetSampler::sampleVelocity(const volVectorField& U)
         interpolationCellPoint<vector> interp(U);
         forAll(this->sampledVel,i)
         {
-            if(true)//rDiscrete->integrationPoints()[i])
-            {
-                this->sampledVel[i]=interp.interpolate(*(cellWeights[i].get()));
-            }          
+            this->sampledVel[i]=interp.interpolate(*(cellWeights[i].get()));       
         }      
     }
 
     return this->sampledVel;
 }
-bool offsetSampler::build()
+bool domainSampler::build()
 {
     //If offset is 0.0 and rotorDiscrete is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
-    /*if(offset == 0.0 && rDiscrete->integrationMode() == rotorCell::integrationMode::imCenter)
+    if(isDirectSample())
     {
         return true;
-    }*/
+    }
     const List<point>& cylPoints = rDiscrete->grid().centers();
     cellToSample.resize(cylPoints.size());
     if(!atCellCenter)
@@ -98,20 +93,16 @@ bool offsetSampler::build()
     //Iterate over all discretization points
     forAll(cylPoints, i)
     {
-        //Just get on the integration points
-        /*if(!rDiscrete->integrationPoints()[i])
-        {
-            continue;
-        }*/
         //Get global coordinates
-        point rPoint = rDiscrete->cylindrical().globalPosition(cylPoints[i]);
-
+        vector localPoint = cylPoints[i];
+        //Scale radius
+        localPoint.x() = localPoint.x()*scale;
+        point rPoint = rDiscrete->cylindrical().globalPosition(localPoint);
+        
         //Add the offset normal to the geometry
         rPoint += rDiscrete->geometry().direction().get() * offset;
         //Find the cell where the point is and set to the list
-        //cellToSample[i] = rMesh->mesh().findCell(rPoint); 
-
-        cellToSample[i]=rDiscrete->grid().cells()[i].interpolatingCelli();
+        cellToSample[i] = rMesh->mesh().findCell(rPoint); 
 
         if(cellToSample[i]==-1)
         {
@@ -131,7 +122,7 @@ bool offsetSampler::build()
     return true;
 }
 
-void offsetSampler::writeSampled(const word& name)
+void domainSampler::writeSampled(const word& name)
 {
     volScalarField sampled
         (
@@ -144,19 +135,29 @@ void offsetSampler::writeSampled(const word& name)
             rMesh->mesh(),
             dimensionedScalar(dimless, Zero)
     );
-
-    forAll(cellToSample,i)
+    if(isDirectSample())
     {
-        /*if(!rDiscrete->integrationPoints()[i])
+        forAll(rDiscrete->grid().cells(),i)
         {
-            continue;
-        }*/
-
-        sampled[cellToSample[i]]+=1.0;   
-
-        
+            const auto& cell = rDiscrete->grid().cells()[i];
+            sampled[cell.interpolatingCelli()] +=1.0;
+        }
     }
+    else
+    {
+        forAll(cellToSample,i)
+        {
+            sampled[cellToSample[i]]+=1.0;   
+        }
+    }
+
     sampled.write();
 }
+bool domainSampler::isDirectSample()
+{
+    return offset == 0.0 
+    && atCellCenter 
+    && rDiscrete->samplingMode() == rotorDiscrete::sampleMode::spClosestCell;
 }
 
+}

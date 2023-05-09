@@ -36,8 +36,6 @@ void gridCell::build()
     {
         weights_[i]/=totalw;
     }
-
-
 }
 
 void gridCell::setCenter(vector &center)
@@ -81,7 +79,7 @@ void gridCell::applySource(vectorField &source, const scalarField& cellVol, vect
 {
     forAll(cellis_,k)
     {
-        source[cellis_[k]] -=  (weights_[k] * scaledForce/cellVol[cellis_[k]]);
+        source[cellis_[k]] =  -(weights_[k] * scaledForce/cellVol[cellis_[k]]);
     }
 }
 

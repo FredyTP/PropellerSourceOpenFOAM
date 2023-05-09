@@ -24,7 +24,7 @@ propeller/rotorDiscrete/grid/cell/gridCell.C
 
 propeller/velocitySampler/velocitySampler.C
 propeller/velocitySampler/fixedVelocity.C
-propeller/velocitySampler/offsetSampler.C
+propeller/velocitySampler/domainSampler.C
 propeller/velocitySampler/fileSampler.C
 
 EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid

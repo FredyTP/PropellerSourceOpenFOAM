@@ -24,13 +24,13 @@ public:
         dmPolar, //Polar discretization from radial and azimutal vectors
         dmUniform, //Uniformly distributed points
     };
-    enum discreteMethod
+    enum sampleMode
     {
-        dmeVoronoid,
-        dmeIntersection,
-        dmeOld
+        spCenter,
+        spClosestCell,
+        spCellMean
     };
-    static const Enum<discreteMethod> discreteMethodNames_;
+    static const Enum<sampleMode> sampleModeNames_;
 
 private:
 
@@ -50,7 +50,7 @@ private:
     rotorGrid grid_;
 
     discreteMode discreteMode_ = discreteMode::dmNone;
-
+    sampleMode sampleMode_;
 
     bool correctCenters_ = false;
     bool includeVertex_ = true;
@@ -103,6 +103,8 @@ TypeName("rotorDiscrete");
         const coordSystem::cylindrical& carToCyl() const {return carToCylCS_;}
         const coordSystem::cartesian& cartesian() const {return carCS_;}
         const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
+
+        sampleMode samplingMode() const { return sampleMode_;}
 
 
 private:

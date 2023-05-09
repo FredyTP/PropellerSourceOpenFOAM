@@ -70,7 +70,8 @@ void rotorFvMeshSel::build(rotorGeometry& rotorGeometry)
         if(!rgReady)
         {
             FatalErrorInFunction
-                << "Trying to select rotor mesh with incomplete geometry"
+                << "Trying to select rotor mesh with incomplete geometry: "<<endl
+                << rotorGeometry
                 <<exit(FatalError);
         }
 

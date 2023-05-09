@@ -34,7 +34,7 @@ public:
     {
         checkValid_.append(checkValid);
     }
-    static bool isPositive(const type& val)
+    static bool isPositive(const type& val) 
     {
         return val>0;
     }
@@ -54,7 +54,7 @@ public:
         return mag(val)>0;
     }
 
-    bool isValid()
+    bool isValid() const
     {
         bool valid=true;
         forAll(checkValid_,i)
@@ -64,12 +64,12 @@ public:
         return valid;
     }
     
-    bool isSet()
+    bool isSet() const
     {
         return set_;
     }
 
-    bool isReady()
+    bool isReady() const
     {
         return isSet() && isValid();
     }
@@ -83,7 +83,22 @@ public:
     {
         return var_;
     }
-    
+    friend Ostream& operator<<(Ostream& os, const property<type>& p)
+    {
+        if(!p.isSet())
+        {
+            os<<"unset";
+        }
+        else if(!p.isValid())
+        {
+            os<<"invalid("<<p.get()<<")";
+        }
+        else
+        {
+            os<<p.get();
+        }
+        return os;
+    }
 };
 
 }

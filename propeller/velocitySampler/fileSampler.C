@@ -13,7 +13,7 @@ namespace Foam
 
 
 fileSampler::fileSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
-    : offsetSampler(dict,rDiscrete_,rMesh_)
+    : domainSampler(dict,rDiscrete_,rMesh_)
 {
     this->read(dict);
 }
@@ -101,7 +101,7 @@ bool fileSampler::read(const dictionary &dict)
 
 const vectorField& fileSampler::sampleVelocity(const volVectorField& U)
 {
-    return offsetSampler::sampleVelocity(*uFromFile_);
+    return domainSampler::sampleVelocity(*uFromFile_);
 }
 
 }

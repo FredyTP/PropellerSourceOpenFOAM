@@ -17,14 +17,13 @@ defineTypeNameAndDebug(rotorDiscrete, 0);
 
 const Enum
 <
-    rotorDiscrete::discreteMethod
+    rotorDiscrete::sampleMode
 >
-rotorDiscrete::discreteMethodNames_
+rotorDiscrete::sampleModeNames_
 ({
-    {discreteMethod::dmeVoronoid, "voronoid"},
-    {discreteMethod::dmeIntersection, "intersection"}
+    {sampleMode::spCenter, "center"},
+    {sampleMode::spClosestCell, "closestCell"},
 });
-
 
 
 rotorDiscrete::rotorDiscrete(const dictionary& dict)
@@ -149,8 +148,12 @@ void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel)
     const labelList& cellis = rotorFvMeshSel.cells();
 
     grid_.assignFvCells(cellCenter,cellVol,cellis);
-    grid_.setCenterFromClosestCell(cellCenter);
+    if(sampleMode_ == spClosestCell)
+    {
+        grid_.setCenterFromClosestCell(cellCenter);
+    }
     grid_.build();
+
 }
 
 bool rotorDiscrete::read(const dictionary &dict)
@@ -169,13 +172,14 @@ bool rotorDiscrete::read(const dictionary &dict)
     
     nRadial = dict.get<label>("nRadial");
     nAzimutal = dict.get<label>("nAzimutal");
+    sampleMode_ = sampleModeNames_.getOrDefault("sampleMode",dict,sampleMode::spClosestCell);
 
     Info<<endl;    
     Info << "Reading rotor Discrete dict:" << endl;
     Info.stream().incrIndent();
     indent(Info)<<"- Radial Cells: "<<nRadial<<endl;
     indent(Info)<<"- Azimutal Cells: "<<nAzimutal<<endl;
-
+    indent(Info)<<"- Sample Mode: "<<sampleModeNames_.get(sampleMode_)<<endl;
     //indent(Info)<<"- Discrete method: "<<rotorDiscrete::discreteMethodNames_.get(discreteMethod_)<<endl;
     //indent(Info)<<"- Border refinement: "<<refinementLevel_<<endl;
     //indent(Info)<<"- Correct centers: "<<correctCenters_<<endl;

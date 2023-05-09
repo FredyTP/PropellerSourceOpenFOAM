@@ -1,5 +1,5 @@
-#ifndef PROPELLER_VELOCITY_SAMPLER_OFFSET_SAMPLER
-#define PROPELLER_VELOCITY_SAMPLER_OFFSET_SAMPLER
+#ifndef PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER
+#define PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER
 
 #include "velocitySampler.H"
 #include "rotorDiscrete.H"
@@ -28,17 +28,17 @@ namespace Foam
  *   velocitySampler
  *   {
  *   
- *       type            offsetSampler;
+ *       type            domainSampler;
  *       offset          0.2;
  *       atCellCenter    true;
  *   }
  */
-class offsetSampler : public velocitySampler
+class domainSampler : public velocitySampler
 {
 public:
-    TypeName("offsetSampler");
+    TypeName("domainSampler");
 
-    offsetSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
+    domainSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
 
     bool read(const dictionary& dict);
 
@@ -47,8 +47,11 @@ public:
     bool build();
 
     void writeSampled(const word& name);
+
+    bool isDirectSample();
 private:
     scalar offset;
+    scalar scale;
     bool atCellCenter;
     List<label> cellToSample;
     List<point> posToSample;
@@ -57,6 +60,6 @@ private:
 
 }
 
-#endif /* PROPELLER_VELOCITY_SAMPLER_OFFSET_SAMPLER */
+#endif /* PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER */
 
 

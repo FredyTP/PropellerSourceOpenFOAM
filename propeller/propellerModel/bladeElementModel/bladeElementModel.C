@@ -2,7 +2,7 @@
 #include "bladeSection.H"
 #include "addToRunTimeSelectionTable.H"
 #include "rotorGrid.H"
-
+#include "cubicSplineInterpolation.H"
 namespace Foam
 {
     //set and define the type name "typeName"
@@ -63,6 +63,18 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         mesh(),
         dimensionedScalar(dimless, Zero)
     );
+    volVectorField bemForce(
+        IOobject
+        (
+            "bemForce",
+            mesh().time().timeName(),
+            mesh(),
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh(),
+        dimensionedVector(dimless, Zero)
+    );
 
     //---CALCULATE VALUE ON INTEGRATION POINTS---//
     forAll(cells, i)
@@ -72,13 +84,18 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         vector forceOverLen = nBlades_ * this->calculatePoint(U[i],angularVelocity,cell,data);
 
         vector cellforce = cell.scaleForce(forceOverLen);
+
         vector localForce = rotorDiscrete_.cartesian().localVector(cellforce);
         result.force += localForce;
-        vector localPos = rotorDiscrete_.carToCyl().localPosition(cell.center());
+        vector localPos = rotorDiscrete_.carToCyl().globalPosition(cell.center());
         result.torque += localForce.cross(localPos);
 
         cell.applySource(force,cellVol,cellforce);
         cell.applyField<scalar>(weights.ref(false),cell.weights());
+        cell.applyField<vector>(bemForce.ref(false),cellforce);
+        if(data.aoa>aoaMax) aoaMax=data.aoa;
+        if(data.aoa<aoaMin) aoaMin=data.aoa;
+
     }
 
     reduce(aoaMax,maxOp<scalar>());
@@ -100,6 +117,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     if(mesh().time().writeTime())
     {
         weights.write();
+        bemForce.write();
     }
 
     return result;

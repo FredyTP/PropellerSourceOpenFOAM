@@ -2,7 +2,7 @@
 #define PROPELLER_VELOCITY_SAMPLER_FILE_SAMPLER
 
 #include "velocitySampler.H"
-#include "offsetSampler.H"
+#include "domainSampler.H"
 #include "rotorDiscrete.H"
 #include "rotorFvMeshSel.H"
 #include "dictionary.H"
@@ -26,7 +26,7 @@ namespace Foam
  * 
  * 
  */
-class fileSampler : public offsetSampler
+class fileSampler : public domainSampler
 {
 public:
     TypeName("fileSampler");

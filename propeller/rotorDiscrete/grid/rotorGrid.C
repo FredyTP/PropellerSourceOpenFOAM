@@ -112,7 +112,7 @@ void rotorGrid::buildGrid()
     {
         for(label j = 0; j<thetaCells;j++)
         {
-            cells_.emplace(index(i,j,0),radius_[i],radius_[i+1],theta_[i],theta_[i+1]);
+            cells_.emplace(index(i,j,0),radius_[i],radius_[i+1],theta_[j],theta_[j+1]);
         }
     }
 }

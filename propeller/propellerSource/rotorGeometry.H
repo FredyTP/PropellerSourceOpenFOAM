@@ -1,9 +1,9 @@
-#ifndef PROPELLER_ROTOR_MESH_ROTOR_GEOMETRY
-#define PROPELLER_ROTOR_MESH_ROTOR_GEOMETRY
+#ifndef PROPELLER_PROPELLER_SOURCE_ROTOR_GEOMETRY
+#define PROPELLER_PROPELLER_SOURCE_ROTOR_GEOMETRY
 #include "scalar.H"
 #include "vector.H"
 #include "property.H"
-#include "StringStream.H"
+
 #define NO_RADIUS -1.0
 
 namespace Foam
@@ -92,32 +92,31 @@ public:
                 psiRef_.isSet();
     }
     template<class pType>
-    static string getFieldString(util::property<pType>& prop)
+    static Ostream& getFieldString(Ostream& os,const util::property<pType>& prop)
     {
-        OStringStream field;
         /*if(!prop.isSet())
         {
-            field << "unset";
+            os << "unset";
         }
         else if(!prop.isValid())
         {
-            field << "invalid("<<prop.get()<<")";
+            os << "invalid("<<prop.get()<<")";
         }
         else
         {
-            field<<prop.get();
+            os<<prop.get();
         }*/
-        return field.str();
+
+        return os;
     }
     friend Ostream& operator<<(Ostream& os, const rotorGeometry& r)
     {
         os.incrIndent();
-        word innerRadius,radius,center,direction,psiRef;
-        /*innerRadius <<"- innerRadius: "<<rotorGeometry::getFieldString(r.innerRadius())<<endl;
-        indent(os) <<"- radius: "<<rotorGeometry::getFieldString(r.radius())<<endl;
-        indent(os) <<"- center: "<<rotorGeometry::getFieldString(r.center())<<endl;
-        indent(os) <<"- direction: "<<rotorGeometry::getFieldString(r.direction())<<endl;
-        indent(os) <<"- psiRef: "<< rotorGeometry::getFieldString(r.psiRef())<<endl;*/
+        indent(os) <<"- innerRadius: "<<r.innerRadius()<<endl;
+        indent(os) <<"- radius: "<<r.radius()<<endl;
+        indent(os) <<"- center: "<<r.center()<<endl;
+        indent(os) <<"- direction: "<<r.direction()<<endl;
+        indent(os) <<"- psiRef: "<< r.psiRef()<<endl;
 
         os.decrIndent();
         return os;
@@ -135,4 +134,4 @@ protected:
 
 
 
-#endif /* PROPELLER_ROTOR_MESH_ROTOR_GEOMETRY */
+#endif /* PROPELLER_PROPELLER_SOURCE_ROTOR_GEOMETRY */

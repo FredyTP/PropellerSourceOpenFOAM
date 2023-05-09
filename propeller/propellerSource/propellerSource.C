@@ -1,5 +1,3 @@
-
-
 #include "propellerSource.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvMatrices.H"
@@ -7,6 +5,10 @@
 
 #include "cellSet.H"
 #include "closestNeighbor.H"
+#include "SquareMatrix.H"
+#include "simpleMatrix.H"
+#include "regularInterpolation.H"
+#include "csvTable.H"
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
 namespace Foam
@@ -158,7 +160,6 @@ void Foam::fv::propellerSource::addSup
 )
 {
     //Create force vector field from mesh and set dimensions
-
     Info<<"VectorFieldi: "<<fieldi<<endl;
     Info<< name() << ": applying source to " << eqn.psi().name() << endl;
 
@@ -178,6 +179,24 @@ void Foam::fv::propellerSource::addSup
     //Add source term to the equation
     eqn+=force;
 
+
+    volScalarField vol
+        (
+            IOobject
+            (
+                "cellVolume",
+                mesh_.time().timeName(),
+                mesh_,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh_,
+            dimensionedScalar(dimVolume, Zero)
+        );
+        forAll(mesh_.V(),i)
+        {
+            vol[i]=mesh_.V()[i];
+        }
     //If its time to write into files
     if(mesh_.time().writeTime())
     {
@@ -185,6 +204,7 @@ void Foam::fv::propellerSource::addSup
         //force.write();
         //Check if want to save sampled cells
         velSampler_->writeSampled(this->name());
+        vol.write();
 
     }
 
