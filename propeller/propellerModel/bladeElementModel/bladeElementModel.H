@@ -51,7 +51,7 @@ public:
     virtual ~bladeElementModel() = default;
 
     //-Getter
-    virtual scalar radius() const;
+
 
     virtual void build(const rotorGeometry& rotorGeometry);
 

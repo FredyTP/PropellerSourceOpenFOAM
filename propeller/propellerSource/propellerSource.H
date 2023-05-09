@@ -14,7 +14,6 @@
 #include "airfoilModel.H"
 #include "airfoilModelList.H"
 
-#include "bladeModelDev.H"
 #include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
 

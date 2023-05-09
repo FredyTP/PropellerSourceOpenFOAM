@@ -1,5 +1,4 @@
 #include "bladeElementModel.H"
-#include "bladeSection.H"
 #include "addToRunTimeSelectionTable.H"
 #include "rotorGrid.H"
 #include "cubicSplineInterpolation.H"
@@ -19,23 +18,18 @@ Foam::bladeElementModel::bladeElementModel
 ) : 
     propellerModel(dict,typeName),
     airfoils_(dict.subDict("airfoils")),
-    bladeModel_(airfoils_,dict.subDict("bladeTest")),
+    bladeModel_(airfoils_,dict.subDict("bladeModel")),
     rotorDiscrete_(dict.subOrEmptyDict("discrete"))
 {    
     dict.readEntry("nBlades",nBlades_);
     tipFactor_ = dict.getOrDefault<scalar>("tipFactor",1);
 }
 
-Foam::scalar Foam::bladeElementModel::radius() const
-{
-    return bladeModel_.maxRadius();
-}
 
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorDiscrete_.createGrid(rotorGeometry);
     rotorDiscrete_.setFvMeshSel(*rotorFvMeshSel_);
-    bladeModel_.setMaxRadius(rotorGeometry.radius().get());
 
     bladeModel_.writeBlade(300,"blade.csv");
 }

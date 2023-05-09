@@ -88,8 +88,6 @@ bool domainSampler::build()
     {
         cellWeights.resize(cylPoints.size());
     }
-
-    const vectorField& cellCenter = rMesh->mesh().C();
     //Iterate over all discretization points
     forAll(cylPoints, i)
     {

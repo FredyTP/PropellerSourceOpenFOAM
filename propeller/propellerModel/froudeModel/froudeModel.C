@@ -22,8 +22,4 @@ Foam::froudeModel::froudeModel
     Info<<"Creating froude Model"<<endl;
 }
 
- Foam::scalar Foam::froudeModel::radius() const
- {
-    return 0;
- }
  

@@ -31,8 +31,6 @@ public:
     //- Destructor
     virtual ~froudeModel() = default;
 
-    //-Getter
-    virtual scalar radius() const;
     
     virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
 private:

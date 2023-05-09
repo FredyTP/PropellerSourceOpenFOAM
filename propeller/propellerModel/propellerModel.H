@@ -65,8 +65,6 @@ public:
 
         virtual ~propellerModel() = default;
 
-    // Abstract functions
-        virtual scalar radius() const = 0;
 
     void setRotorMesh(const rotorFvMeshSel* rotorFvMeshSel){ rotorFvMeshSel_ = rotorFvMeshSel;}
 
