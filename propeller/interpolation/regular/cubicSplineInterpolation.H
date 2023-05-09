@@ -71,13 +71,37 @@ public:
     interpolated<scalar,scalar> interpolate(FixedList<scalar,1> input) const
     {
         label i1,i2;
-        interpolated<scalar,scalar> result;
-        regularInterpolation<scalar,scalar,1>::FindIndex(input[0],parent::inputs[0],i1,i2);
-        scalar dx = input[0]-parent::inputs[0][i1];
-        result.points().append(parent::outputs[i1]+bi[i1]*dx+ci[i1]*dx*dx+di[i1]*dx*dx*dx);
-        result.coefficients().append(1);
+        interpolated<scalar,scalar> interp;
+        label result = regularInterpolation<scalar,scalar,1>::FindIndex(input[0],parent::inputs[0],i1,i2);
 
-        return result;
+        if(result==0)
+        {                
+            switch (this->exMode)
+            {
+            case extrapolationMode::emConstant :
+                interp.points().append(parent::outputs[i1]);
+                interp.coefficients().append(1);
+                break;
+            case extrapolationMode::emZero :
+                interp.points().append(0);
+                interp.coefficients().append(0);
+                break;
+            default:
+                interp.points().append(0);
+                interp.coefficients().append(0);
+                break;
+            }
+            
+        }
+        else
+        {
+            scalar dx = input[0]-parent::inputs[0][i1];
+            interp.points().append(parent::outputs[i1]+bi[i1]*dx+ci[i1]*dx*dx+di[i1]*dx*dx*dx);
+            interp.coefficients().append(1);
+        }
+
+
+        return interp;
 
     }
     virtual label size() {
