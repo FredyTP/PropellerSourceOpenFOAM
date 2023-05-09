@@ -28,6 +28,7 @@ public:
 
     airfoilModel();
     airfoilModel(word name);
+    airfoilModel(word name, const dictionary& dict);
     
     virtual ~airfoilModel() = default;
     
@@ -38,12 +39,22 @@ public:
 
     static Foam::autoPtr<Foam::airfoilModel> New(const word name, const dictionary& dict);
 
-    void writeAirfoil(fileName path, scalar alfaBegin, scalar alfaEnd, label nAlfa, scalar Reyn, scalar Mach);
+    void exportAirfoil();
+    void writeAirfoil(fileName path, scalar alfaBegin, scalar alfaEnd, label nAlfa, const List<scalar>& Reyn, const List<scalar>& Mach);
 
     //virtual scalar cm(scalar alfaRad, scalar reynolds, scalar mach);
 private:
 
     word name_;
+
+    //Export properties
+    bool export_;
+    fileName path_;
+    scalar aoaBegin_;
+    scalar aoaEnd_;
+    label nAoa_;
+    List<scalar> Re_;
+    List<scalar> Ma_;
 
 };
 

@@ -21,7 +21,7 @@ vktAirfoil::vktAirfoil(const word name, scalar cl0, scalar cl_alfa, scalar K, sc
 
 }
 vktAirfoil::vktAirfoil(const word name, const dictionary& dict)
-:   airfoilModel(name)
+:   airfoilModel(name,dict)
 {
     this->read(dict);
 }

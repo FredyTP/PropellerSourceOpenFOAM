@@ -21,7 +21,7 @@ simpleAirfoil::simpleAirfoil(word name, scalar cl0, scalar cl_alfa, scalar K, sc
 
 }
 simpleAirfoil::simpleAirfoil(word name, const dictionary& dict)
-:   airfoilModel(name)
+:   airfoilModel(name,dict)
 {
     this->read(dict);
 }

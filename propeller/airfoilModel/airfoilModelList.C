@@ -29,6 +29,7 @@ Foam::airfoilModelList::airfoilModelList(const dictionary& dict)
             {
                 iAirfoil->build(*this);
             }
+            this->get(i)->exportAirfoil();
         }
     }
 

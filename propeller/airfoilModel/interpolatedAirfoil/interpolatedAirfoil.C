@@ -16,7 +16,7 @@ interpolatedAirfoil::interpolatedAirfoil()
 }
 
 interpolatedAirfoil::interpolatedAirfoil(word name,const dictionary& dict)
-    : airfoilModel(name)
+    : airfoilModel(name,dict)
 {
     List<scalar> coefficients = dict.get<List<scalar>>("coefficients");
     airfoilNames_ = dict.get<List<word>>("airfoils");

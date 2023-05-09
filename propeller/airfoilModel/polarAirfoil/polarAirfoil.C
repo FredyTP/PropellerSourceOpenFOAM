@@ -15,7 +15,7 @@ namespace Foam
     addToRunTimeSelectionTable(airfoilModel,polarAirfoil,dictionary);
 
 polarAirfoil::polarAirfoil(word name, const dictionary& dict)
-:   airfoilModel(name)
+:   airfoilModel(name,dict)
 {
     if(!this->read(dict))
     {
@@ -25,27 +25,6 @@ polarAirfoil::polarAirfoil(word name, const dictionary& dict)
     }
 }
 
-/*
-bool polarAirfoil::readTable(const dictionary& dict)
-{
-    Info<<"Reading polar airfoil data for: " << this->airfoilName() << endl;
-    bool ok=true;
-    ok &= dict.readEntry("file",file_);
-    word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
-    //Read airfoil data
-    if(!file_.empty())
-    {
-        Info<<"Reading polar data from: "<<file_<<endl;
-        csvTable<scalar,word> csv(true);
-        csv.readFile(file_);
-
-        auto Re = csv.col2("Re");
-        auto cl = csv.col("Cl");
-        auto cd = csv.col("Cd");
-        auto aoa = csv.col("AoA")
-        
-    }
-}*/
 
 bool polarAirfoil::read(const dictionary& dict)
 {
@@ -228,45 +207,6 @@ bool polarAirfoil::readFromCSV(word extrapolation)
             <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
         }
     }
-
-    /*for(label i = 0; i<aoa.size();i++)
-    {
-        if(i == aoa.size()-1)
-        {
-            aoaPolar.append(aoa[i]);
-            clPolar.append(cl[i]);
-            cdPolar.append(cd[i]);
-        }
-        if(ma[i] != maPolar || re[i] != rePolar || i == aoa.size()-1)
-        {
-
-            //Create polar
-            auto ptrPolar = polar::New(extrapolation,"lineal",aoaPolar,clPolar,cdPolar,rePolar,maPolar,isRadian_);
-            if(ptrPolar->valid())
-            {
-                //Increment size by 1
-                polars_.resize(polars_.size()+1);
-                polars_[polars_.size()-1].reset(ptrPolar.release());
-
-            }
-            else
-            {
-                Info<<"PolarAirfoil: "<<this->name_
-                <<" in Polar (Re = "<<rePolar<<", Ma = "<<maPolar
-                <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
-            }
-
-            maPolar = ma[i];
-            rePolar = re[i];
-
-            aoaPolar.clear();
-            clPolar.clear();
-            cdPolar.clear();
-        }
-        aoaPolar.append(aoa[i]);
-        clPolar.append(cl[i]);
-        cdPolar.append(cd[i]);
-    }*/
 
     if(polars_.size()>0)
     {

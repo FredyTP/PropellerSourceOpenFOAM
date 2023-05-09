@@ -18,7 +18,7 @@ cylinderAirfoil::cylinderAirfoil(word name, scalar cd0)
 
 }
 cylinderAirfoil::cylinderAirfoil(word name, const dictionary& dict)
-:   airfoilModel(name)
+:   airfoilModel(name,dict)
 {
     this->read(dict);
 }

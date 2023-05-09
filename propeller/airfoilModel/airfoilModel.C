@@ -2,7 +2,7 @@
 #include "runTimeSelectionTables.H"
 #include "csvTable.H"
 #include "OFstream.H"
-
+#include "constants.H"
 namespace Foam
 {
 
@@ -16,10 +16,23 @@ Foam::airfoilModel::airfoilModel()
 {
     
 }
+
 Foam::airfoilModel::airfoilModel(word name)
+    : name_(name), export_(false)
+{
+    
+}
+Foam::airfoilModel::airfoilModel(word name, const dictionary& dict)
     : name_(name)
 {
-
+    export_ = dict.getOrDefault<bool>("export",false);
+    path_ = dict.getOrDefault<fileName>("path","");
+    aoaBegin_ = dict.getOrDefault<scalar>("aoaBegin", -constant::mathematical::pi);
+    aoaEnd_ = dict.getOrDefault<scalar>("aoaBegin", constant::mathematical::pi);
+    
+    nAoa_ = dict.getOrDefault<scalar>("aoaBegin", 360); //1deg res
+    Re_ = dict.getOrDefault<List<scalar>>("Reynolds", {0}); 
+    Ma_ = dict.getOrDefault<List<scalar>>("Mach", {0}); 
 }
 Foam::autoPtr<Foam::airfoilModel> Foam::airfoilModel::New
 (
@@ -51,21 +64,48 @@ Foam::autoPtr<Foam::airfoilModel> Foam::airfoilModel::New
     return autoPtr<Foam::airfoilModel>(ctorPtr(name, dict));
 }
 
-void Foam::airfoilModel::writeAirfoil(fileName path,scalar alfaBegin, scalar alfaEnd, label nAlfa, scalar Reyn, scalar Mach)
+void Foam::airfoilModel::exportAirfoil()
+{
+    if(export_)
+    {
+        this->writeAirfoil(path_.size()>0 ? path_ : name_+".csv",aoaBegin_,aoaEnd_,nAoa_,Re_,Ma_);
+    }
+}
+
+void Foam::airfoilModel::writeAirfoil(fileName path, scalar alfaBegin, scalar alfaEnd, label nAlfa, const List<scalar> &Reyn, const List<scalar> &Mach)
 {
     scalar da = (alfaEnd-alfaBegin)/(nAlfa-1);
-    csvTable<scalar,word> csv(true);
-    List<word> title({"alphaRad","cl","cd"});
-    csv.setHeader(title);
-    for(label i = 0;i < nAlfa;i++)
-    {
-        scalar alfa = alfaBegin + i*da;
-        scalar cl = this->cl(alfa,Reyn,Mach);
-        scalar cd = this->cd(alfa,Reyn,Mach);
+    
 
-        List<scalar> row({alfa,cl,cd});
-        csv.addRow(row);
+    label n = Reyn.size()*Mach.size()*nAlfa;
+    List<scalar> clList(n),cdList(n),aoaList(n),reList(n),maList(n);
+
+    label cont =0;
+    for(label iRe = 0 ; iRe < Reyn.size();iRe++)
+    {
+        for(label iMa = 0 ; iMa < Reyn.size();iMa++)
+        {
+            for(label i = 0; i < nAlfa;i++)
+            {
+                scalar alfa = alfaBegin + i*da;
+                aoaList[cont] = alfa;
+                clList[cont] = this->cl(alfa,Reyn[iRe],Mach[iMa]);
+                cdList[cont] = this->cd(alfa,Reyn[iRe],Mach[iMa]);
+                reList[cont] = Reyn[iRe];
+                maList[cont] = Mach[iMa];
+                ++cont;
+            }
+        }
     }
+
+    csvTable<scalar,word> csv(true);
+
+    csv.addCol(aoaList,"aoaRad");
+    csv.addCol(clList,"cl");
+    csv.addCol(cdList,"cd");
+    csv.addCol(reList,"Re");
+    csv.addCol(maList,"Ma");
+
 
     OFstream file(path);
     file<<csv;
