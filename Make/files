@@ -20,7 +20,10 @@ propeller/rotorDynamics/rotorDynamics.C
 propeller/rotorDynamics/fixedPower.C
 propeller/rotorDynamics/fixedSpeed.C
 propeller/rotorDiscrete/grid/rotorGrid.C
+propeller/rotorDiscrete/grid/polarGrid.C
+propeller/rotorDiscrete/grid/bladeGrid.C
 propeller/rotorDiscrete/grid/cell/gridCell.C
+propeller/rotorDiscrete/grid/cell/bladeCell.C
 
 propeller/velocitySampler/velocitySampler.C
 propeller/velocitySampler/fixedVelocity.C

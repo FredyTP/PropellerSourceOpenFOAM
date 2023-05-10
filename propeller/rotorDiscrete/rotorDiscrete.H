@@ -47,7 +47,7 @@ private:
     const rotorGeometry* rotorGeometry_;
     const rotorFvMeshSel* rotorMeshSel_;
        
-    rotorGrid grid_;
+    autoPtr<rotorGrid> grid_;
 
     discreteMode discreteMode_ = discreteMode::dmNone;
     sampleMode sampleMode_;
@@ -97,8 +97,8 @@ TypeName("rotorDiscrete");
      //Getters
         const rotorGeometry& geometry() const {return *rotorGeometry_;}
         const rotorFvMeshSel& meshSel() const {return *rotorMeshSel_;}
-        rotorGrid& grid() {return grid_;}
-        const rotorGrid& grid() const {return grid_;}
+        rotorGrid* grid() {return grid_.get();}
+        const rotorGrid* grid() const {return grid_.get();}
         discreteMode mode() const {return discreteMode_;}
         const coordSystem::cylindrical& carToCyl() const {return carToCylCS_;}
         const coordSystem::cartesian& cartesian() const {return carCS_;}
@@ -108,7 +108,7 @@ TypeName("rotorDiscrete");
 
 
 private:
-
+    dictionary dict_;
 };    
 
 

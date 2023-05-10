@@ -27,8 +27,10 @@ rotorDiscrete::sampleModeNames_
 
 
 rotorDiscrete::rotorDiscrete(const dictionary& dict)
+   : dict_(dict)
 {
     this->read(dict);
+    
 }
 void rotorDiscrete::createGrid(const rotorGeometry &geometry)
 {
@@ -53,14 +55,7 @@ void rotorDiscrete::createGrid(const rotorGeometry &geometry)
         vector(1, 0, 0)  // same x-axis
     );
 
-    grid_ = rotorGrid
-    (
-        nRadial,
-        nAzimutal,
-        rotorGeometry_->innerRadius().get(),
-        rotorGeometry_->radius().get(),
-        cylCS_
-    );
+    grid_ = rotorGrid::New(dict_,carCS_,cylCS_,rotorGeometry_->innerRadius().get(),rotorGeometry_->radius().get());
 }
 
 
@@ -142,17 +137,46 @@ void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel)
     Info<<endl;
     Info << "Assigning fvMeshCell to rotorGrid: " << endl;
     rotorMeshSel_ = &rotorFvMeshSel;
+
     // List ref.
     const vectorField& cellCenter = rotorFvMeshSel.mesh().C();
     const scalarField& cellVol = rotorFvMeshSel.mesh().V();
     const labelList& cellis = rotorFvMeshSel.cells();
 
-    grid_.assignFvCells(cellCenter,cellVol,cellis);
+    Info<<"Assigning fv cells"<<endl;
+
+    grid_->assignFvCells(cellCenter,cellVol,cellis);
     if(sampleMode_ == spClosestCell)
     {
-        grid_.setCenterFromClosestCell(cellCenter);
+        grid_->setCenterFromClosestCell(cellCenter);
     }
-    grid_.build();
+    Info<<"Building "<<endl;
+    grid_->build();
+
+    volScalarField selected
+    (
+        IOobject
+        (
+            "selectedCells",
+            rotorMeshSel_->mesh().time().timeName(),
+            rotorMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorMeshSel_->mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
+
+    Info<<"applying field"<<endl;
+    forAll(grid_->cells(),i)
+    {
+        grid_->cells()[i].applyField<scalar>(selected.ref(false),1);
+    }
+
+    selected.write();
+
+    Info<<"finished"<<endl;
+    
 
 }
 

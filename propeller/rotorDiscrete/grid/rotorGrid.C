@@ -1,71 +1,25 @@
 #include "rotorGrid.H"
+#include "polarGrid.H"
+#include "bladeGrid.H"
 #include "mathematicalConstants.H"
 #include "regularInterpolation.H"
 
 namespace Foam
 {
-rotorGrid::rotorGrid(label nRadius, label nTheta, scalar minRadius, scalar maxRadius,const coordSystem::cylindrical &cylCS)
-    : cylCS_(cylCS), minRadius_(minRadius),maxRadius_(maxRadius),radius_(nRadius+1),theta_(nTheta+1),ijkAddressing(nRadius,nTheta,0)
+
+rotorGrid::rotorGrid(const coordSystem::cylindrical &cylCS, scalar innerRadius, scalar radius)
 {
-    scalar dr = (maxRadius_-minRadius_)/nRadius;
-    scalar dt = (constant::mathematical::twoPi)/nTheta;
-
-
-    for(label i = 0; i <nRadius+1;i++)
-    {
-        radius_[i]=minRadius_+dr*i;
-    }
-
-
-    for(label i = 0; i <nTheta+1;i++)
-    {
-        theta_[i]=-constant::mathematical::pi+dt*i;
-    }
-    //Closed loop
-
-    buildGrid();
+    cylCS_ = cylCS;
+    minRadius_ = innerRadius;
+    maxRadius_ = radius;
 }
-
-void rotorGrid::assignFvCells(const vectorField &cellCenter, const scalarField& weights, const labelList& cellis)
-{
-    forAll(cellis,i)
-    {
-        label celli = cellis[i];
-        vector cc = cellCenter[celli];
-        vector polar = cylCS_.localPosition(cc);
-        label ir=0;
-        label unused;
-        label it=0;
-        int result = regularInterpolation<scalar,scalar,1>::FindIndex(polar.x(),this->radius(),ir,unused);
-        regularInterpolation<scalar,scalar,1>::FindIndex(polar.y(),this->theta(),it,unused);
-
-        if(result == 1)
-        {
-            this->cell(ir,it).addCelli(celli,weights[celli]);
-        }
-    }
-}
-
-void rotorGrid::build()
-{
-    centers_.resize(cells_.size());
-    forAll(cells_,i)
-    {
-        cells_[i].build();
-        centers_[i]=cells_[i].center();
-        tensor bladetensor = rotorGrid::bladeLocalFromPoint(cylCS_,cells_[i].center());
-        cells_[i].setLocalTensor(bladetensor);
-    }
-}
-
 void rotorGrid::setCenterFromClosestCell(const vectorField &cellCenter)
 {
-    forAll(cells_,i)
+    forAll(cells_, i)
     {
-        cells_[i].centerFromClosestCell(cellCenter,cylCS_);
+        cells_[i].centerFromClosestCell(cellCenter, cylCS_);
     }
 }
-
 tensor rotorGrid::bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint) 
 {
     // z- up, y -outwards from center, x perpendicular y,z (leading edge to trailing edge)
@@ -101,20 +55,32 @@ tensor rotorGrid::bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, con
 
     return rotTensor;
 }
-void rotorGrid::buildGrid()
+
+autoPtr<rotorGrid> rotorGrid::New(const dictionary &dict, const coordSystem::cartesian& carCS, const coordSystem::cylindrical &cylCS, scalar innerRadius, scalar radius)
 {
-    label radialCells = radius_.size()-1;
-    label thetaCells = theta_.size()-1;
-
-    cells_.resize(radialCells*thetaCells);
-
-    for(label i = 0; i< radialCells;i++)
+    word type = dict.get<word>("type");
+    autoPtr<rotorGrid> ptr;
+    if(type=="polarGrid")
     {
-        for(label j = 0; j<thetaCells;j++)
-        {
-            cells_.emplace(index(i,j,0),radius_[i],radius_[i+1],theta_[j],theta_[j+1]);
-        }
+        Info<<"Creating polar grid"<<endl;
+        scalar nRadial = dict.get<label>("nRadial");
+        scalar nAzimutal = dict.get<label>("nAzimutal");
+        ptr = autoPtr<rotorGrid>::NewFrom<polarGrid>(nRadial,nAzimutal,innerRadius,radius,cylCS);
     }
-}
+    else if ( type == "meshGrid")
+    {
 
+    }
+    else if (type == "bladeGrid")
+    {
+        Info<<"Creating bladeGrid"<<endl;
+        scalar nRadial = dict.get<label>("nRadial");
+        scalar nChord = dict.get<label>("nChord");
+        label nBlade = 3;
+        scalar chord = 0.05;
+        ptr = autoPtr<rotorGrid>::NewFrom<bladeGrid>(carCS,cylCS,innerRadius,radius,chord,nBlade,nRadial,nChord);
+    }
+
+    return ptr;
+}
 }

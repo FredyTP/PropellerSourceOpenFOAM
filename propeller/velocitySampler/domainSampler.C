@@ -49,7 +49,7 @@ const vectorField& domainSampler::sampleVelocity(const volVectorField& U)
     //Then the correspondence is cell to cell
     if(isDirectSample())
     {
-        const PtrList<gridCell>& rotorCells = rDiscrete->grid().cells();
+        const PtrList<gridCell>& rotorCells = rDiscrete->grid()->cells();
         forAll(rotorCells,i)
         {
             this->sampledVel[i] = U.primitiveField()[rotorCells[i].interpolatingCelli()];
@@ -82,7 +82,7 @@ bool domainSampler::build()
     {
         return true;
     }
-    const List<point>& cylPoints = rDiscrete->grid().centers();
+    const List<point>& cylPoints = rDiscrete->grid()->centers();
     cellToSample.resize(cylPoints.size());
     if(!atCellCenter)
     {
@@ -135,9 +135,9 @@ void domainSampler::writeSampled(const word& name)
     );
     if(isDirectSample())
     {
-        forAll(rDiscrete->grid().cells(),i)
+        forAll(rDiscrete->grid()->cells(),i)
         {
-            const auto& cell = rDiscrete->grid().cells()[i];
+            const auto& cell = rDiscrete->grid()->cells()[i];
             sampled[cell.interpolatingCelli()] +=1.0;
         }
     }

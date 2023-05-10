@@ -50,7 +50,7 @@ namespace Foam
     }
 
     velocitySampler::velocitySampler(const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
-        : rDiscrete(rDiscrete_), rMesh(rMesh_), sampledVel(rDiscrete->grid().centers().size(),Zero)
+        : rDiscrete(rDiscrete_), rMesh(rMesh_), sampledVel(rDiscrete->grid()->centers().size(),Zero)
     {
         
     }

@@ -1,3 +1,5 @@
+#ifndef PROPELLER_ROTOR_DISCRETE_GRID_ROTOR_GRID_20COPY
+#define PROPELLER_ROTOR_DISCRETE_GRID_ROTOR_GRID_20COPY
 #ifndef PROPELLER_ROTOR_DISCRETE_ROTOR_GRID
 #define PROPELLER_ROTOR_DISCRETE_ROTOR_GRID
 
@@ -6,65 +8,45 @@
 #include "gridCell.H"
 #include "ijkAddressing.H"
 #include "cylindricalCS.H"
+#include "cartesianCS.H"
+
 namespace Foam
 {
 
 
-class rotorGrid : public ijkAddressing
+class rotorGrid
 {
 public:
 
-    rotorGrid() = default;
+    rotorGrid(const coordSystem::cylindrical &cylCS, scalar innerRadius, scalar radius);
 
-    /**
-     * @brief Construct a new rotor Grid object with a structured grid
-     * 
-     * @param nRadius 
-     * @param nTheta 
-     * @param minRadius 
-     * @param maxRadius 
-     * @param cylCS 
-     */
-    rotorGrid
-    (
-        label nRadius,
-        label nTheta, 
-        scalar minRadius, 
-        scalar maxRadius,
-        const coordSystem::cylindrical &cylCS
-    );
-    //rotorGrid(List<scalar>& radius, List<scalar> theta);
-
-
-    void assignFvCells(const vectorField& cellCenter, const scalarField& weights, const labelList& cellis);
-    void build();
+    virtual void assignFvCells(const vectorField& cellCenter, const scalarField& weights, const labelList& cellis) = 0;
+    virtual void build() = 0;
     void setCenterFromClosestCell(const vectorField& cellCenter);
 
     const PtrList<gridCell>& cells() const { return cells_;}
     PtrList<gridCell>& cells() { return cells_;}
-    gridCell& cell(label i, label j) { return cells_[index(i,j,0)];}
-    const List<scalar>& radius() const {return radius_;}
-    const List<scalar>& theta() const {return theta_;}
     const List<vector>& centers() const {return centers_;}
 
     static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
-private:
+
+    static autoPtr<rotorGrid> New(const dictionary &dict, const coordSystem::cartesian& carCS, const coordSystem::cylindrical &cylCS, scalar innerRadius, scalar radius);
+
+    virtual ~rotorGrid() = default;
+protected:
     coordSystem::cylindrical cylCS_;
+
     scalar minRadius_;
     scalar maxRadius_;
-    
-    List<scalar> radius_;
-    List<scalar> theta_;
 
-    //Acces with ijkAdressing
+
     PtrList<gridCell> cells_;
     List<vector> centers_;
-
-    
-    void buildGrid();
-
 };
 
 }
 
 #endif /* PROPELLER_ROTOR_DISCRETE_ROTOR_GRID */
+
+
+#endif /* PROPELLER_ROTOR_DISCRETE_GRID_ROTOR_GRID_20COPY */

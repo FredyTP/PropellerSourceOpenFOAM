@@ -1,5 +1,5 @@
-#ifndef PROPELLER_ROTOR_DISCRETE_GRID_CELL_GRID_CELL
-#define PROPELLER_ROTOR_DISCRETE_GRID_CELL_GRID_CELL
+#ifndef PROPELLER_ROTOR_DISCRETE_BLADE_CELL
+#define PROPELLER_ROTOR_DISCRETE_BLADE_CELL
 
 #include "scalar.H"
 #include "List.H"
@@ -8,22 +8,17 @@
 #include "vectorField.H"
 #include "scalarField.H"
 #include "cylindricalCS.H"
+
+#include "cartesianCS.H"
+#include "gridCell.H"
+
 namespace Foam
 {
-class gridCell
+class bladeCell : public gridCell
 {
 public:
 
-    gridCell() = default;
-    /**
-     * @brief Construct a new grid Cell object
-     * 
-     * @param radius0 radius where cell begins
-     * @param radius1 radius where cell ends
-     * @param theta0 theta where cell begins [-pi, pi]
-     * @param theta1 theta where cell ends [-pi, pi]
-     */
-    gridCell(scalar radius0,scalar radius1, scalar theta0, scalar theta1);
+    bladeCell(scalar radius0, scalar radius1, scalar chord0, scalar chord1);
 
 
     /**
@@ -37,11 +32,25 @@ public:
     void addCelli(label celli,scalar weight);
 
     /**
-     * @brief Reescales the weights and checks that the gridCell contains atleast one cell
+     * @brief Reescales the weights and checks that the bladeCell contains atleast one cell
      * If the object is not used withit fv context this method doesnt need to be called
      */
-    virtual void build();
+    void build();
 
+
+    /**
+     * @brief Rotate the base points with the rotation matrix
+     * 
+     * @param rotation 
+     */
+    void setRotation(const tensor& rotation);
+
+    /**
+     * @brief Returns the actual vertex of the cell
+     * 
+     * @return List<vector> 
+     */
+    List<vector> actualPoints() const { return actualLocation_;}
     /**
      * @brief Returns a list of the fvCell indexs
      * 
@@ -89,7 +98,7 @@ public:
      * 
      * @return scalar 
      */
-    scalar dt() const {return dt_;}
+    scalar dc() const {return dc_;}
 
     /**
      * @brief First radial position
@@ -110,14 +119,14 @@ public:
      * 
      * @return scalar 
      */
-    scalar theta0() const {return theta0_;}
+    scalar chord0() const {return chord0_;}
 
     /**
      * @brief Second angular position
      * 
      * @return scalar 
      */
-    scalar theta1() const {return theta1_;}
+    scalar chord1() const {return chord1_;}
 
     /**
      * @brief Returns the tensor representing the local blade axis in global CS
@@ -134,7 +143,7 @@ public:
     void setCenter(vector& center);
 
 
-    void centerFromClosestCell(const vectorField& cellCenters, const coordSystem::cylindrical& localCyl);
+    void centerFromClosestCell(const vectorField& cellCenters,  const coordSystem::cartesian &localCartesian);
     /**
      * @brief Set the local blade tensor in global coordinates
      *  (x: LE->TE) (y: radial) (z: "up")
@@ -158,13 +167,16 @@ private:
 
     scalar radius0_; //i and i+1
     scalar radius1_; //i and i+1
-    scalar theta0_; //i and i+1
-    scalar theta1_; //i and i+1
+    scalar chord0_; //i and i+1
+    scalar chord1_; //i and i+1
     
     tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
 
+    List<vector> localPoints_; //Cell base points in local cartesian coordinates, sorted couterclockwise
+    List<vector> actualLocation_; //Cell position after rotation
+
     scalar dr_;
-    scalar dt_;
+    scalar dc_;
 
     List<label> cellis_;
     List<scalar> weights_;
@@ -173,7 +185,7 @@ private:
 };
 
 template <class type>
-inline void gridCell::applyField(Field<type> &field, const type &value) const
+inline void bladeCell::applyField(Field<type> &field, const type &value) const
 {
     forAll(cellis_,i)
     {
@@ -182,7 +194,7 @@ inline void gridCell::applyField(Field<type> &field, const type &value) const
 }
 
 template <class type>
-inline void gridCell::applyField(Field<type> &field, const List<type> &values) const
+inline void bladeCell::applyField(Field<type> &field, const List<type> &values) const
 {
     forAll(cellis_,i)
     {
@@ -191,4 +203,6 @@ inline void gridCell::applyField(Field<type> &field, const List<type> &values) c
 }
 }
 
-#endif /* PROPELLER_ROTOR_DISCRETE_GRID_CELL_GRID_CELL */
+#endif /* PROPELLER_ROTOR_DISCRETE_BLADE_CELL */
+
+

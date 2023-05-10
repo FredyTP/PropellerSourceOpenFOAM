@@ -38,7 +38,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 {
     propellerResult result;
     //Puntos de la discretizacion
-    PtrList<gridCell>& cells = rotorDiscrete_.grid().cells();
+    PtrList<gridCell>& cells = rotorDiscrete_.grid()->cells();
     
     scalar aoaMax = -VGREAT;
     scalar aoaMin = VGREAT;
@@ -75,7 +75,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     {
         gridCell& cell = cells[i]; 
         bemDebugData data;
+        Info<<"calculating"<<endl;
         vector forceOverLen = nBlades_ * this->calculatePoint(U[i],angularVelocity,cell,data);
+        Info<<"scaling"<<endl;
 
         vector cellforce = cell.scaleForce(forceOverLen);
 
@@ -84,6 +86,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         vector localPos = rotorDiscrete_.carToCyl().globalPosition(cell.center());
         result.torque += localForce.cross(localPos);
 
+        Info<<"applying"<<endl;
         cell.applySource(force,cellVol,cellforce);
         cell.applyField<scalar>(weights.ref(false),cell.weights());
         cell.applyField<vector>(bemForce.ref(false),cellforce);

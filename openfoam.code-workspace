@@ -285,7 +285,16 @@
 			"scalarMatricesTemplates.C": "cpp",
 			"Euler.C": "cpp",
 			"solidChemistryModel.C": "cpp",
-			"LduMatrixSolver.C": "cpp"
+			"LduMatrixSolver.C": "cpp",
+			"rotorGrid copy.C": "cpp",
+			"polarGrid.C": "cpp",
+			"colourTables.C": "cpp",
+			"bladeGrid.C": "cpp",
+			"gridCell copy.C": "cpp",
+			"bladeCell.C": "cpp",
+			"axisAngleRotation.C": "cpp",
+			"PtrListOpsTemplates.C": "cpp",
+			"UPtrList.C": "cpp"
 		}
 	}
 }

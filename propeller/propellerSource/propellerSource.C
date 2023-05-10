@@ -181,22 +181,22 @@ void Foam::fv::propellerSource::addSup
 
 
     volScalarField vol
+    (
+        IOobject
         (
-            IOobject
-            (
-                "cellVolume",
-                mesh_.time().timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
+            "cellVolume",
+            mesh_.time().timeName(),
             mesh_,
-            dimensionedScalar(dimVolume, Zero)
-        );
-        forAll(mesh_.V(),i)
-        {
-            vol[i]=mesh_.V()[i];
-        }
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar(dimVolume, Zero)
+    );
+    forAll(mesh_.V(),i)
+    {
+        vol[i]=mesh_.V()[i];
+    }
     //If its time to write into files
     if(mesh_.time().writeTime())
     {
