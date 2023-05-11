@@ -12,17 +12,19 @@ class bladeGrid : public rotorGrid, public ijkAddressing
 {
 public:
 
-    bladeGrid(const rotorGeometry& geometry, scalar chord, label nBlades, label nRadius, label nChord);
-    virtual void assignFvCells(const vectorField& cellCenter, const scalarField& weights, const labelList& cellis);
+    bladeGrid(const rotorGeometry& geometry,const rotorFvMeshSel& rotorFvMeshSel, scalar chord, label nBlades, label nRadius, label nChord);
+    virtual void assignFvCells();
     virtual void build();
 
-    void buildBlades();
-    void updateTheta(scalar theta0);
-    void updateThetas(const List<scalar>& thetas);
+    void setRotation(scalar theta0);
 
-    void rotateBlades();
     label ijkIndex(label iBlade, label iRadius, label iChord);
 private:
+
+    void updateTheta(scalar theta0);
+    void updateThetas(const List<scalar>& thetas);
+    void rotateBlades();
+    void buildBlades();
     scalar chord_;
     label nRadius_;
     label nChord_;

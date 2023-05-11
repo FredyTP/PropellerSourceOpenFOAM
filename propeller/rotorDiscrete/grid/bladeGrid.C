@@ -5,9 +5,9 @@
 #include "delaunayTriangulation.H"
 namespace Foam
 {
-bladeGrid::bladeGrid(const rotorGeometry& geometry, scalar chord, label nBlades, label nRadius, label nChord)
+bladeGrid::bladeGrid(const rotorGeometry& geometry,const rotorFvMeshSel& rotorFvMeshSel, scalar chord, label nBlades, label nRadius, label nChord)
 : 
-    rotorGrid(geometry,nBlades), 
+    rotorGrid(geometry,rotorFvMeshSel,nBlades), 
     ijkAddressing(nBlades,nRadius,nChord), 
     chord_(chord),
     nRadius_(nRadius),
@@ -18,9 +18,15 @@ bladeGrid::bladeGrid(const rotorGeometry& geometry, scalar chord, label nBlades,
     buildBlades();
     updateTheta(0);
     rotateBlades();
+    assignFvCells();
+    build();
 }
-void bladeGrid::assignFvCells(const vectorField &cellCenter, const scalarField &weights, const labelList &cellis)
+void bladeGrid::assignFvCells()
 {
+    const auto& cellCenter = meshSel_.mesh().C();
+    const auto& weights = meshSel_.mesh().V();
+    const auto& cellis = meshSel_.cells();
+
     const auto& carCS = rotorGeometry_.cartesianCS();
     forAll(cellis,i)
     {
@@ -48,11 +54,20 @@ void bladeGrid::build()
     centers_.resize(cells_.size());
     forAll(cells_,i)
     {
-        cells_[i].build();
+        cells_[i].checkCells();
+        cells_[i].buildWeigths();
+        vector tmp = cells_[i].getCellCenter();
+        cells_[i].setCenter(tmp);
         centers_[i]=cells_[i].center();
-        tensor bladetensor = rotorGrid::bladeLocalFromPoint(cylCS,cells_[i].center());
-        cells_[i].setLocalTensor(bladetensor);
     }
+}
+void bladeGrid::setRotation(scalar theta0)
+{
+    updateTheta(theta0);
+    rotateBlades();
+    assignFvCells();
+    build();
+
 }
 void bladeGrid::buildBlades()
 {
@@ -80,7 +95,7 @@ void bladeGrid::buildBlades()
         {
             for(label ic = 0; ic < nChord_; ic++)
             {
-                bladeCell* newcell = new bladeCell(radius[ir],radius[ir+1],chord[ic],chord[ic+1]);
+                bladeCell* newcell = new bladeCell(rotorGeometry_,radius[ir],radius[ir+1],chord[ic],chord[ic+1]);
                 cells_.set(index(ib,ir,ic),newcell);
             }
         }
@@ -115,9 +130,9 @@ void bladeGrid::rotateBlades()
                 if(bCell != nullptr)
                 {
                     bCell->setRotation(rotation);
-                    vector center = bCell->cartesianCenter();
-                    center = rotorGeometry_.cartesianToCylindrical().localPosition(center);
-                    bCell->setCenter(center);
+                    //vector center = bCell->cartesianCenter();
+                    //center = rotorGeometry_.cartesianToCylindrical().localPosition(center);
+                    //bCell->setCenter(center);
                 }
             }
         }

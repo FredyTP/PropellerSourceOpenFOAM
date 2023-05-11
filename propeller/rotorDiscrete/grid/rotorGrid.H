@@ -10,6 +10,8 @@
 #include "cylindricalCS.H"
 #include "cartesianCS.H"
 #include "rotorGeometry.H"
+#include "rotorFvMeshSel.H"
+
 namespace Foam
 {
 
@@ -18,24 +20,24 @@ class rotorGrid
 {
 public:
 
-    rotorGrid(const rotorGeometry& geometry, label nBlades);
+    rotorGrid(const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, label nBlades);
 
-    virtual void assignFvCells(const vectorField& cellCenter, const scalarField& weights, const labelList& cellis) = 0;
+    virtual void assignFvCells() = 0;
     virtual void build() = 0;
-    void setCenterFromClosestCell(const vectorField& cellCenter);
+    void setCenterFromClosestCell();
 
     const PtrList<gridCell>& cells() const { return cells_;}
     PtrList<gridCell>& cells() { return cells_;}
     const List<vector>& centers() const {return centers_;}
-
+    
     static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
-    static tensor bladeLocalFromPoint(const coordSystem::cartesian &carCS, const point &localPoint);
 
-    static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, scalar nBlades);
+    static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, scalar nBlades);
 
     virtual ~rotorGrid() = default;
 protected:
-    rotorGeometry rotorGeometry_;
+    const rotorFvMeshSel& meshSel_;
+    const rotorGeometry& rotorGeometry_;
     label nBlades_;
     scalar minRadius_;
     scalar maxRadius_;

@@ -18,15 +18,7 @@ class bladeCell : public gridCell
 {
 public:
 
-    bladeCell(scalar radius0, scalar radius1, scalar chord0, scalar chord1);
-
-
-
-    /**
-     * @brief Reescales the weights and checks that the bladeCell contains atleast one cell
-     * If the object is not used withit fv context this method doesnt need to be called
-     */
-    void build();
+    bladeCell(const rotorGeometry& rotorGeometry, scalar radius0, scalar radius1, scalar chord0, scalar chord1);
 
 
     /**
@@ -100,34 +92,14 @@ public:
      */
     scalar chord1() const {return chord1_;}
 
+
     /**
-     * @brief Returns the tensor representing the local blade axis in global CS
+     * @brief Get cell center in cylindrical coordinates
      * 
-     * @return const tensor& (x: LE->TE) (y: radial) (z: "up")
+     * @return vector 
      */
-    const tensor& localBlade() const { return localBlade_; }
+    vector getCellCenter() const;
 
-    vector cartesianCenter() const;
-
-
-    void centerFromClosestCell(const vectorField& cellCenters,  const coordSystem::cartesian &localCartesian);
-    /**
-     * @brief Set the local blade tensor in global coordinates
-     *  (x: LE->TE) (y: radial) (z: "up")
-     * @param localTensor 
-     */
-    void setLocalTensor(const tensor& localTensor);
-
-    virtual vector scaleForce(const vector& globalForce);
-
-    void applySource(vectorField& source,const scalarField& cellVol, vector& scaledForce) const;
-    
-    template<class type>
-    void applyField(Field<type>& field, const type& value) const;
-    
-    template<class type>
-    void applyField(Field<type>& field,const List<type>& values) const;
-    
 private:
     vector center_; //r-theta-0
 
@@ -143,23 +115,7 @@ private:
     scalar dc_;
 };
 
-template <class type>
-inline void bladeCell::applyField(Field<type> &field, const type &value) const
-{
-    forAll(cellis_,i)
-    {
-        field[cellis_[i]]=value;
-    }
-}
 
-template <class type>
-inline void bladeCell::applyField(Field<type> &field, const List<type> &values) const
-{
-    forAll(cellis_,i)
-    {
-        field[cellis_[i]]=values[i];
-    }
-}
 }
 
 #endif /* PROPELLER_ROTOR_DISCRETE_BLADE_CELL */

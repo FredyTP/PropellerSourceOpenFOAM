@@ -297,7 +297,8 @@
 			"UPtrList.C": "cpp",
 			"complex.C": "cpp",
 			"AABBTree.C": "cpp",
-			"Field.C": "cpp"
+			"Field.C": "cpp",
+			"polarCell.C": "cpp"
 		}
 	}
 }

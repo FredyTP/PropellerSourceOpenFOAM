@@ -111,6 +111,7 @@ TypeName("rotorDiscrete");
 
 private:
     dictionary dict_;
+    label nBlades_;
 };    
 
 

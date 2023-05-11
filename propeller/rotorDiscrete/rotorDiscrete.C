@@ -36,12 +36,10 @@ rotorDiscrete::rotorDiscrete(const dictionary& dict)
 void rotorDiscrete::createGrid(const rotorGeometry &geometry, scalar nBlades)
 {
     rotorGeometry_ = &geometry;
-    
+    nBlades_ = nBlades;
     carCS_ = geometry.cartesianCS();
     cylCS_ = geometry.cylindricalCS();
     carToCylCS_ = geometry.cartesianToCylindrical();
-
-    grid_ = rotorGrid::New(dict_,geometry, nBlades);
 }
 
 void rotorDiscrete::updateTheta(scalar theta)
@@ -49,19 +47,7 @@ void rotorDiscrete::updateTheta(scalar theta)
     bladeGrid* bGrid = dynamic_cast<bladeGrid*>(grid_.get());
     if(bGrid)
     {
-        Info<<"Updating theta to: "<<theta<<endl;
-        bGrid->updateTheta(theta);
-        bGrid->rotateBlades();
-        const vectorField& cellCenter = rotorMeshSel_->mesh().C();
-        const scalarField& cellVol = rotorMeshSel_->mesh().V();
-        const labelList& cellis = rotorMeshSel_->cells();
-
-        grid_->assignFvCells(cellCenter,cellVol,cellis);
-        if(sampleMode_ == spClosestCell)
-        {
-            grid_->setCenterFromClosestCell(cellCenter);
-        }
-        grid_->build();
+        bGrid->setRotation(theta);
     }
 }
 
@@ -144,6 +130,7 @@ void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel)
     Info << "Assigning fvMeshCell to rotorGrid: " << endl;
     rotorMeshSel_ = &rotorFvMeshSel;
 
+    grid_ = rotorGrid::New(dict_,*rotorGeometry_,rotorFvMeshSel, nBlades_);
     // List ref.
     const vectorField& cellCenter = rotorFvMeshSel.mesh().C();
     const scalarField& cellVol = rotorFvMeshSel.mesh().V();
@@ -151,10 +138,10 @@ void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel)
 
     Info<<"Assigning fv cells"<<endl;
 
-    grid_->assignFvCells(cellCenter,cellVol,cellis);
+    grid_->assignFvCells();
     if(sampleMode_ == spClosestCell)
     {
-        grid_->setCenterFromClosestCell(cellCenter);
+        grid_->setCenterFromClosestCell();
     }
     Info<<"Building "<<endl;
     grid_->build();

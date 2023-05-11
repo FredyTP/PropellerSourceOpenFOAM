@@ -8,24 +8,19 @@
 #include "vectorField.H"
 #include "scalarField.H"
 #include "cylindricalCS.H"
+#include "rotorGeometry.H"
+
+
 namespace Foam
 {
 class gridCell
 {
 public:
 
-    gridCell() = default;
-    /**
-     * @brief Construct a new grid Cell object
-     * 
-     * @param radius0 radius where cell begins
-     * @param radius1 radius where cell ends
-     * @param theta0 theta where cell begins [-pi, pi]
-     * @param theta1 theta where cell ends [-pi, pi]
-     */
-    gridCell(scalar radius0,scalar radius1, scalar theta0, scalar theta1,label nBlades);
 
+    gridCell(const rotorGeometry& rotorGeometry) : rotorGeometry_(rotorGeometry) {}
 
+    virtual ~gridCell() = default;
     /**
      * @brief Add a fvCell index and its weight to the list
      * The weight can be > 1, 
@@ -36,11 +31,9 @@ public:
      */
     void addCelli(label celli,scalar weight);
 
-    /**
-     * @brief Reescales the weights and checks that the gridCell contains atleast one cell
-     * If the object is not used withit fv context this method doesnt need to be called
-     */
-    virtual void build();
+    void buildWeigths();
+
+    void checkCells();
 
     /**
      * @brief Returns a list of the fvCell indexs
@@ -56,68 +49,17 @@ public:
      */
     const List<scalar>& weights() const {return weights_;}
 
-    /**
-     * @brief Returns the center radius
-     * 
-     * @return scalar 
-     */
-    scalar radius() const {return center_.x();}
 
     /**
-     * @brief Returns the center theta
-     * 
-     * @return scalar 
-     */
-    scalar theta()  const {return center_.y();}
-
-    /**
-     * @brief Returns the center in polar Coordinates z=0
+     * @brief Returns the USED CENTER in polar Coordinates z=0
      * 
      * @return const vector& 
      */
     const vector& center() const {return center_;}
 
-    /**
-     * @brief Returns the radial size of the cell (radius[i+1]-radius[i])
-     * 
-     * @return scalar 
-     */
-    scalar dr() const { return dr_;}
+    scalar radius() const {return center_.x();}
 
-    /**
-     * @brief Returns the angular size of the cell (theta[i+1]-theta[i])
-     * 
-     * @return scalar 
-     */
-    scalar dt() const {return dt_;}
-
-    /**
-     * @brief First radial position
-     * 
-     * @return scalar 
-     */
-    scalar radius0() const {return radius0_;}
-
-    /**
-     * @brief Second radial position
-     * 
-     * @return scalar 
-     */
-    scalar radius1() const {return radius1_;}
-
-    /**
-     * @brief First angular position
-     * 
-     * @return scalar 
-     */
-    scalar theta0() const {return theta0_;}
-
-    /**
-     * @brief Second angular position
-     * 
-     * @return scalar 
-     */
-    scalar theta1() const {return theta1_;}
+    scalar theta() const {return center_.y();}
 
     /**
      * @brief Returns the tensor representing the local blade axis in global CS
@@ -133,14 +75,20 @@ public:
      */
     void setCenter(vector& center);
 
-
-    void centerFromClosestCell(const vectorField& cellCenters, const coordSystem::cylindrical& localCyl);
     /**
-     * @brief Set the local blade tensor in global coordinates
-     *  (x: LE->TE) (y: radial) (z: "up")
-     * @param localTensor 
+     * @brief Get cell center in cylindrical coordinates
+     * 
+     * @return vector 
      */
-    void setLocalTensor(const tensor& localTensor);
+    virtual vector getCellCenter() const = 0;
+
+
+    void centerFromClosestCell(const vectorField& cellCenters);
+
+
+    /**
+     * FIELD RELATED FUNCTIONS *
+    */
 
     virtual vector scaleForce(const vector& globalForce);
 
@@ -154,24 +102,17 @@ public:
     
     label interpolatingCelli() const { return interpolatingCell_;}
 private:
-
-    scalar radius0_; //i and i+1
-    scalar radius1_; //i and i+1
-    scalar theta0_; //i and i+1
-    scalar theta1_; //i and i+1
-    
-
-    scalar dr_;
-    scalar dt_;
-    scalar factor_;
-protected:
     vector center_; //r-theta-0
+protected:
+    const rotorGeometry& rotorGeometry_;
 
+    scalar factor_;
     tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
     List<label> cellis_;
     List<scalar> weights_;
-
     label interpolatingCell_=-1;
+
+    void updateBladeTensor();
 };
 
 template <class type>

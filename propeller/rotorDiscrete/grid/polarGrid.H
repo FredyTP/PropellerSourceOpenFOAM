@@ -29,6 +29,7 @@ public:
     polarGrid
     (
         const rotorGeometry& geometry,
+        const rotorFvMeshSel& rotorFvMeshSel,
         label nBlades,
         label nRadius,
         label nTheta
@@ -36,14 +37,13 @@ public:
     //polarGrid(List<scalar>& radius, List<scalar> theta);
 
 
-    void assignFvCells(const vectorField& cellCenter, const scalarField& weights, const labelList& cellis);
+    void assignFvCells();
     void build();
 
     gridCell& cell(label i, label j) { return cells_[index(i,j,0)];}
     const List<scalar>& radius() const {return radius_;}
     const List<scalar>& theta() const {return theta_;}
 
-    static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
 private:
     
     List<scalar> radius_;
