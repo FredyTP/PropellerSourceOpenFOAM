@@ -21,15 +21,6 @@ public:
     bladeCell(scalar radius0, scalar radius1, scalar chord0, scalar chord1);
 
 
-    /**
-     * @brief Add a fvCell index and its weight to the list
-     * The weight can be > 1, 
-     * in the build method it is rescaled so the sum of all weights is equal 1
-     * 
-     * @param celli index of the fvCell
-     * @param weight weight of the fvCell
-     */
-    void addCelli(label celli,scalar weight);
 
     /**
      * @brief Reescales the weights and checks that the bladeCell contains atleast one cell
@@ -51,19 +42,7 @@ public:
      * @return List<vector> 
      */
     List<vector> actualPoints() const { return actualLocation_;}
-    /**
-     * @brief Returns a list of the fvCell indexs
-     * 
-     * @return const labelList& 
-     */
-    const labelList& cellis() const { return cellis_; }
 
-    /**
-     * @brief Returns a list of the fvCell weights
-     * 
-     * @return const labelList& 
-     */
-    const List<scalar>& weights() const {return weights_;}
 
     /**
      * @brief Returns the center radius
@@ -78,13 +57,6 @@ public:
      * @return scalar 
      */
     scalar theta()  const {return center_.y();}
-
-    /**
-     * @brief Returns the center in polar Coordinates z=0
-     * 
-     * @return const vector& 
-     */
-    const vector& center() const {return center_;}
 
     /**
      * @brief Returns the radial size of the cell (radius[i+1]-radius[i])
@@ -135,12 +107,7 @@ public:
      */
     const tensor& localBlade() const { return localBlade_; }
 
-    /**
-     * @brief Set the cell center in local polar coordinates z=0
-     * 
-     * @param center 
-     */
-    void setCenter(vector& center);
+    vector cartesianCenter() const;
 
 
     void centerFromClosestCell(const vectorField& cellCenters,  const coordSystem::cartesian &localCartesian);
@@ -151,7 +118,7 @@ public:
      */
     void setLocalTensor(const tensor& localTensor);
 
-    vector scaleForce(const vector& globalForce);
+    virtual vector scaleForce(const vector& globalForce);
 
     void applySource(vectorField& source,const scalarField& cellVol, vector& scaledForce) const;
     
@@ -161,7 +128,6 @@ public:
     template<class type>
     void applyField(Field<type>& field,const List<type>& values) const;
     
-    label interpolatingCelli() const { return interpolatingCell_;}
 private:
     vector center_; //r-theta-0
 
@@ -169,19 +135,12 @@ private:
     scalar radius1_; //i and i+1
     scalar chord0_; //i and i+1
     scalar chord1_; //i and i+1
-    
-    tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
 
     List<vector> localPoints_; //Cell base points in local cartesian coordinates, sorted couterclockwise
     List<vector> actualLocation_; //Cell position after rotation
 
     scalar dr_;
     scalar dc_;
-
-    List<label> cellis_;
-    List<scalar> weights_;
-
-    label interpolatingCell_=-1;
 };
 
 template <class type>

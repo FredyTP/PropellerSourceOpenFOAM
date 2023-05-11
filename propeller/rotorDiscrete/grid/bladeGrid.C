@@ -5,16 +5,14 @@
 #include "delaunayTriangulation.H"
 namespace Foam
 {
-bladeGrid::bladeGrid(const coordSystem::cartesian &carCS, const coordSystem::cylindrical &cylCS, scalar innerRadius, scalar radius,scalar chord, label nBlade, label nRadius, label nChord)
+bladeGrid::bladeGrid(const rotorGeometry& geometry, scalar chord, label nBlades, label nRadius, label nChord)
 : 
-    rotorGrid(cylCS,innerRadius,radius), 
-    ijkAddressing(nBlade,nRadius,nChord), 
-    carCS_(carCS),
+    rotorGrid(geometry,nBlades), 
+    ijkAddressing(nBlades,nRadius,nChord), 
     chord_(chord),
-    nBlade_(nBlade), 
     nRadius_(nRadius),
     nChord_(nChord),
-    theta_(nBlade)
+    theta_(nBlades)
 {
     cells_.resize(this->size());
     buildBlades();
@@ -23,18 +21,11 @@ bladeGrid::bladeGrid(const coordSystem::cartesian &carCS, const coordSystem::cyl
 }
 void bladeGrid::assignFvCells(const vectorField &cellCenter, const scalarField &weights, const labelList &cellis)
 {
-    Info<<"assigning"<<endl;
-    forAll(cells_,i)
-    {
-        if(cells_.get(i)==nullptr)
-        {
-            Info<<"cell: "<<i<<" is NULL"<<endl;
-        }
-    }
+    const auto& carCS = rotorGeometry_.cartesianCS();
     forAll(cellis,i)
     {
         label celli = cellis[i];
-        vector center = carCS_.localPosition(cellCenter[celli]);
+        vector center = carCS.localPosition(cellCenter[celli]);
         List<label> fakeCell({0,1,2,3});
         forAll(cells_,j)
         {
@@ -45,7 +36,7 @@ void bladeGrid::assignFvCells(const vectorField &cellCenter, const scalarField &
             }       
             if(delaunayTriangulation::isInsideCell(bCell->actualPoints(),fakeCell,center))
             {
-                cells_.get(j)->addCelli(celli,weights[celli]);            
+                cells_.get(j)->addCelli(celli,weights[celli]);          
                 break;
             }
         }
@@ -53,7 +44,15 @@ void bladeGrid::assignFvCells(const vectorField &cellCenter, const scalarField &
 }
 void bladeGrid::build()
 {
-
+    const auto& cylCS = rotorGeometry_.cylindricalCS();
+    centers_.resize(cells_.size());
+    forAll(cells_,i)
+    {
+        cells_[i].build();
+        centers_[i]=cells_[i].center();
+        tensor bladetensor = rotorGrid::bladeLocalFromPoint(cylCS,cells_[i].center());
+        cells_[i].setLocalTensor(bladetensor);
+    }
 }
 void bladeGrid::buildBlades()
 {
@@ -75,7 +74,7 @@ void bladeGrid::buildBlades()
     }
 
     cells_.resize(this->size());
-    for(label ib = 0; ib < nBlade_ ;ib ++ )
+    for(label ib = 0; ib < nBlades_ ;ib ++ )
     {
         for(label ir=0; ir<nRadius_; ir++)
         {
@@ -83,22 +82,15 @@ void bladeGrid::buildBlades()
             {
                 bladeCell* newcell = new bladeCell(radius[ir],radius[ir+1],chord[ic],chord[ic+1]);
                 cells_.set(index(ib,ir,ic),newcell);
-                if(cells_.get(index(ib,ir,ic))==nullptr)
-                {
-                    Info<<"Cell: " <<index(ib,ir,ic)<<" is null"<<endl;
-                }
-                else
-                {
-                    Info<<"Cell: " <<index(ib,ir,ic)<<" is NOT null"<<endl;
-                }
             }
         }
     }
 
+
 }
 void bladeGrid::updateTheta(scalar theta0)
 {
-    scalar dtheta = constant::mathematical::twoPi/nBlade_;
+    scalar dtheta = constant::mathematical::twoPi/nBlades_;
     forAll(theta_,i)
     {
         theta_[i]=theta0 + dtheta*i;
@@ -108,13 +100,11 @@ void bladeGrid::updateTheta(scalar theta0)
             theta_[i]=theta_[i]-constant::mathematical::twoPi;
         }
     }
-    Info<<"Thetas: "<<endl;
-    Info<<theta_*radToDeg()<<endl;
 }
 
 void bladeGrid::rotateBlades()
 {
-    for(label ib = 0; ib < nBlade_ ;ib ++ )
+    for(label ib = 0; ib < nBlades_ ;ib ++ )
     {
         tensor rotation = coordinateRotations::axisAngle::rotation(vector::components::Z,theta_[ib],false);
         for(label ir=0; ir<nRadius_; ir++)
@@ -125,6 +115,9 @@ void bladeGrid::rotateBlades()
                 if(bCell != nullptr)
                 {
                     bCell->setRotation(rotation);
+                    vector center = bCell->cartesianCenter();
+                    center = rotorGeometry_.cartesianToCylindrical().localPosition(center);
+                    bCell->setCenter(center);
                 }
             }
         }

@@ -28,11 +28,10 @@ public:
      */
     polarGrid
     (
+        const rotorGeometry& geometry,
+        label nBlades,
         label nRadius,
-        label nTheta, 
-        scalar minRadius, 
-        scalar maxRadius,
-        const coordSystem::cylindrical &cylCS
+        label nTheta
     );
     //polarGrid(List<scalar>& radius, List<scalar> theta);
 

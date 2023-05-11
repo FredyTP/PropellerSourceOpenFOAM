@@ -4,8 +4,8 @@
 
 namespace Foam
 {
-polarGrid::polarGrid(label nRadius, label nTheta, scalar minRadius, scalar maxRadius,const coordSystem::cylindrical &cylCS)
-    : rotorGrid(cylCS,minRadius,maxRadius), radius_(nRadius+1), theta_(nTheta+1),ijkAddressing(nRadius,nTheta,0)
+polarGrid::polarGrid(const rotorGeometry& geometry, label nBlades, label nRadius, label nTheta)
+    : rotorGrid(geometry, nBlades), radius_(nRadius+1), theta_(nTheta+1),ijkAddressing(nRadius,nTheta,0)
 {
     scalar dr = (maxRadius_-minRadius_)/nRadius;
     scalar dt = (constant::mathematical::twoPi)/nTheta;
@@ -28,11 +28,12 @@ polarGrid::polarGrid(label nRadius, label nTheta, scalar minRadius, scalar maxRa
 
 void polarGrid::assignFvCells(const vectorField &cellCenter, const scalarField& weights, const labelList& cellis)
 {
+    const auto& cylCS = rotorGeometry_.cylindricalCS();
     forAll(cellis,i)
     {
         label celli = cellis[i];
         vector cc = cellCenter[celli];
-        vector polar = cylCS_.localPosition(cc);
+        vector polar = cylCS.localPosition(cc);
         label ir=0;
         label unused;
         label it=0;
@@ -48,12 +49,13 @@ void polarGrid::assignFvCells(const vectorField &cellCenter, const scalarField& 
 
 void polarGrid::build()
 {
+    const auto& cylCS = rotorGeometry_.cylindricalCS();
     centers_.resize(cells_.size());
     forAll(cells_,i)
     {
         cells_[i].build();
         centers_[i]=cells_[i].center();
-        tensor bladetensor = rotorGrid::bladeLocalFromPoint(cylCS_,cells_[i].center());
+        tensor bladetensor = rotorGrid::bladeLocalFromPoint(cylCS,cells_[i].center());
         cells_[i].setLocalTensor(bladetensor);
     }
 }
@@ -106,9 +108,10 @@ void polarGrid::buildGrid()
     {
         for(label j = 0; j<thetaCells;j++)
         {
-            cells_.emplace(index(i,j,0),radius_[i],radius_[i+1],theta_[j],theta_[j+1]);
+            cells_.emplace(index(i,j,0),radius_[i],radius_[i+1],theta_[j],theta_[j+1],nBlades_);
         }
     }
 }
 
 }
+

@@ -32,30 +32,15 @@ rotorDiscrete::rotorDiscrete(const dictionary& dict)
     this->read(dict);
     
 }
-void rotorDiscrete::createGrid(const rotorGeometry &geometry)
+void rotorDiscrete::createGrid(const rotorGeometry &geometry, scalar nBlades)
 {
     rotorGeometry_ = &geometry;
     
-    carCS_ = coordSystem::cartesian(
-        rotorGeometry_->center().get(),    // centerd to local
-        rotorGeometry_->direction().get(), // z-axis
-        rotorGeometry_->psiRef().get()     // x-axis
-    );
+    carCS_ = geometry.cartesianCS();
+    cylCS_ = geometry.cylindricalCS();
+    carToCylCS_ = geometry.cartesianToCylindrical();
 
-    cylCS_ = coordSystem::cylindrical // local Cartesian to cylindrical
-        (
-            rotorGeometry_->center().get(),    // centerd to local
-            rotorGeometry_->direction().get(), // z-axis
-            rotorGeometry_->psiRef().get()     // x-axis
-        );
-
-    carToCylCS_ = coordSystem::cylindrical(
-        vector(0, 0, 0), // same center
-        vector(0, 0, 1), // same z-axis
-        vector(1, 0, 0)  // same x-axis
-    );
-
-    grid_ = rotorGrid::New(dict_,carCS_,cylCS_,rotorGeometry_->innerRadius().get(),rotorGeometry_->radius().get());
+    grid_ = rotorGrid::New(dict_,geometry, nBlades);
 }
 
 

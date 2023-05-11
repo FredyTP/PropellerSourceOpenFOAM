@@ -3,8 +3,8 @@
 #include "scalar.H"
 #include "vector.H"
 #include "property.H"
-
-#define NO_RADIUS -1.0
+#include "cartesianCS.H"
+#include "cylindricalCS.H"
 
 namespace Foam
 {
@@ -16,6 +16,11 @@ private:
     util::property<vector> center_;
     util::property<vector> direction_;
     util::property<vector> psiRef_;
+
+    coordSystem::cartesian cartesianCS_;
+    coordSystem::cylindrical cylindricalCS_;
+    coordSystem::cylindrical cartesianToCylindrical_;
+
 
 public:
 
@@ -91,24 +96,7 @@ public:
                 direction_.isSet()   && 
                 psiRef_.isSet();
     }
-    template<class pType>
-    static Ostream& getFieldString(Ostream& os,const util::property<pType>& prop)
-    {
-        /*if(!prop.isSet())
-        {
-            os << "unset";
-        }
-        else if(!prop.isValid())
-        {
-            os << "invalid("<<prop.get()<<")";
-        }
-        else
-        {
-            os<<prop.get();
-        }*/
-
-        return os;
-    }
+    
     friend Ostream& operator<<(Ostream& os, const rotorGeometry& r)
     {
         os.incrIndent();
@@ -121,6 +109,66 @@ public:
         os.decrIndent();
         return os;
     }
+
+    /**
+     * @brief Builds the 3 different coordinate systems required
+     * to transform from global to local points
+     * 
+     */
+    void buildCS()
+    {
+        cylindricalCS_ =  coordSystem::cylindrical // local Cartesian to cylindrical
+        (
+            center_.get(),    // centerd to local
+            direction_.get(), // z-axis
+            psiRef_.get()     // x-axis
+        );
+
+
+        cartesianCS_ = coordSystem::cartesian(
+            center_.get(),    // centerd to local
+            direction_.get(), // z-axis
+            psiRef_.get()     // x-axis
+        );
+
+        cartesianToCylindrical_ = coordSystem::cylindrical(
+            vector(0, 0, 0), // same center
+            vector(0, 0, 1), // same z-axis
+            vector(1, 0, 0)  // same x-axis
+        );
+    }
+
+    /**
+     * @brief Return cylindrical Coordinate system
+     * to convert from global points (x y z) to local cilindrical points (r theta z)
+     * 
+     * @return coordSystem::cylindrical 
+     */
+    const coordSystem::cylindrical& cylindricalCS() const
+    {
+        return cylindricalCS_;
+    }
+    /**
+     * @brief Return cartesian Coordinate system
+     * to convert from global points (x y z) to local cartesian points (x y z)
+     * 
+     * @return coordSystem::cylindrical 
+     */
+    const coordSystem::cartesian& cartesianCS() const 
+    {
+        return cartesianCS_;
+    }
+    /**
+     * @brief Return cylindrical Coordinate system
+     * to convert from local cartesian points (x y z) to local cilindrical points (r- theta - z)
+     * 
+     * @return coordSystem::cylindrical 
+     */
+    const coordSystem::cylindrical& cartesianToCylindrical() const
+    {
+        return cartesianToCylindrical_;
+    }
+
 protected: 
 
     static bool isValidVector(const vector& v) { return magSqr(v) > VSMALL;}

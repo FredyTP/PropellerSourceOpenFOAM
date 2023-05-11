@@ -294,7 +294,9 @@
 			"bladeCell.C": "cpp",
 			"axisAngleRotation.C": "cpp",
 			"PtrListOpsTemplates.C": "cpp",
-			"UPtrList.C": "cpp"
+			"UPtrList.C": "cpp",
+			"complex.C": "cpp",
+			"AABBTree.C": "cpp"
 		}
 	}
 }

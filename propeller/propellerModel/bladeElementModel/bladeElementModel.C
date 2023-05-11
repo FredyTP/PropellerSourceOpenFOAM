@@ -28,7 +28,7 @@ Foam::bladeElementModel::bladeElementModel
 
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
-    rotorDiscrete_.createGrid(rotorGeometry);
+    rotorDiscrete_.createGrid(rotorGeometry, nBlades_);
     rotorDiscrete_.setFvMeshSel(*rotorFvMeshSel_);
 
     bladeModel_.writeBlade(300,"blade.csv");
@@ -75,9 +75,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     {
         gridCell& cell = cells[i]; 
         bemDebugData data;
-        Info<<"calculating"<<endl;
-        vector forceOverLen = nBlades_ * this->calculatePoint(U[i],angularVelocity,cell,data);
-        Info<<"scaling"<<endl;
+  
+        vector forceOverLen = this->calculatePoint(U[i],angularVelocity,cell,data);
+
 
         vector cellforce = cell.scaleForce(forceOverLen);
 
@@ -86,7 +86,6 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         vector localPos = rotorDiscrete_.carToCyl().globalPosition(cell.center());
         result.torque += localForce.cross(localPos);
 
-        Info<<"applying"<<endl;
         cell.applySource(force,cellVol,cellforce);
         cell.applyField<scalar>(weights.ref(false),cell.weights());
         cell.applyField<vector>(bemForce.ref(false),cellforce);
@@ -124,7 +123,7 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
 {
     //---GET INTERPOLATED SECTION---//
     scalar radius = cell.radius();
-    scalar maxRadius = rotorDiscrete_.geometry().radius().get();
+    scalar maxRadius = rotorDiscrete_.geometry().radius();
     scalar chord,twist,sweep;
     interpolatedAirfoil airfoil;
     if(!bladeModel_.sectionAtRadius(radius/maxRadius,chord,twist,sweep,airfoil))

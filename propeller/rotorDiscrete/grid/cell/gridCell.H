@@ -23,7 +23,7 @@ public:
      * @param theta0 theta where cell begins [-pi, pi]
      * @param theta1 theta where cell ends [-pi, pi]
      */
-    gridCell(scalar radius0,scalar radius1, scalar theta0, scalar theta1);
+    gridCell(scalar radius0,scalar radius1, scalar theta0, scalar theta1,label nBlades);
 
 
     /**
@@ -142,9 +142,9 @@ public:
      */
     void setLocalTensor(const tensor& localTensor);
 
-    vector scaleForce(const vector& globalForce);
+    virtual vector scaleForce(const vector& globalForce);
 
-    void applySource(vectorField& source,const scalarField& cellVol, vector& scaledForce) const;
+    virtual void applySource(vectorField& source,const scalarField& cellVol, vector& scaledForce) const;
     
     template<class type>
     void applyField(Field<type>& field, const type& value) const;
@@ -154,18 +154,20 @@ public:
     
     label interpolatingCelli() const { return interpolatingCell_;}
 private:
-    vector center_; //r-theta-0
 
     scalar radius0_; //i and i+1
     scalar radius1_; //i and i+1
     scalar theta0_; //i and i+1
     scalar theta1_; //i and i+1
     
-    tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
 
     scalar dr_;
     scalar dt_;
+    scalar factor_;
+protected:
+    vector center_; //r-theta-0
 
+    tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
     List<label> cellis_;
     List<scalar> weights_;
 

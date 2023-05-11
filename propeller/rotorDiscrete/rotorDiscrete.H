@@ -93,7 +93,7 @@ TypeName("rotorDiscrete");
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
 
-        void createGrid(const rotorGeometry& geometry);
+        void createGrid(const rotorGeometry& geometry, scalar nBlades);
      //Getters
         const rotorGeometry& geometry() const {return *rotorGeometry_;}
         const rotorFvMeshSel& meshSel() const {return *rotorMeshSel_;}

@@ -83,6 +83,9 @@ public:
     {
         return var_;
     }
+
+    operator type() const { return var_; } 
+
     friend Ostream& operator<<(Ostream& os, const property<type>& p)
     {
         if(!p.isSet())

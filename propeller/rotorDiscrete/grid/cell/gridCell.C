@@ -3,13 +3,15 @@
 
 namespace Foam
 {
-gridCell::gridCell(scalar radius0, scalar radius1, scalar theta0, scalar theta1)
+gridCell::gridCell(scalar radius0,scalar radius1, scalar theta0, scalar theta1,label nBlades)
     : radius0_(radius0), radius1_(radius1), theta0_(theta0), theta1_(theta1)
 {
     dr_ = this->radius1()-this->radius0();
     dt_ = this->theta1()-this->theta0();
 
     center_ = vector(this->radius0()+dr_/2,this->theta0()+dt_/2,0);
+
+    factor_ = nBlades * this->dr() * this->dt() / constant::mathematical::twoPi;
 }
 
 void gridCell::addCelli(label celli,scalar weight)
@@ -73,7 +75,7 @@ void gridCell::setLocalTensor(const tensor& localTensor)
 
 vector gridCell::scaleForce(const vector &globalForce)
 {
-   return globalForce * this->dr() * this->dt() / constant::mathematical::twoPi;
+   return globalForce *factor_;
 }
 void gridCell::applySource(vectorField &source, const scalarField& cellVol, vector& scaledForce) const
 {

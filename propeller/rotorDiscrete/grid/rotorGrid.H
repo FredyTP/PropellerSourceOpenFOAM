@@ -9,7 +9,7 @@
 #include "ijkAddressing.H"
 #include "cylindricalCS.H"
 #include "cartesianCS.H"
-
+#include "rotorGeometry.H"
 namespace Foam
 {
 
@@ -18,7 +18,7 @@ class rotorGrid
 {
 public:
 
-    rotorGrid(const coordSystem::cylindrical &cylCS, scalar innerRadius, scalar radius);
+    rotorGrid(const rotorGeometry& geometry, label nBlades);
 
     virtual void assignFvCells(const vectorField& cellCenter, const scalarField& weights, const labelList& cellis) = 0;
     virtual void build() = 0;
@@ -29,13 +29,14 @@ public:
     const List<vector>& centers() const {return centers_;}
 
     static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
+    static tensor bladeLocalFromPoint(const coordSystem::cartesian &carCS, const point &localPoint);
 
-    static autoPtr<rotorGrid> New(const dictionary &dict, const coordSystem::cartesian& carCS, const coordSystem::cylindrical &cylCS, scalar innerRadius, scalar radius);
+    static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, scalar nBlades);
 
     virtual ~rotorGrid() = default;
 protected:
-    coordSystem::cylindrical cylCS_;
-
+    rotorGeometry rotorGeometry_;
+    label nBlades_;
     scalar minRadius_;
     scalar maxRadius_;
 

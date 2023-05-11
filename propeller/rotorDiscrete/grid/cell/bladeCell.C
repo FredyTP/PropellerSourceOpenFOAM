@@ -9,7 +9,7 @@ bladeCell::bladeCell(scalar radius0, scalar radius1, scalar chord0, scalar chord
     dr_ = this->radius1()-this->radius0();
     dc_ = this->chord1()-this->chord0();
 
-    center_ = vector(this->radius0()+dr_/2,this->chord0()+dc_/2,0);
+    center_ = vector(this->radius0()+dr_/2,0,0);
 
     localPoints_.resize(4);
 
@@ -20,18 +20,12 @@ bladeCell::bladeCell(scalar radius0, scalar radius1, scalar chord0, scalar chord
 
     actualLocation_ = localPoints_;
 
-    Info<<actualLocation_<<endl;
-
 }
 
-void bladeCell::addCelli(label celli,scalar weight)
-{
-    cellis_.append(celli);
-    weights_.append(weight);
-}
 void bladeCell::build()
 {
     scalar totalw=0.0;
+    Info<<cellis_<<endl;
     if(cellis_.size()==0)
     {
         FatalErrorInFunction
@@ -56,14 +50,18 @@ void bladeCell::setRotation(const tensor &rotation)
     {
         actualLocation_[i] = transform(rotation,localPoints_[i]);
     }
-    Info<<actualLocation_<<endl;
-
 }
 
-void bladeCell::setCenter(vector &center)
+
+vector bladeCell::cartesianCenter() const
 {
-    center_=center;
-    center_.z()=0;
+    vector c;
+    forAll(actualLocation_,i)
+    {
+        c+=actualLocation_[i];
+    }
+
+    return c/actualLocation_.size();
 }
 
 void bladeCell::centerFromClosestCell(const vectorField &cellCenters, const coordSystem::cartesian &localCartesian)
@@ -95,7 +93,7 @@ void bladeCell::setLocalTensor(const tensor& localTensor)
 
 vector bladeCell::scaleForce(const vector &globalForce)
 {
-   return globalForce * this->dr() / constant::mathematical::twoPi;
+   return globalForce * this->dr();
 }
 void bladeCell::applySource(vectorField &source, const scalarField& cellVol, vector& scaledForce) const
 {
