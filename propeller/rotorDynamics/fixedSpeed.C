@@ -34,6 +34,14 @@ namespace Foam
         Info.stream().decrIndent();
     }
 
-
+    void fixedSpeed::integrate(scalar aeroMoment, scalar dt)
+    {
+        theta_+= dt*this->angularVelocity();
+        if(theta_>constant::mathematical::pi)
+        {
+            theta_ -=constant::mathematical::twoPi;
+        }
+        torque_  = (-aeroMoment + omega_ * viscousDisipation_);
+    }
 }
 

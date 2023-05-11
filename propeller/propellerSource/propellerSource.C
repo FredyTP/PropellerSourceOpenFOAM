@@ -159,6 +159,7 @@ void Foam::fv::propellerSource::addSup
     const label fieldi
 )
 {
+    force.ref(false)=dimensionedVector(dimVelocity/dimTime, Zero);
     //Create force vector field from mesh and set dimensions
     Info<<"VectorFieldi: "<<fieldi<<endl;
     Info<< name() << ": applying source to " << eqn.psi().name() << endl;
@@ -169,7 +170,8 @@ void Foam::fv::propellerSource::addSup
         (
             velSampler_->sampleVelocity(Uin),
             dynamics_->angularVelocity(),
-            force
+            force,
+            dynamics_->theta()
         );
 
     dynamics_->integrate(mag(propResult_.torque),mesh_.time().deltaTValue());

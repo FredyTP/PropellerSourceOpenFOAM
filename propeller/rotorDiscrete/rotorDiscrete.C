@@ -8,6 +8,7 @@
 #include <fstream>
 #include "syncTools.H"
 #include "rotorGrid.H"
+#include "bladeGrid.H"
 #include "regularInterpolation.H"
 
 namespace Foam
@@ -43,6 +44,26 @@ void rotorDiscrete::createGrid(const rotorGeometry &geometry, scalar nBlades)
     grid_ = rotorGrid::New(dict_,geometry, nBlades);
 }
 
+void rotorDiscrete::updateTheta(scalar theta)
+{
+    bladeGrid* bGrid = dynamic_cast<bladeGrid*>(grid_.get());
+    if(bGrid)
+    {
+        Info<<"Updating theta to: "<<theta<<endl;
+        bGrid->updateTheta(theta);
+        bGrid->rotateBlades();
+        const vectorField& cellCenter = rotorMeshSel_->mesh().C();
+        const scalarField& cellVol = rotorMeshSel_->mesh().V();
+        const labelList& cellis = rotorMeshSel_->cells();
+
+        grid_->assignFvCells(cellCenter,cellVol,cellis);
+        if(sampleMode_ == spClosestCell)
+        {
+            grid_->setCenterFromClosestCell(cellCenter);
+        }
+        grid_->build();
+    }
+}
 
 void rotorDiscrete::writePythonPlotter(word process)
 {
@@ -152,16 +173,12 @@ void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel)
         dimensionedScalar(dimless, Zero)
     );
 
-    Info<<"applying field"<<endl;
     forAll(grid_->cells(),i)
     {
         grid_->cells()[i].applyField<scalar>(selected.ref(false),1);
     }
 
     selected.write();
-
-    Info<<"finished"<<endl;
-    
 
 }
 

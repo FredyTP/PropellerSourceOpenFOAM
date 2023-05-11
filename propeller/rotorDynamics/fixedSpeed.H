@@ -16,11 +16,7 @@ public:
 
     fixedSpeed(const dictionary& dict);
 
-    virtual void integrate(scalar aeroMoment,scalar dt)
-    {
-        Info<<"time step: "<<dt<<endl;
-        torque_  = (-aeroMoment + omega_ * viscousDisipation_);
-    }
+    virtual void integrate(scalar aeroMoment,scalar dt);
 private:
 
 

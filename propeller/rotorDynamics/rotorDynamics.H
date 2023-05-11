@@ -35,6 +35,10 @@ public:
 
     static Foam::autoPtr<Foam::rotorDynamics> New(const dictionary& dict);
 
+    scalar theta()
+    {
+        return theta_;
+    }
     scalar angularVelocity() const
     {
         return omega_;
@@ -66,6 +70,7 @@ protected:
     scalar torque_; // Nm
     scalar inertia_;// kgm
     scalar viscousDisipation_; //kgm/s
+    scalar theta_=0;
 
     static constexpr scalar rpmToRadFactor = Foam::constant::mathematical::pi/30.0;
     static constexpr scalar radToRpmFactor = 30.0/Foam::constant::mathematical::pi;

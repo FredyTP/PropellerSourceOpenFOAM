@@ -97,7 +97,7 @@ void bladeGrid::updateTheta(scalar theta0)
 
         if(theta_[i]>constant::mathematical::pi)
         {
-            theta_[i]=theta_[i]-constant::mathematical::twoPi;
+            theta_[i]-=constant::mathematical::twoPi;
         }
     }
 }

@@ -25,7 +25,6 @@ bladeCell::bladeCell(scalar radius0, scalar radius1, scalar chord0, scalar chord
 void bladeCell::build()
 {
     scalar totalw=0.0;
-    Info<<cellis_<<endl;
     if(cellis_.size()==0)
     {
         FatalErrorInFunction
@@ -50,6 +49,9 @@ void bladeCell::setRotation(const tensor &rotation)
     {
         actualLocation_[i] = transform(rotation,localPoints_[i]);
     }
+    //Clear selection after rotation
+    cellis_.clear();
+    weights_.clear();
 }
 
 
