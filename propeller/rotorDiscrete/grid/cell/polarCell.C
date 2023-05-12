@@ -13,7 +13,7 @@ polarCell::polarCell(const rotorGeometry& rotorGeometry, scalar radius0,scalar r
 
     factor_ = nBlades * this->dr() * this->dt() / constant::mathematical::twoPi;
 }
-polarCell::getCellCenter() const
+vector polarCell::getCellCenter() const
 {
     return vector(this->radius0()+dr_/2,this->theta0()+dt_/2,0);
 }

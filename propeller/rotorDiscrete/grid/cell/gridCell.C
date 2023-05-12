@@ -37,7 +37,7 @@ void gridCell::checkCells()
 }
 
 
-void gridCell::setCenter(vector &center)
+void gridCell::setCenter(const vector &center)
 {
     center_=center;
     center_.z()=0;
@@ -77,7 +77,7 @@ void gridCell::centerFromClosestCell(const vectorField &cellCenters)
 
 vector gridCell::scaleForce(const vector &globalForce)
 {
-   return globalForce *factor_;
+   return globalForce * factor_;
 }
 void gridCell::applySource(vectorField &source, const scalarField& cellVol, vector& scaledForce) const
 {

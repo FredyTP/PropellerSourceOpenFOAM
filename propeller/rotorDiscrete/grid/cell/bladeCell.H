@@ -19,6 +19,7 @@ class bladeCell : public gridCell
 public:
 
     bladeCell(const rotorGeometry& rotorGeometry, scalar radius0, scalar radius1, scalar chord0, scalar chord1);
+    bladeCell(const rotorGeometry& rotorGeometry, const List<vector>& localVertex);
 
 
     /**

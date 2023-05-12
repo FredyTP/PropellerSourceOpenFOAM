@@ -18,7 +18,7 @@ class gridCell
 public:
 
 
-    gridCell(const rotorGeometry& rotorGeometry) : rotorGeometry_(rotorGeometry) {}
+    gridCell(const rotorGeometry& rotorGeometry) : rotorGeometry_(rotorGeometry), factor_(1.0) {}
 
     virtual ~gridCell() = default;
     /**
@@ -73,7 +73,7 @@ public:
      * 
      * @param center 
      */
-    void setCenter(vector& center);
+    void setCenter(const vector& center);
 
     /**
      * @brief Get cell center in cylindrical coordinates
@@ -103,11 +103,11 @@ public:
     label interpolatingCelli() const { return interpolatingCell_;}
 private:
     vector center_; //r-theta-0
+    tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
 protected:
     const rotorGeometry& rotorGeometry_;
 
-    scalar factor_;
-    tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
+    scalar factor_=1.0;
     List<label> cellis_;
     List<scalar> weights_;
     label interpolatingCell_=-1;

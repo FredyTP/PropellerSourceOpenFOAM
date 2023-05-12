@@ -60,7 +60,7 @@ tensor rotorGrid::bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, con
     return rotTensor;
 }
 
-autoPtr<rotorGrid> rotorGrid::New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel& rotorFvMeshSel, scalar nBlades)
+autoPtr<rotorGrid> rotorGrid::New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel& rotorFvMeshSel, const bladeModelS& bladeModel, scalar nBlades)
 {
     word type = dict.get<word>("type");
     scalar innerRadius = geometry.innerRadius();
@@ -69,7 +69,7 @@ autoPtr<rotorGrid> rotorGrid::New(const dictionary &dict, const rotorGeometry& g
     autoPtr<rotorGrid> ptr;
     if(type=="polarGrid")
     {
-        Info<<"Creating polar grid"<<endl;
+        Info<<"Creating polarGrid"<<endl;
         scalar nRadial = dict.get<label>("nRadial");
         scalar nAzimutal = dict.get<label>("nAzimutal");
         ptr = autoPtr<rotorGrid>::NewFrom<polarGrid>(geometry,rotorFvMeshSel,nBlades,nRadial,nAzimutal);
@@ -80,11 +80,21 @@ autoPtr<rotorGrid> rotorGrid::New(const dictionary &dict, const rotorGeometry& g
     }
     else if (type == "bladeGrid")
     {
+        Info<<"Creating bladeGrid"<<endl;
         scalar nRadial = dict.get<label>("nRadial");
-        scalar nChord = dict.get<label>("nChord");
-        scalar chord = 0.05;
+        //scalar nChord = dict.get<label>("nChord");
+        scalar chord;
+        bool presentChord = dict.readIfPresent("chord",chord);
+        if(presentChord)
+        {
+            ptr = autoPtr<rotorGrid>::NewFrom<bladeGrid>(geometry,rotorFvMeshSel,chord,nBlades,nRadial);
+        }
+        else
+        {
+            ptr = autoPtr<rotorGrid>::NewFrom<bladeGrid>(geometry,rotorFvMeshSel,bladeModel,nBlades,nRadial);
+        }
         //Get info from blade ...
-        ptr = autoPtr<rotorGrid>::NewFrom<bladeGrid>(geometry,rotorFvMeshSel,chord,nBlades,nRadial,nChord);
+        
     }
 
     return ptr;

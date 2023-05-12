@@ -11,6 +11,7 @@
 #include "cartesianCS.H"
 #include "rotorGeometry.H"
 #include "rotorFvMeshSel.H"
+#include "bladeModelS.H"
 
 namespace Foam
 {
@@ -32,7 +33,7 @@ public:
     
     static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
 
-    static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, scalar nBlades);
+    static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS& bladeModel, scalar nBlades);
 
     virtual ~rotorGrid() = default;
 protected:

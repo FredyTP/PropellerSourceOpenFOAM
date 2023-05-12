@@ -28,8 +28,8 @@ Foam::bladeElementModel::bladeElementModel
 
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
-    rotorDiscrete_.createGrid(rotorGeometry, nBlades_);
-    rotorDiscrete_.setFvMeshSel(*rotorFvMeshSel_);
+    rotorDiscrete_.setGeometry(rotorGeometry, nBlades_);
+    rotorDiscrete_.setFvMeshSel(*rotorFvMeshSel_,bladeModel_);
 
     bladeModel_.writeBlade(300,"blade.csv");
 }

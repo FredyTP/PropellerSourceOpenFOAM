@@ -20,6 +20,21 @@ bladeCell::bladeCell(const rotorGeometry& rotorGeometry, scalar radius0, scalar 
 
     actualLocation_ = localPoints_;
 
+    factor_ = dr_;
+
+}
+
+bladeCell::bladeCell(const rotorGeometry &rotorGeometry, const List<vector> &localVertex)
+    : gridCell(rotorGeometry)
+{
+    vector maxV = max(localVertex);
+    vector minV = min(localVertex);
+    dr_ = maxV.x()-minV.x();
+    dc_=0;
+    factor_ = dr_;
+    localPoints_= localVertex;
+    actualLocation_ = localPoints_;
+
 }
 
 void bladeCell::setRotation(const tensor &rotation)
@@ -36,7 +51,7 @@ void bladeCell::setRotation(const tensor &rotation)
 
 vector bladeCell::getCellCenter() const
 {
-    vector c;
+    vector c = Zero;
     forAll(actualLocation_,i)
     {
         c+=actualLocation_[i];

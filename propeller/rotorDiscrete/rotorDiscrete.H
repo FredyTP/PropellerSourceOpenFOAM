@@ -76,7 +76,8 @@ TypeName("rotorDiscrete");
          */
         void setFvMeshSel
         (
-            const rotorFvMeshSel &rotorFvMeshSel
+            const rotorFvMeshSel &rotorFvMeshSel,
+            const bladeModelS& bladeModel
         );
 
     //Output
@@ -93,7 +94,7 @@ TypeName("rotorDiscrete");
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
 
-        void createGrid(const rotorGeometry& geometry, scalar nBlades);
+        void setGeometry(const rotorGeometry& geometry, scalar nBlades);
 
         void updateTheta(scalar theta);
      //Getters

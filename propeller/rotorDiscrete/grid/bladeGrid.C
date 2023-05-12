@@ -5,17 +5,33 @@
 #include "delaunayTriangulation.H"
 namespace Foam
 {
-bladeGrid::bladeGrid(const rotorGeometry& geometry,const rotorFvMeshSel& rotorFvMeshSel, scalar chord, label nBlades, label nRadius, label nChord)
+bladeGrid::bladeGrid(const rotorGeometry& geometry,const rotorFvMeshSel& rotorFvMeshSel, scalar chord, label nBlades, label nRadius)
 : 
     rotorGrid(geometry,rotorFvMeshSel,nBlades), 
-    ijkAddressing(nBlades,nRadius,nChord), 
-    chord_(chord),
+    ijkAddressing(nBlades,nRadius,1), 
     nRadius_(nRadius),
-    nChord_(nChord),
+    nChord_(1),
     theta_(nBlades)
 {
     cells_.resize(this->size());
-    buildBlades();
+    buildBladesConstantChord(chord);
+    updateTheta(0);
+    rotateBlades();
+    assignFvCells();
+    build();
+    //chordWiseDistribution = constantDistribution();
+    //checkDistribution();
+}
+bladeGrid::bladeGrid(const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, label nBlades, label nRadius)
+: 
+    rotorGrid(geometry,rotorFvMeshSel,nBlades), 
+    ijkAddressing(nBlades,nRadius,1), 
+    nRadius_(nRadius),
+    nChord_(1),
+    theta_(nBlades)
+{
+    cells_.resize(this->size());
+    buildBladesFromBladeModel(bladeModel);
     updateTheta(0);
     rotateBlades();
     assignFvCells();
@@ -50,14 +66,12 @@ void bladeGrid::assignFvCells()
 }
 void bladeGrid::build()
 {
-    const auto& cylCS = rotorGeometry_.cylindricalCS();
     centers_.resize(cells_.size());
     forAll(cells_,i)
     {
         cells_[i].checkCells();
         cells_[i].buildWeigths();
-        vector tmp = cells_[i].getCellCenter();
-        cells_[i].setCenter(tmp);
+        cells_[i].setCenter(cells_[i].getCellCenter());
         centers_[i]=cells_[i].center();
     }
 }
@@ -69,13 +83,13 @@ void bladeGrid::setRotation(scalar theta0)
     build();
 
 }
-void bladeGrid::buildBlades()
+void bladeGrid::buildBladesConstantChord(scalar chord)
 {
     List<scalar> radius(nRadius_+1);
-    List<scalar> chord(nChord_+1);
+    List<scalar> chords(nChord_+1);
 
     scalar dr = (maxRadius_-minRadius_)/nRadius_;
-    scalar dc = (chord_)/nChord_;
+    scalar dc = (chord)/nChord_;
 
     //Create radius points
     for(label i = 0; i <nRadius_+1;i++)
@@ -85,7 +99,7 @@ void bladeGrid::buildBlades()
 
     for(label i = 0; i <nChord_+1;i++)
     {
-        chord[i]=-chord_/2 + dc*i;
+        chords[i]=-chord/2 + dc*i;
     }
 
     cells_.resize(this->size());
@@ -95,13 +109,78 @@ void bladeGrid::buildBlades()
         {
             for(label ic = 0; ic < nChord_; ic++)
             {
-                bladeCell* newcell = new bladeCell(rotorGeometry_,radius[ir],radius[ir+1],chord[ic],chord[ic+1]);
+                bladeCell* newcell = new bladeCell(rotorGeometry_,radius[ir],radius[ir+1],chords[ic],chords[ic+1]);
                 cells_.set(index(ib,ir,ic),newcell);
             }
         }
     }
+}
+void bladeGrid::buildBladesFromBladeModel(const bladeModelS &bladeModel)
+{
+    List<scalar> radius(nRadius_+1);
+
+    scalar dr = (maxRadius_-minRadius_)/nRadius_;
 
 
+    //Create radius points
+    for(label i = 0; i <nRadius_+1;i++)
+    {
+        radius[i]=minRadius_+dr*i;
+    }
+
+
+    cells_.resize(this->size());
+    for(label ib = 0; ib < nBlades_ ;ib ++ )
+    {
+        for(label ir=0; ir<nRadius_; ir++)
+        {
+            scalar radius0 = radius[ir];
+            scalar radius1 = radius[ir+1];
+            scalar chord0=0;
+            scalar chord1=0;
+            scalar twist0=0;
+            scalar twist1=0;
+            scalar sweep0=0;
+            scalar sweep1=0;
+
+            bladeModel.geometryAtRadius(radius0/maxRadius_,chord0,twist0,sweep0);
+            bladeModel.geometryAtRadius(radius1/maxRadius_,chord1,twist1,sweep1);
+
+            List<vector> points(4);
+            points[0] = vector(radius0,-chord0/2,0);
+            points[1] = vector(radius1,-chord1/2,0);
+            points[2] = vector(radius1,chord1/2,0);
+            points[3] = vector(radius0,chord0/2,0);
+
+            bladeCell* newcell = new bladeCell(rotorGeometry_,points);
+            cells_.set(index(ib,ir,0),newcell);
+
+        }
+    }
+
+}
+void bladeGrid::checkDistribution()
+{
+    List<scalar> values = chordWiseDistribution(nChord_);
+    scalar sum=0;
+    scalar tol = 1e-6;
+    forAll(values,i)
+    {
+        sum+=values[i];
+    }
+
+    if(std::abs(sum - 1.0) > tol)
+    {
+        FatalErrorInFunction<<"Chord wise distribution doesnt add up to 1.0"
+        <<exit(FatalError);
+    }
+}
+std::function<List<scalar>(label)> bladeGrid::constantDistribution()
+{
+    return [](label nChord)
+    {
+        return List<scalar>(nChord,1.0/nChord);
+    };
 }
 void bladeGrid::updateTheta(scalar theta0)
 {
@@ -110,6 +189,18 @@ void bladeGrid::updateTheta(scalar theta0)
     {
         theta_[i]=theta0 + dtheta*i;
 
+        if(theta_[i]>constant::mathematical::pi)
+        {
+            theta_[i]-=constant::mathematical::twoPi;
+        }
+    }
+}
+
+void bladeGrid::updateThetas(const List<scalar> &thetas)
+{
+    forAll(theta_,i)
+    {
+        theta_[i]=thetas[i];
         if(theta_[i]>constant::mathematical::pi)
         {
             theta_[i]-=constant::mathematical::twoPi;

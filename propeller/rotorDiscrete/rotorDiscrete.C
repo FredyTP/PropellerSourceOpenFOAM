@@ -33,7 +33,7 @@ rotorDiscrete::rotorDiscrete(const dictionary& dict)
     this->read(dict);
     
 }
-void rotorDiscrete::createGrid(const rotorGeometry &geometry, scalar nBlades)
+void rotorDiscrete::setGeometry(const rotorGeometry &geometry, scalar nBlades)
 {
     rotorGeometry_ = &geometry;
     nBlades_ = nBlades;
@@ -124,17 +124,14 @@ void rotorDiscrete::writePythonPlotter(word process)
     file << pyplot;
     file.close();*/
 }
-void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel)
+void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS& bladeModel)
 {
     Info<<endl;
     Info << "Assigning fvMeshCell to rotorGrid: " << endl;
     rotorMeshSel_ = &rotorFvMeshSel;
 
-    grid_ = rotorGrid::New(dict_,*rotorGeometry_,rotorFvMeshSel, nBlades_);
+    grid_ = rotorGrid::New(dict_,*rotorGeometry_,rotorFvMeshSel, bladeModel, nBlades_);
     // List ref.
-    const vectorField& cellCenter = rotorFvMeshSel.mesh().C();
-    const scalarField& cellVol = rotorFvMeshSel.mesh().V();
-    const labelList& cellis = rotorFvMeshSel.cells();
 
     Info<<"Assigning fv cells"<<endl;
 
