@@ -269,7 +269,22 @@ Foam::bladeModelS::bladeModelS(
     checkBlade();
 }
 
-bool Foam::bladeModelS::sectionAtRadius(scalar adimRadius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil)
+bool Foam::bladeModelS::sectionAtRadius(scalar adimRadius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil) const
+{
+
+    bool inside = geometryAtRadius(adimRadius,chord,twist,sweep);
+
+    if(!inside)
+    {
+        return false;
+    }
+    interpolated<scalar,const airfoilModel*> afl = airfoils_.interpolate({adimRadius});
+    airfoil = interpolatedAirfoil(afl);
+
+    return true;
+}
+
+bool Foam::bladeModelS::geometryAtRadius(scalar adimRadius, scalar &chord, scalar &twist, scalar &sweep) const
 {
     if(adimRadius <0.0 || adimRadius > 1.0)
     {
@@ -280,12 +295,5 @@ bool Foam::bladeModelS::sectionAtRadius(scalar adimRadius, scalar& chord, scalar
     twist = twistAngle_->interpolate({adimRadius}).value();
     sweep = sweepAngle_->interpolate({adimRadius}).value();
 
-    interpolated<scalar,const airfoilModel*> afl = airfoils_.interpolate({adimRadius});
-    airfoil = interpolatedAirfoil(afl);
-
     return true;
 }
-
-
-
-

@@ -60,7 +60,8 @@ public:
     bladeModelS(const airfoilModelList& airfoilList, const dictionary& dict);
 
 
-    bool sectionAtRadius(scalar radius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil);
+    bool sectionAtRadius(scalar adimRadius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil) const;
+    bool geometryAtRadius(scalar adimRadius, scalar& chord, scalar& twist, scalar& sweep) const;
 
     void writeBlade(label np,fileName path);
 
