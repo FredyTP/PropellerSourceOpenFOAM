@@ -9,8 +9,8 @@ namespace Foam
     addToRunTimeSelectionTable(velocitySampler,fixedVelocity, dictionary);
 
 
-fixedVelocity::fixedVelocity(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
-    : velocitySampler(rDiscrete_,rMesh_)
+fixedVelocity::fixedVelocity(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
+    : velocitySampler(rGrid,rMesh)
 {
     this->read(dict);
 }
@@ -27,7 +27,7 @@ bool fixedVelocity::read(const dictionary &dict)
         scalar speed;
         ok &=dict.readEntry("velocity",speed);
         //Positive speed towards the disk
-        velocity = - speed * rDiscrete->geometry().direction().get();
+        velocity = - speed * rGrid_->geometry().direction().get();
         indent(Info)<< "- Normal to rotor speed: "<<speed<<endl;
     }
     else

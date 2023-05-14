@@ -10,33 +10,26 @@
 namespace Foam
 {
 
-
 class polarGrid : public rotorGrid, public ijkAddressing
 {
 public:
-
+    
+    TypeName("polarGrid");
+    
     polarGrid() = default;
 
-    /**
-     * @brief Construct a new rotor Grid object with a structured grid
-     * 
-     * @param nRadius 
-     * @param nTheta 
-     * @param minRadius 
-     * @param maxRadius 
-     * @param cylCS 
-     */
     polarGrid
     (
+        const dictionary& dict,
         const rotorGeometry& geometry,
-        const rotorFvMeshSel& rotorFvMeshSel,
-        label nBlades,
-        label nRadius,
-        label nTheta
+        const rotorFvMeshSel &rotorFvMeshSel,
+        const bladeModelS& bladeModel,
+        scalar nBlades
     );
+
     //polarGrid(List<scalar>& radius, List<scalar> theta);
 
-
+    void setRotation(scalar theta0){}
     void assignFvCells();
     void build();
 

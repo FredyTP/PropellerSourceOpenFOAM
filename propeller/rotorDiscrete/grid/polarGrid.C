@@ -2,12 +2,24 @@
 #include "mathematicalConstants.H"
 #include "regularInterpolation.H"
 #include "polarCell.H"
+#include "addToRunTimeSelectionTable.H"
 
 namespace Foam
 {
-polarGrid::polarGrid(const rotorGeometry& geometry, const rotorFvMeshSel& rotorFvMeshSel, label nBlades, label nRadius, label nTheta)
-    : rotorGrid(geometry,rotorFvMeshSel, nBlades), radius_(nRadius+1), theta_(nTheta+1),ijkAddressing(nRadius,nTheta,0)
+
+
+defineTypeNameAndDebug(polarGrid,0);
+addToRunTimeSelectionTable(rotorGrid, polarGrid, dictionary);
+
+polarGrid::polarGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, scalar nBlades)
+: rotorGrid(dict, geometry, rotorFvMeshSel, nBlades)
 {
+    label nRadius = dict.get<label>("nRadial");
+    label nTheta = dict.get<label>("nAzimutal");
+    radius_.resize(nRadius+1);
+    theta_.resize(nTheta+1);
+    ijkAddressing::reset(nRadius,nTheta,0);
+
     scalar dr = (maxRadius_-minRadius_)/nRadius;
     scalar dt = (constant::mathematical::twoPi)/nTheta;
 
@@ -24,7 +36,13 @@ polarGrid::polarGrid(const rotorGeometry& geometry, const rotorFvMeshSel& rotorF
     }
     //Closed loop
 
+    Info<<"Build grid"<<endl;
     buildGrid();
+    Info<<"Assign cells"<<endl;
+    assignFvCells();
+    Info<<"Build"<<endl;
+    build();
+    Info<<"polargridbuild"<<endl;
 }
 
 void polarGrid::assignFvCells()
@@ -47,7 +65,6 @@ void polarGrid::assignFvCells()
 
         if(result == 1)
         {
-            
             this->cell(ir,it).addCelli(celli,weights[celli]);
         }
     }
@@ -55,13 +72,12 @@ void polarGrid::assignFvCells()
 
 void polarGrid::build()
 {
-    centers_.resize(cells_.size());
     forAll(cells_,i)
     {
         cells_[i].checkCells();
         cells_[i].buildWeigths();
-        centers_[i]=cells_[i].center();
     }
+    updateCenters();
 }
 
 

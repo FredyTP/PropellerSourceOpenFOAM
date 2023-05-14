@@ -89,11 +89,6 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         /*-----CONFIGURE THE PROPELLER MODEL-----*/
         propellerModel_->setRotorMesh(&rotorFvMeshSel_);
         //Build propeller model with 100% definitive rotorGeometry
-        propellerModel_->build(rotorGeometry_);
-        //Set reference properties for aerodynamic forces and adim variables
-        propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
-        propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
-        //propellerModel_->rDiscrete().writeArea(this->name(),mesh_);
         Info<<endl;
         if(!rotorGeometry_.isReady())
         {
@@ -106,11 +101,19 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         Info<<"Rotor Geometry of: "<< fv::option::name()<<endl
         << rotorGeometry_;
 
+        rotorGeometry_.buildCS();
+        propellerModel_->build(rotorGeometry_);
+        //Set reference properties for aerodynamic forces and adim variables
+        propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
+        propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
+        //propellerModel_->rDiscrete().writeArea(this->name(),mesh_);
+
+
         /*-----CREATE VELOCITY SAMPLING METHOD-----*/
         //Create velocitySampler for specified rotor discrete and mesh
         velSampler_ = velocitySampler::New(
                    dict.subDict("velocitySampler"),
-                   &propellerModel_->rDiscrete(), 
+                   propellerModel_->grid().get(), 
                    &rotorFvMeshSel_);
         velSampler_->writeSampled(fv::option::name_); //Write to file sampling location
 

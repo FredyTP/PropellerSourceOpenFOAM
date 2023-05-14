@@ -12,9 +12,18 @@ namespace Foam
 class bladeGrid : public rotorGrid, public ijkAddressing
 {
 public:
+    TypeName("bladeGrid");
+    
+    bladeGrid
+    (
+        const dictionary& dict,
+        const rotorGeometry& geometry,
+        const rotorFvMeshSel &rotorFvMeshSel,
+        const bladeModelS& bladeModel,
+        scalar nBlades
+    );
 
-    bladeGrid(const rotorGeometry& geometry,const rotorFvMeshSel& rotorFvMeshSel, scalar chord, label nBlades, label nRadius);
-    bladeGrid(const rotorGeometry& geometry,const rotorFvMeshSel& rotorFvMeshSel, const bladeModelS& bladeModel, label nBlades, label nRadius);
+    
     virtual void assignFvCells();
     virtual void build();
 

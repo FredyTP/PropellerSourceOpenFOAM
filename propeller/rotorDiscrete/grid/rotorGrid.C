@@ -4,17 +4,35 @@
 #include "mathematicalConstants.H"
 #include "regularInterpolation.H"
 
+#include "runTimeSelectionTables.H"
+
+
 
 namespace Foam
 {
 
-rotorGrid::rotorGrid(const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, label nBlades)
+defineTypeNameAndDebug(rotorGrid,0);
+defineRunTimeSelectionTable(rotorGrid, dictionary);
+
+const Enum
+<
+    rotorGrid::sampleMode
+>
+rotorGrid::sampleModeNames_
+({
+    {sampleMode::spCenter, "center"},
+    {sampleMode::spClosestCell, "closestCell"},
+});
+
+rotorGrid::rotorGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, label nBlades)
     :rotorGeometry_(geometry), meshSel_(rotorFvMeshSel)
 {
+    sampleMode_ = sampleModeNames_.getOrDefault("sampleMode",dict,sampleMode::spClosestCell);
     nBlades_ = nBlades;
     minRadius_ = geometry.innerRadius();
     maxRadius_ = geometry.radius();
 }
+
 void rotorGrid::setCenterFromClosestCell()
 {
     const auto& cellCenter = meshSel_.mesh().C();
@@ -22,6 +40,23 @@ void rotorGrid::setCenterFromClosestCell()
     {
         cells_[i].centerFromClosestCell(cellCenter);
     }
+}
+
+void Foam::rotorGrid::updateCenters()
+{
+    if(samplingMode() == spCenter)
+    {
+        forAll(cells_, i)
+        {
+            vector center = cells_[i].getCellCenter();
+            cells_[i].setCenter(center);
+        }
+    }
+    else if(samplingMode() ==spClosestCell)
+    {
+        setCenterFromClosestCell();
+    }
+
 }
 
 tensor rotorGrid::bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint) 
@@ -60,44 +95,31 @@ tensor rotorGrid::bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, con
     return rotTensor;
 }
 
-autoPtr<rotorGrid> rotorGrid::New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel& rotorFvMeshSel, const bladeModelS& bladeModel, scalar nBlades)
+autoPtr<rotorGrid> Foam::rotorGrid::New(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, scalar nBlades)
 {
-    word type = dict.get<word>("type");
-    scalar innerRadius = geometry.innerRadius();
-    scalar radius = geometry.radius();
+     //Get model Type name (Ex: simpleAirfoil) 
+    //From typeNkey from dictionary (airfoilModel)
+    const word modelType(dict.get<word>("type")); 
 
-    autoPtr<rotorGrid> ptr;
-    if(type=="polarGrid")
-    {
-        Info<<"Creating polarGrid"<<endl;
-        scalar nRadial = dict.get<label>("nRadial");
-        scalar nAzimutal = dict.get<label>("nAzimutal");
-        ptr = autoPtr<rotorGrid>::NewFrom<polarGrid>(geometry,rotorFvMeshSel,nBlades,nRadial,nAzimutal);
-    }
-    else if ( type == "meshGrid")
-    {
+    Info<< "    - Loading " << modelType << endl;
 
-    }
-    else if (type == "bladeGrid")
+    //Find class contructor in tables
+    auto* ctorPtr = dictionaryConstructorTable(modelType);
+
+    Info<<"dicitonary"<<endl;
+    if (!ctorPtr)
     {
-        Info<<"Creating bladeGrid"<<endl;
-        scalar nRadial = dict.get<label>("nRadial");
-        //scalar nChord = dict.get<label>("nChord");
-        scalar chord;
-        bool presentChord = dict.readIfPresent("chord",chord);
-        if(presentChord)
-        {
-            ptr = autoPtr<rotorGrid>::NewFrom<bladeGrid>(geometry,rotorFvMeshSel,chord,nBlades,nRadial);
-        }
-        else
-        {
-            ptr = autoPtr<rotorGrid>::NewFrom<bladeGrid>(geometry,rotorFvMeshSel,bladeModel,nBlades,nRadial);
-        }
-        //Get info from blade ...
-        
+        FatalIOErrorInLookup
+        (
+            dict,
+            typeName,
+            modelType,
+            *dictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
     }
 
-    return ptr;
+    Info<<"createNEw"<<endl;
+    return autoPtr<rotorGrid>(ctorPtr(dict,geometry,rotorFvMeshSel,bladeModel,nBlades));
 }
 
 }

@@ -19,7 +19,7 @@ Foam::bladeElementModel::bladeElementModel
     propellerModel(dict,typeName),
     airfoils_(dict.subDict("airfoils")),
     bladeModel_(airfoils_,dict.subDict("bladeModel")),
-    rotorDiscrete_(dict.subOrEmptyDict("discrete"))
+    gridDictionary(dict.subDict("rotorGrid"))
 {    
     dict.readEntry("nBlades",nBlades_);
     tipFactor_ = dict.getOrDefault<scalar>("tipFactor",1);
@@ -28,9 +28,43 @@ Foam::bladeElementModel::bladeElementModel
 
 void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
-    rotorDiscrete_.setGeometry(rotorGeometry, nBlades_);
-    rotorDiscrete_.setFvMeshSel(*rotorFvMeshSel_,bladeModel_);
+    rotorGrid_ = rotorGrid::New(gridDictionary,rotorGeometry,*rotorFvMeshSel_,bladeModel_,nBlades_);
 
+    volScalarField selected
+    (
+        IOobject
+        (
+            "selectedCells",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
+    volVectorField gridpos
+    (
+        IOobject
+        (
+            "gridPosition",
+            rotorFvMeshSel_->mesh().time().timeName(),
+            rotorFvMeshSel_->mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        rotorFvMeshSel_->mesh(),
+        dimensionedVector(dimless, Zero)
+    );
+
+    forAll(rotorGrid_->cells(),i)
+    {
+        rotorGrid_->cells()[i].applyField<scalar>(selected.ref(false),1);
+        rotorGrid_->cells()[i].applyField<vector>(gridpos.ref(false),rotorGrid_->cells()[i].center());
+    }
+
+    selected.write();
+    gridpos.write();
     bladeModel_.writeBlade(300,"blade.csv");
 }
 
@@ -38,7 +72,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 {
     propellerResult result;
     //Puntos de la discretizacion
-    PtrList<gridCell>& cells = rotorDiscrete_.grid()->cells();
+    PtrList<gridCell>& cells = rotorGrid_->cells();
     
     scalar aoaMax = -VGREAT;
     scalar aoaMin = VGREAT;
@@ -70,7 +104,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         dimensionedVector(dimless, Zero)
     );
 
-    rotorDiscrete_.updateTheta(theta);
+    Info<<"theta: "<<theta<<endl;
+    rotorGrid_->setRotation(theta);
 
     //---CALCULATE VALUE ON INTEGRATION POINTS---//
     forAll(cells, i)
@@ -83,9 +118,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
         vector cellforce = cell.scaleForce(forceOverLen);
 
-        vector localForce = rotorDiscrete_.cartesian().localVector(cellforce);
+        vector localForce = rotorGrid_->geometry().cartesianCS().localVector(cellforce);
         result.force += localForce;
-        vector localPos = rotorDiscrete_.carToCyl().globalPosition(cell.center());
+        vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
         result.torque += localForce.cross(localPos);
 
         cell.applySource(force,cellVol,cellforce);
@@ -106,9 +141,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
     result.updateEta(this->refV);
     //Use J definition Vref/(rps * D)
-    result.updateJ(this->refV,angularVelocity,rotorDiscrete_.geometry().radius().get());
-    result.updateCT(this->refRho,angularVelocity,rotorDiscrete_.geometry().radius().get());
-    result.updateCP(this->refRho,angularVelocity,rotorDiscrete_.geometry().radius().get());
+    result.updateJ(this->refV,angularVelocity,rotorGrid_->geometry().radius().get());
+    result.updateCT(this->refRho,angularVelocity,rotorGrid_->geometry().radius().get());
+    result.updateCP(this->refRho,angularVelocity,rotorGrid_->geometry().radius().get());
     Info<< "- Max AoA: "<<aoaMax * 180/constant::mathematical::pi <<"º"<<endl;
     Info<< "- Min AoA: "<<aoaMin * 180/constant::mathematical::pi <<"º"<<endl;
 
@@ -125,7 +160,7 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
 {
     //---GET INTERPOLATED SECTION---//
     scalar radius = cell.radius();
-    scalar maxRadius = rotorDiscrete_.geometry().radius();
+    scalar maxRadius = rotorGrid_->geometry().radius();
     scalar chord,twist,sweep;
     interpolatedAirfoil airfoil;
     if(!bladeModel_.sectionAtRadius(radius/maxRadius,chord,twist,sweep,airfoil))
@@ -166,7 +201,7 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
     scalar cd = airfoil.cd(AoA,re,mach);
 
     //Add tip factor effect:
-    if(radius/rotorDiscrete_.geometry().radius().get()>=tipFactor_)
+    if(radius/rotorGrid_->geometry().radius().get()>=tipFactor_)
     {
         cl=0.0;
     }

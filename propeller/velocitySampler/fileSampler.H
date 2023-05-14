@@ -3,7 +3,7 @@
 
 #include "velocitySampler.H"
 #include "domainSampler.H"
-#include "rotorDiscrete.H"
+#include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
 #include "dictionary.H"
 namespace Foam
@@ -38,7 +38,7 @@ public:
      * @param rDiscrete_ 
      * @param rMesh_ 
      */
-    fileSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
+    fileSampler(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
 
     /**
      * @brief Read object from dictionary

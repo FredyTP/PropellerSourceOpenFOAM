@@ -41,7 +41,6 @@ void gridCell::setCenter(const vector &center)
 {
     center_=center;
     center_.z()=0;
-
     updateBladeTensor();
 }
 
@@ -68,9 +67,8 @@ void gridCell::centerFromClosestCell(const vectorField &cellCenters)
         }
     }
     vector newCenter = cellCenters[interpolatingCell_];
-    newCenter = localCyl.localPosition(center_);
+    newCenter = localCyl.localPosition(newCenter);
     newCenter.z()=0;
-
     this->setCenter(newCenter);
 }
 

@@ -2,7 +2,7 @@
 #define PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER
 
 #include "velocitySampler.H"
-#include "rotorDiscrete.H"
+#include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
 #include "dictionary.H"
 #include "cellPointWeight.H"
@@ -38,7 +38,7 @@ class domainSampler : public velocitySampler
 public:
     TypeName("domainSampler");
 
-    domainSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
+    domainSampler(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
 
     bool read(const dictionary& dict);
 

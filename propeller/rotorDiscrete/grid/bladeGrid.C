@@ -5,38 +5,37 @@
 #include "delaunayTriangulation.H"
 namespace Foam
 {
-bladeGrid::bladeGrid(const rotorGeometry& geometry,const rotorFvMeshSel& rotorFvMeshSel, scalar chord, label nBlades, label nRadius)
-: 
-    rotorGrid(geometry,rotorFvMeshSel,nBlades), 
-    ijkAddressing(nBlades,nRadius,1), 
-    nRadius_(nRadius),
-    nChord_(1),
-    theta_(nBlades)
+
+defineTypeNameAndDebug(bladeGrid,0);
+addToRunTimeSelectionTable(rotorGrid, bladeGrid, dictionary);
+
+bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, scalar nBlades)
+:
+    rotorGrid(dict,geometry,rotorFvMeshSel,nBlades)
 {
+    Info<<"Creating blade grid"<<endl;
+    nRadius_ = dict.get<label>("nRadial");
+    ijkAddressing::reset(nBlades_,nRadius_,1);
+    nChord_ = 1;
+    theta_.resize(nBlades_);
+
     cells_.resize(this->size());
-    buildBladesConstantChord(chord);
-    updateTheta(0);
-    rotateBlades();
-    assignFvCells();
-    build();
-    //chordWiseDistribution = constantDistribution();
-    //checkDistribution();
+    scalar chord=0;
+    bool hasChord = dict.readIfPresent("chord",chord);
+    Info<<"buidl blades"<<endl;
+    if(hasChord)
+    {
+        buildBladesConstantChord(chord);
+    }
+    else
+    {
+        buildBladesFromBladeModel(bladeModel);
+    }
+    Info<<"Set Rotation"<<endl;
+    setRotation(0);
+    Info<<"bladegridbuild"<<endl;
 }
-bladeGrid::bladeGrid(const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, label nBlades, label nRadius)
-: 
-    rotorGrid(geometry,rotorFvMeshSel,nBlades), 
-    ijkAddressing(nBlades,nRadius,1), 
-    nRadius_(nRadius),
-    nChord_(1),
-    theta_(nBlades)
-{
-    cells_.resize(this->size());
-    buildBladesFromBladeModel(bladeModel);
-    updateTheta(0);
-    rotateBlades();
-    assignFvCells();
-    build();
-}
+
 void bladeGrid::assignFvCells()
 {
     const auto& cellCenter = meshSel_.mesh().C();
@@ -66,14 +65,12 @@ void bladeGrid::assignFvCells()
 }
 void bladeGrid::build()
 {
-    centers_.resize(cells_.size());
     forAll(cells_,i)
     {
         cells_[i].checkCells();
         cells_[i].buildWeigths();
-        cells_[i].setCenter(cells_[i].getCellCenter());
-        centers_[i]=cells_[i].center();
     }
+    updateCenters();
 }
 void bladeGrid::setRotation(scalar theta0)
 {
@@ -102,13 +99,18 @@ void bladeGrid::buildBladesConstantChord(scalar chord)
         chords[i]=-chord/2 + dc*i;
     }
 
-    cells_.resize(this->size());
-    for(label ib = 0; ib < nBlades_ ;ib ++ )
+    cells_.resize(ijkAddressing::size());
+    Info<<cells_.size()<<endl;
+    for(label ib = 0; ib < nBlades_ ;ib++ )
     {
-        for(label ir=0; ir<nRadius_; ir++)
+        Info<<"ib: "<<ib<<endl;
+        for(label ir=0; ir < nRadius_; ir++)
         {
+            Info<<"ir: "<<ir<<endl;
             for(label ic = 0; ic < nChord_; ic++)
             {
+                Info<<"ic: "<<ic<<endl;
+                Info<<"Setting cell: "<<index(ib,ir,ic)<<ic<<endl;
                 bladeCell* newcell = new bladeCell(rotorGeometry_,radius[ir],radius[ir+1],chords[ic],chords[ic+1]);
                 cells_.set(index(ib,ir,ic),newcell);
             }
@@ -221,9 +223,6 @@ void bladeGrid::rotateBlades()
                 if(bCell != nullptr)
                 {
                     bCell->setRotation(rotation);
-                    //vector center = bCell->cartesianCenter();
-                    //center = rotorGeometry_.cartesianToCylindrical().localPosition(center);
-                    //bCell->setCenter(center);
                 }
             }
         }

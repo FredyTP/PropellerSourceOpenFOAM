@@ -8,8 +8,8 @@ namespace Foam
     defineTypeNameAndDebug(domainSampler,0);
     addToRunTimeSelectionTable(velocitySampler,domainSampler, dictionary);
 
-domainSampler::domainSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
- : velocitySampler(rDiscrete_,rMesh_)
+domainSampler::domainSampler(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
+ : velocitySampler(rGrid,rMesh)
 {
     this->read(dict);
 }
@@ -22,9 +22,10 @@ bool domainSampler::read(const dictionary &dict)
     {
         offset=0.0;
     }
-    atCellCenter = dict.getOrDefault<bool>("atCellCenter",rDiscrete->samplingMode() == rotorDiscrete::sampleMode::spClosestCell);
+    atCellCenter = dict.getOrDefault<bool>("atCellCenter",rGrid_->samplingMode() == rotorGrid::sampleMode::spClosestCell);
     Info.stream().incrIndent();
     Info<<indent<< "- Offset: "<<offset<<endl;
+    Info<<indent<< "- Scale: "<<scale<<endl;
     Info<<indent<< "- Sample atCellCenter: "<<atCellCenter<<endl;
 
     //For parallel computation only 0 offset anc cell-center integration is available
@@ -45,11 +46,11 @@ bool domainSampler::read(const dictionary &dict)
  
 const vectorField& domainSampler::sampleVelocity(const volVectorField& U) 
 {
-    //If no offset and rotorDiscrete is integrated in cell centers
+    //If no offset and rotorGrid is integrated in cell centers
     //Then the correspondence is cell to cell
     if(isDirectSample())
     {
-        const PtrList<gridCell>& rotorCells = rDiscrete->grid()->cells();
+        const PtrList<gridCell>& rotorCells = rGrid_->cells();
         forAll(rotorCells,i)
         {
             this->sampledVel[i] = U.primitiveField()[rotorCells[i].interpolatingCelli()];
@@ -75,45 +76,47 @@ const vectorField& domainSampler::sampleVelocity(const volVectorField& U)
 }
 bool domainSampler::build()
 {
-    //If offset is 0.0 and rotorDiscrete is equal to rotorFvMeshSel
+    //If offset is 0.0 and rotorGrid is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
+    Info<<"directSampler: "<<isDirectSample()<<endl;
+    
     if(isDirectSample())
     {
         return true;
     }
-    const List<point>& cylPoints = rDiscrete->grid()->centers();
-    cellToSample.resize(cylPoints.size());
+    const auto& cells = rGrid_->cells();
+    cellToSample.resize(cells.size());
     if(!atCellCenter)
     {
-        cellWeights.resize(cylPoints.size());
+        cellWeights.resize(cells.size());
     }
     //Iterate over all discretization points
-    forAll(cylPoints, i)
+    forAll(cells, i)
     {
         //Get global coordinates
-        vector localPoint = cylPoints[i];
+        vector localPoint = cells[i].center();
         //Scale radius
         localPoint.x() = localPoint.x()*scale;
-        point rPoint = rDiscrete->cylindrical().globalPosition(localPoint);
+        point rPoint = rGrid_->geometry().cylindricalCS().globalPosition(localPoint);
         
         //Add the offset normal to the geometry
-        rPoint += rDiscrete->geometry().direction().get() * offset;
+        rPoint += rGrid_->geometry().direction().get() * offset;
         //Find the cell where the point is and set to the list
-        cellToSample[i] = rMesh->mesh().findCell(rPoint); 
+        cellToSample[i] = rMesh_->mesh().findCell(rPoint); 
 
         if(cellToSample[i]==-1)
         {
             FatalErrorInFunction
                 << "sampledCell at position = "
-                << rPoint 
+                << localPoint 
                 <<", is outside computational domain"
                 <<exit(FatalError);
         }
 
         if(!atCellCenter)
         {
-            cellWeights[i] = autoPtr<cellPointWeight>::New(rMesh->mesh(),rPoint,cellToSample[i]);
+            cellWeights[i] = autoPtr<cellPointWeight>::New(rMesh_->mesh(),rPoint,cellToSample[i]);
         }
     }
 
@@ -127,17 +130,17 @@ void domainSampler::writeSampled(const word& name)
             IOobject
             (
                 name + ":sampledCells",
-                rMesh->mesh().time().timeName(),
-                rMesh->mesh()
+                rMesh_->mesh().time().timeName(),
+                rMesh_->mesh()
             ),
-            rMesh->mesh(),
+            rMesh_->mesh(),
             dimensionedScalar(dimless, Zero)
     );
     if(isDirectSample())
     {
-        forAll(rDiscrete->grid()->cells(),i)
+        forAll(rGrid_->cells(),i)
         {
-            const auto& cell = rDiscrete->grid()->cells()[i];
+            const auto& cell = rGrid_->cells()[i];
             sampled[cell.interpolatingCelli()] +=1.0;
         }
     }
@@ -153,9 +156,10 @@ void domainSampler::writeSampled(const word& name)
 }
 bool domainSampler::isDirectSample()
 {
-    return offset == 0.0 
+    return (offset == 0.0 
+    && scale == 1.0
     && atCellCenter 
-    && rDiscrete->samplingMode() == rotorDiscrete::sampleMode::spClosestCell;
+    && rGrid_->samplingMode() == rotorGrid::sampleMode::spClosestCell);
 }
 
 }

@@ -12,8 +12,8 @@ namespace Foam
     addToRunTimeSelectionTable(velocitySampler,fileSampler, dictionary);
 
 
-fileSampler::fileSampler(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
-    : domainSampler(dict,rDiscrete_,rMesh_)
+fileSampler::fileSampler(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
+    : domainSampler(dict,rGrid,rMesh)
 {
     this->read(dict);
 }
@@ -50,18 +50,18 @@ bool fileSampler::read(const dictionary &dict)
 
         closestNeighbor<scalar,vector,3> interp(pos,vel);
 
-        const List<vector>& cellCenter = velocitySampler::rMesh->mesh().C();
+        const List<vector>& cellCenter = velocitySampler::rMesh_->mesh().C();
         volVectorField U
         (
             IOobject
             (
                 "Uread",
-                velocitySampler::rMesh->mesh().time().timeName(),
-                velocitySampler::rMesh->mesh(),
+                velocitySampler::rMesh_->mesh().time().timeName(),
+                velocitySampler::rMesh_->mesh(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE
             ),
-            velocitySampler::rMesh->mesh(),
+            velocitySampler::rMesh_->mesh(),
             dimensionedVector(dimVelocity,Zero)
         );
             
@@ -86,11 +86,11 @@ bool fileSampler::read(const dictionary &dict)
             IOobject
             (
                 file,
-                velocitySampler::rMesh->mesh(),
+                velocitySampler::rMesh_->mesh(),
                 IOobject::MUST_READ,
                 IOobject::AUTO_WRITE
             ),
-            velocitySampler::rMesh->mesh()
+            velocitySampler::rMesh_->mesh()
         );
         uFromFile_ = autoPtr<volVectorField>::New(std::move(U));
     }

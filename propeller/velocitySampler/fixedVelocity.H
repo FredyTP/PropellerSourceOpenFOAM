@@ -1,7 +1,7 @@
 #ifndef PROPELLER_VELOCITY_SAMPLER_FIXED_VELOCITY
 #define PROPELLER_VELOCITY_SAMPLER_FIXED_VELOCITY
 #include "velocitySampler.H"
-#include "rotorDiscrete.H"
+#include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
 #include "dictionary.H"
 namespace Foam
@@ -49,7 +49,7 @@ public:
      * @param rDiscrete_ 
      * @param rMesh_ 
      */
-    fixedVelocity(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
+    fixedVelocity(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
 
     /**
      * @brief Read object from dictionary

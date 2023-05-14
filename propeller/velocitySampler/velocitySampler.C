@@ -14,16 +14,16 @@ namespace Foam
                 IOobject
                 (
                     name + ":sampledCells",
-                    rMesh->mesh().time().timeName(),
-                    rMesh->mesh()
+                    rMesh_->mesh().time().timeName(),
+                    rMesh_->mesh()
                 ),
-                rMesh->mesh(),
+                rMesh_->mesh(),
                 dimensionedScalar(dimless, Zero)
         );
         sampled.write();
     }
 
-    autoPtr<velocitySampler> velocitySampler::New(const dictionary &dict, const rotorDiscrete *rDiscrete_, const rotorFvMeshSel *rMesh_)
+    autoPtr<velocitySampler> velocitySampler::New(const dictionary &dict, const rotorGrid *rGrid, const rotorFvMeshSel *rMesh)
     {
         //Get model Type name (Ex: fixedVelocity) 
         //From type key from dictionary (propellerModel)
@@ -45,12 +45,12 @@ namespace Foam
             ) << exit(FatalIOError);
         }
 
-        return autoPtr<Foam::velocitySampler>(ctorPtr(dict,rDiscrete_,rMesh_));
+        return autoPtr<Foam::velocitySampler>(ctorPtr(dict,rGrid,rMesh));
 
     }
 
-    velocitySampler::velocitySampler(const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_)
-        : rDiscrete(rDiscrete_), rMesh(rMesh_), sampledVel(rDiscrete->grid()->centers().size(),Zero)
+    velocitySampler::velocitySampler(const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
+        : rGrid_(rGrid), rMesh_(rMesh), sampledVel(rGrid_->nCells(),Zero)
     {
         
     }

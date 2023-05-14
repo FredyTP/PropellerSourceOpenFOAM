@@ -32,9 +32,9 @@ public:
     virtual ~froudeModel() = default;
 
     
-    virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
+    virtual const autoPtr<rotorGrid>& grid() {return rotorGrid_;}
 private:
-    rotorDiscrete rotorDiscrete_;
+    autoPtr<rotorGrid> rotorGrid_;
 };
 
 }

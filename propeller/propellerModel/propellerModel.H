@@ -6,7 +6,7 @@
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
 #include "rotorFvMeshSel.H"
-#include "rotorDiscrete.H"
+#include "rotorGrid.H"
 #include "propellerResult.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -72,7 +72,7 @@ public:
 
     virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force, scalar theta){return propellerResult();}
 
-    virtual const rotorDiscrete& rDiscrete() = 0;
+    virtual const autoPtr<rotorGrid>& grid() = 0;
 
     void setRefV(scalar v){refV=v;}
     void setRefRho(scalar rho){refRho = rho;}

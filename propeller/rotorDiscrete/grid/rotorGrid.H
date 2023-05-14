@@ -12,6 +12,8 @@
 #include "rotorGeometry.H"
 #include "rotorFvMeshSel.H"
 #include "bladeModelS.H"
+#include "dictionary.H"
+#include "autoPtr.H"
 
 namespace Foam
 {
@@ -20,21 +22,46 @@ namespace Foam
 class rotorGrid
 {
 public:
+    enum sampleMode
+    {
+        spCenter,
+        spClosestCell,
+        spCellMean
+    };
+    static const Enum<sampleMode> sampleModeNames_;
 
-    rotorGrid(const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, label nBlades);
+    TypeName("rotorGrid");
+
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        rotorGrid,
+        dictionary,
+        (
+            const dictionary& dict,
+            const rotorGeometry& geometry,
+            const rotorFvMeshSel &rotorFvMeshSel,
+            const bladeModelS& bladeModel,
+            scalar nBlades
+        ),
+        (dict,geometry,rotorFvMeshSel,bladeModel,nBlades)
+    );
+    
+    rotorGrid(const dictionary& dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, label nBlades);
 
     virtual void assignFvCells() = 0;
     virtual void build() = 0;
+    virtual void setRotation(scalar theta0)=0;
+
     void setCenterFromClosestCell();
-
+    void updateCenters();
     const PtrList<gridCell>& cells() const { return cells_;}
+    const rotorGeometry& geometry() const { return rotorGeometry_;}
     PtrList<gridCell>& cells() { return cells_;}
-    const List<vector>& centers() const {return centers_;}
-    
+    sampleMode samplingMode() const {return sampleMode_;}
     static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
-
     static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS& bladeModel, scalar nBlades);
-
+    label nCells() const { return cells_.size();}
     virtual ~rotorGrid() = default;
 protected:
     const rotorFvMeshSel& meshSel_;
@@ -43,9 +70,8 @@ protected:
     scalar minRadius_;
     scalar maxRadius_;
 
-
+    sampleMode sampleMode_;
     PtrList<gridCell> cells_;
-    List<vector> centers_;
 };
 
 }

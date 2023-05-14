@@ -15,8 +15,7 @@ namespace Foam
 Foam::froudeModel::froudeModel
 (
     const dictionary& dict
-) : propellerModel(dict,typeName),
-    rotorDiscrete_(dict.subDict("discrete"))
+) : propellerModel(dict,typeName)
 {
 
     Info<<"Creating froude Model"<<endl;

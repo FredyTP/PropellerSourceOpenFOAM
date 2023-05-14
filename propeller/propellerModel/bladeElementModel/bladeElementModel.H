@@ -3,7 +3,7 @@
 #include "propellerModel.H"
 #include "airfoilModelList.H"
 #include "bladeModelS.H"
-#include "rotorDiscrete.H"
+#include "rotorGrid.H"
 #include "velocitySampler.H"
 namespace Foam
 {
@@ -20,7 +20,7 @@ protected:
 
     airfoilModelList airfoils_;
     bladeModelS bladeModel_;
-    rotorDiscrete rotorDiscrete_;
+    autoPtr<rotorGrid> rotorGrid_;
 
     scalar nBlades_; 
     scalar tipFactor_;
@@ -28,6 +28,8 @@ protected:
     bool correctCenters;
     label refinementLevel;
     word discreteMethod;
+
+    dictionary gridDictionary;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");
@@ -57,7 +59,7 @@ public:
 
     virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force, scalar theta);
     
-    virtual const rotorDiscrete& rDiscrete() {return rotorDiscrete_;}
+    virtual const autoPtr<rotorGrid>& grid() {return rotorGrid_;}
 
     vector calculatePoint(const vector& U,scalar angularVelocity, const gridCell& cell, bemDebugData& data);
 

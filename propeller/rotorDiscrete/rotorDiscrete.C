@@ -16,15 +16,7 @@ namespace Foam
 
 defineTypeNameAndDebug(rotorDiscrete, 0);
 
-const Enum
-<
-    rotorDiscrete::sampleMode
->
-rotorDiscrete::sampleModeNames_
-({
-    {sampleMode::spCenter, "center"},
-    {sampleMode::spClosestCell, "closestCell"},
-});
+
 
 
 rotorDiscrete::rotorDiscrete(const dictionary& dict)
@@ -135,34 +127,7 @@ void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel, const bla
 
     Info<<"Assigning fv cells"<<endl;
 
-    grid_->assignFvCells();
-    if(sampleMode_ == spClosestCell)
-    {
-        grid_->setCenterFromClosestCell();
-    }
-    Info<<"Building "<<endl;
-    grid_->build();
-
-    volScalarField selected
-    (
-        IOobject
-        (
-            "selectedCells",
-            rotorMeshSel_->mesh().time().timeName(),
-            rotorMeshSel_->mesh(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        rotorMeshSel_->mesh(),
-        dimensionedScalar(dimless, Zero)
-    );
-
-    forAll(grid_->cells(),i)
-    {
-        grid_->cells()[i].applyField<scalar>(selected.ref(false),1);
-    }
-
-    selected.write();
+    
 
 }
 
@@ -180,16 +145,13 @@ bool rotorDiscrete::read(const dictionary &dict)
 
     //correctCenters_ = dict.getOrDefault<bool>("correctCenters",false);
     
-    nRadial = dict.get<label>("nRadial");
-    nAzimutal = dict.get<label>("nAzimutal");
-    sampleMode_ = sampleModeNames_.getOrDefault("sampleMode",dict,sampleMode::spClosestCell);
+    
+    
 
     Info<<endl;    
     Info << "Reading rotor Discrete dict:" << endl;
     Info.stream().incrIndent();
-    indent(Info)<<"- Radial Cells: "<<nRadial<<endl;
-    indent(Info)<<"- Azimutal Cells: "<<nAzimutal<<endl;
-    indent(Info)<<"- Sample Mode: "<<sampleModeNames_.get(sampleMode_)<<endl;
+    
     //indent(Info)<<"- Discrete method: "<<rotorDiscrete::discreteMethodNames_.get(discreteMethod_)<<endl;
     //indent(Info)<<"- Border refinement: "<<refinementLevel_<<endl;
     //indent(Info)<<"- Correct centers: "<<correctCenters_<<endl;

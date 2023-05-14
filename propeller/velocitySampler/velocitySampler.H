@@ -2,7 +2,7 @@
 #define PROPELLER_VELOCITY_SAMPLER_VELOCITY_SAMPLER
 #include "dictionary.H"
 #include "autoPtr.H"
-#include "rotorDiscrete.H"
+#include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
 
 namespace Foam
@@ -38,10 +38,10 @@ public:
         dictionary,
         (
             const dictionary& dict,
-            const rotorDiscrete* rDiscrete_,
-            const rotorFvMeshSel* rMesh_
+            const rotorGrid* rGrid,
+            const rotorFvMeshSel* rMesh
         ),
-        (dict,rDiscrete_,rMesh_)
+        (dict,rGrid,rMesh)
     );
     
     virtual ~velocitySampler() = default;
@@ -64,27 +64,27 @@ public:
     virtual void writeSampled(const word& name);
     
     /**
-     * @brief Builds a velocitySampler from its dictionary, rotorDiscrete data and fv Mesh selection
+     * @brief Builds a velocitySampler from its dictionary, rotorGrid data and fv Mesh selection
      * 
      * @param dict velocity sampler dict
      * @param rDiscrete_ rotor discretization
      * @param rMesh_ fvMesh selection for rotor
      * @return autoPtr<velocitySampler>: safe pointer to created sampler
      */
-    static autoPtr<velocitySampler> New(const dictionary& dict,const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
+    static autoPtr<velocitySampler> New(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh_);
 
 protected:
 
     /**
      * @brief Construct a new velocity Sampler object, only available to build from derived clases
      * 
-     * @param rDiscrete_ 
-     * @param rMesh_ 
+     * @param rGrid 
+     * @param rMesh
      */
-    velocitySampler(const rotorDiscrete* rDiscrete_,const rotorFvMeshSel* rMesh_);
+    velocitySampler(const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
 
-    const rotorDiscrete* rDiscrete;
-    const rotorFvMeshSel* rMesh;
+    const rotorGrid* rGrid_;
+    const rotorFvMeshSel* rMesh_;
 
     /**
      * @brief velocity sampled vector, to return by reference

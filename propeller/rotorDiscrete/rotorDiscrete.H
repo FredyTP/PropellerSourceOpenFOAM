@@ -10,7 +10,10 @@
 #include "rotorGeometry.H"
 #include "rotorGrid.H"
 
-
+/**
+ * @brief TO DELETE
+ * 
+ */
 namespace Foam
 {
 
@@ -24,13 +27,7 @@ public:
         dmPolar, //Polar discretization from radial and azimutal vectors
         dmUniform, //Uniformly distributed points
     };
-    enum sampleMode
-    {
-        spCenter,
-        spClosestCell,
-        spCellMean
-    };
-    static const Enum<sampleMode> sampleModeNames_;
+
 
 private:
 
@@ -50,7 +47,7 @@ private:
     autoPtr<rotorGrid> grid_;
 
     discreteMode discreteMode_ = discreteMode::dmNone;
-    sampleMode sampleMode_;
+    
 
     bool correctCenters_ = false;
     bool includeVertex_ = true;
@@ -107,7 +104,7 @@ TypeName("rotorDiscrete");
         const coordSystem::cartesian& cartesian() const {return carCS_;}
         const coordSystem::cylindrical& cylindrical() const {return cylCS_;}
 
-        sampleMode samplingMode() const { return sampleMode_;}
+    
 
 
 private:

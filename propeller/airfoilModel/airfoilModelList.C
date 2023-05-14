@@ -22,6 +22,7 @@ Foam::airfoilModelList::airfoilModelList(const dictionary& dict)
             );
         }
 
+        //Build interpolated airfoils and export marked airfoils
         forAll(airfoilNames,i)
         {
             interpolatedAirfoil* iAirfoil = dynamic_cast<interpolatedAirfoil*>(this->get(i));
