@@ -34,15 +34,11 @@ polarGrid::polarGrid(const dictionary &dict, const rotorGeometry &geometry, cons
     {
         theta_[i]=-constant::mathematical::pi+dt*i;
     }
-    //Closed loop
 
-    Info<<"Build grid"<<endl;
     buildGrid();
-    Info<<"Assign cells"<<endl;
     assignFvCells();
-    Info<<"Build"<<endl;
     build();
-    Info<<"polargridbuild"<<endl;
+
 }
 
 void polarGrid::assignFvCells()

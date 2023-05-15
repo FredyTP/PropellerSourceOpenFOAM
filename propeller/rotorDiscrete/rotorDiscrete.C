@@ -118,14 +118,14 @@ void rotorDiscrete::writePythonPlotter(word process)
 }
 void rotorDiscrete::setFvMeshSel(const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS& bladeModel)
 {
-    Info<<endl;
-    Info << "Assigning fvMeshCell to rotorGrid: " << endl;
+    indent(Info)<<endl;
+    indent(Info)<< "Assigning fvMeshCell to rotorGrid: " << endl;
     rotorMeshSel_ = &rotorFvMeshSel;
 
     grid_ = rotorGrid::New(dict_,*rotorGeometry_,rotorFvMeshSel, bladeModel, nBlades_);
     // List ref.
 
-    Info<<"Assigning fv cells"<<endl;
+    indent(Info)<<"Assigning fv cells"<<endl;
 
     
 
@@ -148,8 +148,8 @@ bool rotorDiscrete::read(const dictionary &dict)
     
     
 
-    Info<<endl;    
-    Info << "Reading rotor Discrete dict:" << endl;
+    indent(Info)<<endl;    
+    indent(Info)<< "Reading rotor gr dict:" << endl;
     Info.stream().incrIndent();
     
     //indent(Info)<<"- Discrete method: "<<rotorDiscrete::discreteMethodNames_.get(discreteMethod_)<<endl;

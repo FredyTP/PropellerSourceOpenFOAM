@@ -13,7 +13,7 @@ bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, cons
 :
     rotorGrid(dict,geometry,rotorFvMeshSel,nBlades)
 {
-    Info<<"Creating blade grid"<<endl;
+ 
     nRadius_ = dict.get<label>("nRadial");
     ijkAddressing::reset(nBlades_,nRadius_,1);
     nChord_ = 1;
@@ -22,7 +22,6 @@ bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, cons
     cells_.resize(this->size());
     scalar chord=0;
     bool hasChord = dict.readIfPresent("chord",chord);
-    Info<<"buidl blades"<<endl;
     if(hasChord)
     {
         buildBladesConstantChord(chord);
@@ -31,9 +30,8 @@ bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, cons
     {
         buildBladesFromBladeModel(bladeModel);
     }
-    Info<<"Set Rotation"<<endl;
+
     setRotation(0);
-    Info<<"bladegridbuild"<<endl;
 }
 
 void bladeGrid::assignFvCells()
@@ -100,17 +98,13 @@ void bladeGrid::buildBladesConstantChord(scalar chord)
     }
 
     cells_.resize(ijkAddressing::size());
-    Info<<cells_.size()<<endl;
-    for(label ib = 0; ib < nBlades_ ;ib++ )
+
+    for(label ib = 0; ib < nBlades_ ; ib++ )
     {
-        Info<<"ib: "<<ib<<endl;
         for(label ir=0; ir < nRadius_; ir++)
         {
-            Info<<"ir: "<<ir<<endl;
             for(label ic = 0; ic < nChord_; ic++)
             {
-                Info<<"ic: "<<ic<<endl;
-                Info<<"Setting cell: "<<index(ib,ir,ic)<<ic<<endl;
                 bladeCell* newcell = new bladeCell(rotorGeometry_,radius[ir],radius[ir+1],chords[ic],chords[ic+1]);
                 cells_.set(index(ib,ir,ic),newcell);
             }
