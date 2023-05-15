@@ -298,7 +298,9 @@
 			"complex.C": "cpp",
 			"AABBTree.C": "cpp",
 			"Field.C": "cpp",
-			"polarCell.C": "cpp"
+			"polarCell.C": "cpp",
+			"domainSampler copy.C": "cpp",
+			"azimutalMean.C": "cpp"
 		}
 	}
 }

@@ -37,6 +37,10 @@ public:
     const List<scalar>& radius() const {return radius_;}
     const List<scalar>& theta() const {return theta_;}
 
+    label nRadial() const {return radius().size()-1;}
+    label nAzimutal() const {return theta().size()-1;}
+
+
 private:
     
     List<scalar> radius_;
