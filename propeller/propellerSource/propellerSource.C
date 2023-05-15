@@ -59,7 +59,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
     if(fv::option::read(dict))
     {
         Info<<"Reading propeller source"<<endl;
-
+        incrIndent(Info);
         /*---------FV OPTIONS RELATED STUFF--------*/
         fv::option::resetApplied();
 
@@ -120,7 +120,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         
         /*----CREATE ROTOR DYNAMICS----*/
         dynamics_ = rotorDynamics::New(dict.subDict("dynamics"));
-
+        decrIndent(Info);
         return true;
     }
 
@@ -136,7 +136,7 @@ void Foam::fv::propellerSource::addSup
 {
     Info<<"ScalarFieldi: "<<fieldi<<endl;
     Info<< name() << ": applying source to " << eqn.psi().name() << endl;
-    /*volScalarField k
+    volScalarField k
         (
             IOobject
             (
@@ -149,11 +149,11 @@ void Foam::fv::propellerSource::addSup
             mesh_,
             dimensionedScalar(dimArea/pow(dimTime,3), Zero)
         );
-    forAll(propellerModel_->rDiscrete().rotorCells(),i)
+    forAll(propellerModel_->grid()->cells(),i)
     {
-        k[propellerModel_->rDiscrete().rotorCells()[i].celli()]=kDot_;
+        propellerModel_->grid()->cells()[i].applySource<scalar>(k,mesh().V(),kDot_);
     }
-    eqn+=k;*/
+    eqn+=k;
 
 }
 void Foam::fv::propellerSource::addSup

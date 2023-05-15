@@ -9,7 +9,9 @@
 #include "scalarField.H"
 #include "cylindricalCS.H"
 #include "rotorGeometry.H"
-
+#include "GeometricField.H"
+#include "fvPatchField.H"
+#include "volMesh.H"
 
 namespace Foam
 {
@@ -92,7 +94,12 @@ public:
 
     virtual vector scaleForce(const vector& globalForce);
 
-    virtual void applySource(vectorField& source,const scalarField& cellVol, vector& scaledForce) const;
+    
+    template<class type>
+    void applySource(GeometricField<type, fvPatchField, volMesh>& dstField,const scalarField& cellVol, const type& scaledSource) const;
+
+    template<class type>
+    void applySource(Field<type>& dstField, const scalarField& cellVol, const type& scaledSource) const;
     
     template<class type>
     void applyField(Field<type>& field, const type& value) const;
@@ -115,6 +122,20 @@ protected:
     void updateBladeTensor();
 };
 
+template <class type>
+inline void gridCell::applySource(GeometricField<type, fvPatchField, volMesh> &dstField, const scalarField &cellVol, const type &scaledSource) const
+{
+    this->applySource<type>(dstField.ref(false),cellVol,scaledSource);
+}
+
+template <class type>
+inline void gridCell::applySource(Field<type> &source, const scalarField &cellVol, const type &scaledSource) const
+{
+    forAll(cellis_,k)
+    {
+        source[cellis_[k]] =  -(weights_[k] * scaledSource/cellVol[cellis_[k]]);
+    }
+}
 template <class type>
 inline void gridCell::applyField(Field<type> &field, const type &value) const
 {

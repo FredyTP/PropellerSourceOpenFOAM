@@ -77,12 +77,6 @@ vector gridCell::scaleForce(const vector &globalForce)
 {
    return globalForce * factor_;
 }
-void gridCell::applySource(vectorField &source, const scalarField& cellVol, vector& scaledForce) const
-{
-    forAll(cellis_,k)
-    {
-        source[cellis_[k]] =  -(weights_[k] * scaledForce/cellVol[cellis_[k]]);
-    }
-}
+
 
 }
