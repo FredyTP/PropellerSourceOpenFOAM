@@ -106,7 +106,6 @@ autoPtr<rotorGrid> Foam::rotorGrid::New(const dictionary &dict, const rotorGeome
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);
 
-    Info<<"dicitonary"<<endl;
     if (!ctorPtr)
     {
         FatalIOErrorInLookup
@@ -118,7 +117,6 @@ autoPtr<rotorGrid> Foam::rotorGrid::New(const dictionary &dict, const rotorGeome
         ) << exit(FatalIOError);
     }
 
-    Info<<"createNEw"<<endl;
     return autoPtr<rotorGrid>(ctorPtr(dict,geometry,rotorFvMeshSel,bladeModel,nBlades));
 }
 
