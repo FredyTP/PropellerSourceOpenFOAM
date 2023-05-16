@@ -300,7 +300,10 @@
 			"Field.C": "cpp",
 			"polarCell.C": "cpp",
 			"domainSampler copy.C": "cpp",
-			"azimutalMean.C": "cpp"
+			"azimutalMean.C": "cpp",
+			"rotorControl.C": "cpp",
+			"bemControl.C": "cpp",
+			"bemDirectControl.C": "cpp"
 		}
 	}
 }
