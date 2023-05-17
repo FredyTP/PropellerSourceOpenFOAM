@@ -61,7 +61,7 @@ public:
 
     scalar radius() const {return center_.x();}
 
-    scalar theta() const {return center_.y();}
+    scalar azimuth() const {return center_.y();}
 
     /**
      * @brief Returns the tensor representing the local blade axis in global CS
