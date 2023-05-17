@@ -5,6 +5,8 @@
 #include "bladeModelS.H"
 #include "rotorGrid.H"
 #include "velocitySampler.H"
+#include "bemDirectControl.H"
+
 namespace Foam
 {
 struct bemDebugData
@@ -21,7 +23,6 @@ protected:
     airfoilModelList airfoils_;
     bladeModelS bladeModel_;
     autoPtr<rotorGrid> rotorGrid_;
-
     scalar nBlades_; 
     scalar tipFactor_;
     word integrationOrder;
@@ -30,6 +31,7 @@ protected:
     word discreteMethod;
 
     dictionary gridDictionary;
+    bemDirectControl control_;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");

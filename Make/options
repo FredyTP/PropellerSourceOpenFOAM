@@ -28,6 +28,8 @@ EXE_INC = \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorMesh \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/util \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDynamics \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl/bemControl \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/velocitySampler
     
 

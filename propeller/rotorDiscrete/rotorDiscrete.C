@@ -36,11 +36,7 @@ void rotorDiscrete::setGeometry(const rotorGeometry &geometry, scalar nBlades)
 
 void rotorDiscrete::updateTheta(scalar theta)
 {
-    bladeGrid* bGrid = dynamic_cast<bladeGrid*>(grid_.get());
-    if(bGrid)
-    {
-        bGrid->setRotation(theta);
-    }
+
 }
 
 void rotorDiscrete::writePythonPlotter(word process)

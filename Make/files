@@ -26,6 +26,9 @@ propeller/rotorDiscrete/grid/cell/gridCell.C
 propeller/rotorDiscrete/grid/cell/bladeCell.C
 propeller/rotorDiscrete/grid/cell/polarCell.C
 
+propeller/rotorControl/rotorControl.C
+propeller/rotorControl/bemControl/bemControl.C
+propeller/rotorControl/bemControl/bemDirectControl.C
 
 propeller/velocitySampler/velocitySampler.C
 propeller/velocitySampler/fixedVelocity.C

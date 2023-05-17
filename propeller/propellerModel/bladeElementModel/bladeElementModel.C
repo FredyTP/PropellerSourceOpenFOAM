@@ -2,6 +2,7 @@
 #include "addToRunTimeSelectionTable.H"
 #include "rotorGrid.H"
 #include "cubicSplineInterpolation.H"
+#include "bladeGrid.H"
 namespace Foam
 {
     //set and define the type name "typeName"
@@ -19,7 +20,8 @@ Foam::bladeElementModel::bladeElementModel
     propellerModel(dict,typeName),
     airfoils_(dict.subDict("airfoils")),
     bladeModel_(airfoils_,dict.subDict("bladeModel")),
-    gridDictionary(dict.subDict("rotorGrid"))
+    gridDictionary(dict.subDict("rotorGrid")),
+    control_(dict.subDict("control"))
 {    
     dict.readEntry("nBlades",nBlades_);
     tipFactor_ = dict.getOrDefault<scalar>("tipFactor",1);
@@ -103,9 +105,42 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         mesh(),
         dimensionedVector(dimless, Zero)
     );
-
+    volVectorField bladeLocalVel(
+        IOobject
+        (
+            "bladeLocalVel",
+            mesh().time().timeName(),
+            mesh(),
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh(),
+        dimensionedVector(dimVelocity, Zero)
+    );
+    volScalarField aoa(
+        IOobject
+        (
+            "aoa",
+            mesh().time().timeName(),
+            mesh(),
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh(),
+        dimensionedScalar(dimless, Zero)
+    );
     Info<<"theta: "<<theta<<endl;
-    rotorGrid_->setRotation(theta);
+    const bladeGrid* bg = dynamic_cast<const bladeGrid*>(rotorGrid_.get());
+    if(bg)
+    {
+        List<scalar> initialPos = bg->getInitialAzimuth();
+        forAll(initialPos,i)
+        {
+            initialPos[i] = (control_.getAzimuth(initialPos[i]+theta));
+        }
+        rotorGrid_->setRotation(initialPos);
+    }
+
 
     //---CALCULATE VALUE ON INTEGRATION POINTS---//
     forAll(cells, i)
@@ -122,10 +157,11 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         result.force += localForce;
         vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
         result.torque += localForce.cross(localPos);
-
         cell.applySource(force,cellVol,cellforce);
-        cell.applyField<scalar>(weights.ref(false),cell.weights());
-        cell.applyField<vector>(bemForce.ref(false),cellforce);
+        cell.applyField<scalar>(weights,cell.weights());
+        cell.applyField<vector>(bemForce,cellforce);
+        cell.applyField<vector>(bladeLocalVel,transform(cell.localBlade(),control_.getBladeLocalVel(cell.azimuth(),angularVelocity,cell.radius())));
+        cell.applyField<scalar>(aoa,data.aoa);
         if(data.aoa>aoaMax) aoaMax=data.aoa;
         if(data.aoa<aoaMin) aoaMin=data.aoa;
 
@@ -151,6 +187,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     {
         weights.write();
         bemForce.write();
+        bladeLocalVel.write();
+        aoa.write();
     }
 
     return result;
@@ -160,6 +198,7 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
 {
     //---GET INTERPOLATED SECTION---//
     scalar radius = cell.radius();
+    scalar azimuth = cell.azimuth();
     scalar maxRadius = rotorGrid_->geometry().radius();
     scalar chord,twist,sweep;
     interpolatedAirfoil airfoil;
@@ -175,7 +214,7 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
     vector localAirVel = invTransform(bladeTensor,U);
     
     //Get blade velocity
-    vector relativeBladeVel(angularVelocity*radius,0,0);
+    vector relativeBladeVel = - control_.getBladeLocalVel(azimuth,angularVelocity,radius);
 
     //Get relative air velocity
     vector relativeVel = localAirVel + relativeBladeVel;
@@ -186,9 +225,12 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
 
     //Airspeed angle (positive when speed is from "below" airfoil)
     scalar phi = bladeElementModel::AngleOfIncidenceSTAR(relativeVel);
-    //Info<<"Phi: "<<phi<<endl;
+
+    //Get collective and ciclic pitch
+    scalar pitch = control_.getPitch(azimuth);
+
     //Angle of atack
-    scalar AoA = twist - phi;
+    scalar AoA = twist + pitch - phi;
 
     //---COMPUTE AERODYNAMIC FORCE ON BLADE---//
     scalar rho = this->refRho;

@@ -27,10 +27,11 @@ public:
     virtual void assignFvCells();
     virtual void build();
 
-    void setRotation(scalar theta0);
+    void setRotation(const List<scalar>& thetas);
 
     label ijkIndex(label iBlade, label iRadius, label iChord);
 
+    List<scalar> getInitialAzimuth() const;
 private:
 
     void updateTheta(scalar theta0);

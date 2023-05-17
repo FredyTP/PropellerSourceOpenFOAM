@@ -31,7 +31,7 @@ bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, cons
         buildBladesFromBladeModel(bladeModel);
     }
 
-    setRotation(0);
+    setRotation(getInitialAzimuth());
 }
 
 void bladeGrid::assignFvCells()
@@ -70,9 +70,9 @@ void bladeGrid::build()
     }
     updateCenters();
 }
-void bladeGrid::setRotation(scalar theta0)
+void bladeGrid::setRotation(const List<scalar>& thetas)
 {
-    updateTheta(theta0);
+    updateThetas(thetas);
     rotateBlades();
     assignFvCells();
     build();
@@ -227,4 +227,19 @@ label bladeGrid::ijkIndex(label iBlade, label iRadius, label iChord)
     return ijkAddressing::index(iBlade,iRadius,iChord);
 }
 
+List<scalar> bladeGrid::getInitialAzimuth() const
+{
+    List<scalar> initialAzimuth(nBlades_);
+    scalar dtheta = constant::mathematical::twoPi/nBlades_;
+    forAll(initialAzimuth,i)
+    {
+        initialAzimuth[i]=dtheta*i;
+
+        if(initialAzimuth[i]>constant::mathematical::pi)
+        {
+            initialAzimuth[i]-=constant::mathematical::twoPi;
+        }
+    }
+    return initialAzimuth;
+}
 }
