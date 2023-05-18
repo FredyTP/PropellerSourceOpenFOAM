@@ -20,6 +20,8 @@ public:
         ),
         (dict)
     );
+    
+    virtual ~rotorControl() = default;
 };
 }
 
