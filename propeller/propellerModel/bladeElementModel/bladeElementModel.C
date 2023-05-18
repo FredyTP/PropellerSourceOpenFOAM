@@ -21,7 +21,8 @@ Foam::bladeElementModel::bladeElementModel
     airfoils_(dict.subDict("airfoils")),
     bladeModel_(airfoils_,dict.subDict("bladeModel")),
     gridDictionary(dict.subDict("rotorGrid")),
-    control_(dict.subDict("control"))
+    control_(dict.subDict("control")),
+    polarCorrection_(dict)
 {    
     dict.readEntry("nBlades",nBlades_);
     tipFactor_ = dict.getOrDefault<scalar>("tipFactor",1);
@@ -241,9 +242,9 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
 
     scalar cl = airfoil.cl(AoA,re,mach);
     scalar cd = airfoil.cd(AoA,re,mach);
-
+    polarCorrection_.correct(cl,cl,AoA,chord,radius,maxRadius,angularVelocity,mag(localAirVel));
     //Add tip factor effect:
-    if(radius/rotorGrid_->geometry().radius().get()>=tipFactor_)
+    if(radius/maxRadius>=tipFactor_)
     {
         cl=0.0;
     }

@@ -1,11 +1,14 @@
 rotorSolver.C
 
 propeller/propellerSource/propellerSource.C
-propeller/rotorDiscrete/rotorDiscrete.C
+
 propeller/propellerModel/propellerModel.C
 propeller/propellerModel/propellerModelNew.C
 propeller/propellerModel/froudeModel/froudeModel.C
 propeller/propellerModel/bladeElementModel/bladeElementModel.C
+propeller/propellerModel/bladeElementModel/effects3D/polarCorrection.C
+
+
 propeller/airfoilModel/airfoilModel.C
 propeller/airfoilModel/simpleAirfoil/simpleAirfoil.C
 propeller/airfoilModel/interpolatedAirfoil/interpolatedAirfoil.C
@@ -14,11 +17,15 @@ propeller/airfoilModel/polarAirfoil/polar/polar.C
 propeller/airfoilModel/polarAirfoil/polar/viterna.C
 propeller/airfoilModel/polarAirfoil/polarAirfoil.C
 propeller/airfoilModel/airfoilModelList.C
+
 propeller/bladeModel/bladeModelS.C
+
 propeller/rotorMesh/rotorFvMeshSel.C
+
 propeller/rotorDynamics/rotorDynamics.C
 propeller/rotorDynamics/fixedPower.C
 propeller/rotorDynamics/fixedSpeed.C
+
 propeller/rotorDiscrete/grid/rotorGrid.C
 propeller/rotorDiscrete/grid/polarGrid.C
 propeller/rotorDiscrete/grid/bladeGrid.C

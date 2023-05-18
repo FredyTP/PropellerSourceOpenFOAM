@@ -303,7 +303,8 @@
 			"azimutalMean.C": "cpp",
 			"rotorControl.C": "cpp",
 			"bemControl.C": "cpp",
-			"bemDirectControl.C": "cpp"
+			"bemDirectControl.C": "cpp",
+			"polarCorrection.C": "cpp"
 		}
 	}
 }

@@ -6,6 +6,7 @@
 #include "rotorGrid.H"
 #include "velocitySampler.H"
 #include "bemDirectControl.H"
+#include "polarCorrection.H"
 
 namespace Foam
 {
@@ -25,13 +26,11 @@ protected:
     autoPtr<rotorGrid> rotorGrid_;
     scalar nBlades_; 
     scalar tipFactor_;
-    word integrationOrder;
-    bool correctCenters;
-    label refinementLevel;
-    word discreteMethod;
+
 
     dictionary gridDictionary;
     bemDirectControl control_;
+    effects3D::polarCorrection polarCorrection_;
 public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");
