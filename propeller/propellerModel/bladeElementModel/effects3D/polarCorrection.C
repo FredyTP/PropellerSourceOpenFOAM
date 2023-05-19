@@ -20,7 +20,7 @@ polarCorrection::polarCorrection(const dictionary &dict)
     usedModel_ = modelNames_.getOrDefault("polarCorrection",dict,model::None);
 }
 
-void polarCorrection::correct(scalar &cl3d, scalar cl2d, scalar alpha, scalar chord, scalar radius, scalar maxRadius, scalar angularVelocity, scalar Veff)
+void polarCorrection::correct(scalar &cl3d, scalar cl2d, scalar alpha, scalar chord, scalar radius, scalar maxRadius, scalar angularVelocity, scalar Veff) const
 {
     switch (usedModel_)
     {

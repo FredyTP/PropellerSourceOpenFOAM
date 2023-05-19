@@ -8,6 +8,12 @@ namespace Foam
 {
 namespace effects3D
 {
+
+/**
+ * @brief class that includes the 3D effects such as inertial forces on rotor blades
+ * correcting the polar cl (or cd)
+ * 
+ */
 class polarCorrection
 {
 public:
@@ -19,7 +25,7 @@ public:
     };
 
     polarCorrection(const dictionary& dict);
-    void correct(scalar& cl3d, scalar cl2d, scalar alpha, scalar chord, scalar radius, scalar maxRadius,scalar angularVelocity, scalar Veff);
+    void correct(scalar& cl3d, scalar cl2d, scalar alpha, scalar chord, scalar radius, scalar maxRadius,scalar angularVelocity, scalar Veff) const;
     static const Enum<model> modelNames_;
 
 /**
