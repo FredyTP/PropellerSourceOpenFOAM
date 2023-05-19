@@ -29,7 +29,6 @@ public:
      * Requierements: 
      * - have columns named AoA, CL, CD, Re, Ma or specify names
      * - have all AoA sorted in ascending order
-     * - have all AoA points for same Re & Ma together
      * 
      * note:
      * - No need to have same AoA for every Mach / Re
@@ -44,9 +43,12 @@ protected:
     inline word reName() const {return colNames[3];}
     inline word maName() const {return colNames[4];}
 
+    scalar convertInternalRe(scalar externalRe) const;
+    scalar convertExternalRe(scalar internalRe) const;
 private:
     fileName file_;
-
+    //Use logarithmic reynolds internally to interpolation
+    bool logRe_;
     typedef interpolationTable<scalar,polar*,2> polarTable;
     List<autoPtr<polar>> polars_;
     autoPtr<polarTable> polarInterpolated;

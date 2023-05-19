@@ -32,6 +32,7 @@ bool polarAirfoil::read(const dictionary& dict)
     word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
 
     isRadian_ = dict.getOrDefault<bool>("isRadian",false);
+    logRe_ = dict.getOrDefault<bool>("logReynolds",true);
     bool ok;
     ok = dict.readIfPresent("polars",file_);
     if(ok)
@@ -65,7 +66,7 @@ bool polarAirfoil::read(const dictionary& dict)
     {
         polarList[i]=polars_[i].get();
         ReMa[i].setSize(2);
-        ReMa[i][0]=polars_[i]->reynolds();
+        ReMa[i][0]=convertInternalRe(polars_[i]->reynolds());
         ReMa[i][1]=polars_[i]->mach();
     }
 
@@ -100,7 +101,6 @@ bool polarAirfoil::readFromPolars(word extrapolation)
         polars_[i].reset(ptrPolar.release());
     }
 
-    
 
     return true;
 }
@@ -149,10 +149,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         polars_[0].reset(ptrPolar.release());
         return true;
     }
-
-    List<scalar> aoaPolar;
-    List<scalar> clPolar;
-    List<scalar> cdPolar;
+    
     scalar maPolar = -1;//ma[0];
     scalar rePolar = -1;//re[0];
 
@@ -165,7 +162,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     label maxSize = 0;
     for(label i = 0; i<aoa.size();i++)
     {   
-        if(ma[i] != maPolar || re[i] != rePolar)
+        if(ma[i] != maPolar || re[i] != rePolar || i==0)
         {
             rePolar = re[i];
             maPolar = ma[i];
@@ -203,7 +200,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         else
         {
             Info<<"PolarAirfoil: "<<this->airfoilName()
-            <<" in Polar (Re = "<<rePolar<<", Ma = "<<maPolar
+            <<" in Polar (Re = "<<reMa[i].first()<<", Ma = "<<reMa[i].second()
             <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
         }
     }
@@ -214,13 +211,21 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     }
     return false;
 }
+scalar polarAirfoil::convertInternalRe(scalar externalRe) const
+{
+    return logRe_ ? log(externalRe+VSMALL) : externalRe;
+}
+scalar polarAirfoil::convertExternalRe(scalar internalRe) const
+{
+    return logRe_ ? exp(internalRe) : internalRe;
+}
 scalar polarAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return polarInterpolated->interpolate({reynolds,mach}).value<scalar>([=](scalar val,polar* p){return val*p->cl(alfaRad);});
+    return polarInterpolated->interpolate({convertInternalRe(reynolds),mach}).value<scalar>([=](scalar val,polar* p){return val*p->cl(alfaRad);});
 }
 scalar polarAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return polarInterpolated->interpolate({reynolds,mach}).value<scalar>([=](scalar val,polar* p){return val*p->cd(alfaRad);});
+    return polarInterpolated->interpolate({convertInternalRe(reynolds),mach}).value<scalar>([=](scalar val,polar* p){return val*p->cd(alfaRad);});
 }
 
 
