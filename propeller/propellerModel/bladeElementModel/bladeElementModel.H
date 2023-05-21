@@ -4,7 +4,6 @@
 #include "airfoilModelList.H"
 #include "bladeModelS.H"
 #include "rotorGrid.H"
-#include "velocitySampler.H"
 #include "bemDirectControl.H"
 #include "polarCorrection.H"
 

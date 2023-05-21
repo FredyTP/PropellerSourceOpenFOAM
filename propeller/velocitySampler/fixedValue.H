@@ -1,6 +1,6 @@
-#ifndef PROPELLER_VELOCITY_SAMPLER_FIXED_VELOCITY
-#define PROPELLER_VELOCITY_SAMPLER_FIXED_VELOCITY
-#include "velocitySampler.H"
+#ifndef PROPELLER_VELOCITY_SAMPLER_FIXED_VALUE
+#define PROPELLER_VELOCITY_SAMPLER_FIXED_VALUE
+#include "diskSampler.H"
 #include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
 #include "dictionary.H"
@@ -19,28 +19,29 @@ namespace Foam
  * 
  * Example of dicts provided to this class
  * 
- *   velocitySampler
+ *   diskSampler
  *   {
  *   
- *       type            fixedVelocity;
+ *       type            fixedValue;
  *       normal          true;
  *       velocity        10;
  *   }
  * 
- *   velocitySampler
+ *   diskSampler
  *   {
  *   
- *       type            fixedVelocity;
+ *       type            fixedValue;
  *       normal          false;
  *       velocity        (1, -10 , 15);
  *   }
  * 
  * 
  */
-class fixedVelocity : public velocitySampler
+template<class fType>
+class fixedValue : public diskSampler<fType>
 {
 public:
-    TypeName("fixedVelocity");
+    TypeName("fixedValue");
 
     /**
      * @brief Construct a new fixed Velocity object
@@ -49,7 +50,7 @@ public:
      * @param rDiscrete_ 
      * @param rMesh_ 
      */
-    fixedVelocity(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
+    fixedValue(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
 
     /**
      * @brief Read object from dictionary
@@ -61,18 +62,20 @@ public:
     bool read(const dictionary& dict);
 
     /**
-     * @brief Just return the constant velocity field stored in base class with no additional computations
+     * @brief Just return the constant field stored in base class with no additional computations
      * 
      * @param U 
-     * @return const vectorField& 
+     * @return const Field<fType>& 
      */
-    virtual const vectorField& sampleVelocity(const volVectorField& U);
+    virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U);
 
 private:
-    //- Value of the constant velocity field
-    vector velocity;
+    //- Value of the constant field
+    fType fieldValue_;
 };
 }
+
+#include "fixedValue.C"
 
 #endif /* PROPELLER_VELOCITY_SAMPLER_FIXED_VELOCITY */
 

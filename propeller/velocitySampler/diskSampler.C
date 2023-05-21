@@ -4,13 +4,15 @@
 namespace Foam
 {
 
+//defineTemplateTypeNameAndDebugWithName(diskSampler<scalar>,"diskSampler",0);
+//defineTemplatedRunTimeSelectionTable(diskSampler, dictionary, scalar); 
 
-defineTemplateTypeNameWithName(diskSampler<scalar>,"scalarDiskSampler");
+defineTemplateTypeNameAndDebugWithName(diskSampler<scalar>,"diskSampler",0);
 defineTemplatedRunTimeSelectionTable(diskSampler, dictionary, scalar); 
 
-
-defineTemplateTypeNameWithName(diskSampler<vector>,"vectorDiskSampler");
+defineTemplateTypeNameAndDebugWithName(diskSampler<vector>,"diskSampler",0);
 defineTemplatedRunTimeSelectionTable(diskSampler, dictionary, vector); 
+
 
 template<class fType>
 void diskSampler<fType>::writeSampled(const word& name)
@@ -42,6 +44,7 @@ autoPtr<diskSampler<fType>> diskSampler<fType>::New(const dictionary &dict, cons
 
     if (!ctorPtr)
     {
+        Info<<"No ptr"<<endl;
         FatalIOErrorInLookup
         (
             dict,
@@ -51,19 +54,17 @@ autoPtr<diskSampler<fType>> diskSampler<fType>::New(const dictionary &dict, cons
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<Foam::diskSampler>(ctorPtr(dict,rGrid,rMesh));
+    Info<<"Returning disk sampler"<<endl;
+    return autoPtr<Foam::diskSampler<fType>>(ctorPtr(dict,rGrid,rMesh));
 
 }
 
 template<class fType>
 diskSampler<fType>::diskSampler(const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
-    : rGrid_(rGrid), rMesh_(rMesh), sampledVel(rGrid_->nCells(),Zero)
+    : rGrid_(rGrid), rMesh_(rMesh), sampledField_(rGrid_->nCells(),Zero)
 {
     
 }
 
 
-
-
 }
-

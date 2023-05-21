@@ -5,11 +5,16 @@
 namespace Foam
 {
  
-    defineTypeNameAndDebug(azimutalMean,0);
-    addToRunTimeSelectionTable(velocitySampler,azimutalMean, dictionary);
+defineTemplateTypeNameWithName(azimutalMean<scalar>,"azimutalMean");
+addTemplatedToRunTimeSelectionTable(diskSampler,azimutalMean,scalar,dictionary);
 
-azimutalMean::azimutalMean(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
- : domainSampler(dict,rGrid,rMesh)
+defineTemplateTypeNameWithName(azimutalMean<vector>,"azimutalMean");
+addTemplatedToRunTimeSelectionTable(diskSampler,azimutalMean,vector,dictionary);
+
+
+template<class fType>
+azimutalMean<fType>::azimutalMean(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
+ : domainSampler<fType>(dict,rGrid,rMesh)
 {
     polarGrid_ = dynamic_cast<const polarGrid*>(rGrid);
     if(polarGrid_==nullptr)
@@ -18,53 +23,33 @@ azimutalMean::azimutalMean(const dictionary& dict,const rotorGrid* rGrid,const r
         <<exit(FatalError);
     }
 }
- 
-const vectorField& azimutalMean::sampleVelocity(const volVectorField& U)
+
+template<class fType>
+const Field<fType>& azimutalMean<fType>::sampleField(const GeometricField<fType, fvPatchField, volMesh>& U) 
 {
-    domainSampler::sampleVelocity(U);
+    domainSampler<fType>::sampleField(U);
     
     label nR = polarGrid_->nRadial();
     label nA = polarGrid_->nAzimutal();
 
     for(label iR = 0; iR < nR; iR++)
     {
-        vector umean = Zero;
+        fType umean = Zero;
         for(label iA = 0; iA < nA; iA++)
         {
             label idx = polarGrid_->index(iR,iA,0);
-            umean += this->sampledVel[idx];
+            umean += this->sampledField_[idx];
         }
         umean/=nA;
         for(label iA = 0; iA < nA; iA++)
         {
             label idx = polarGrid_->index(iR,iA,0);
-            this->sampledVel[idx] = umean;
+            this->sampledField_[idx] = umean;
         }
     }
 
-    if(rMesh_->mesh().time().writeTime())
-    {
-        volVectorField vel
-        (
-            IOobject
-            (
-                "sampledVel",
-                rMesh_->mesh().time().timeName(),
-                rMesh_->mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            rMesh_->mesh(),
-            dimensionedVector(dimVelocity, Zero)
-        );
-        forAll(polarGrid_->cells(),i)
-        {
-            polarGrid_->cells()[i].applyField<vector>(vel,sampledVel[i]);
-        }
-        vel.write();
-    }
-    
-    return sampledVel;
+
+    return this->sampledField_;
 
 }
 

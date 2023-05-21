@@ -17,7 +17,8 @@
 #include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
 
-#include "velocitySampler.H"
+#include "diskSamplerInclude.H"
+
 #include "rotorDynamics.H"
 
 namespace Foam
@@ -52,7 +53,8 @@ protected:
     rotorGeometry rotorGeometry_;
 
     //Velocity sampler for model
-    autoPtr<velocitySampler> velSampler_;
+    autoPtr<diskSampler<vector>> velSampler_;
+    autoPtr<diskSampler<scalar>> densitySampler_;
 
     //Rotor dynamics control
     autoPtr<rotorDynamics> dynamics_;
@@ -102,20 +104,13 @@ public:
             const label fieldi
         );
 
-        //- Add explicit contribution to scalar equations <- "i guess"
-        virtual void addSup
-        (
-            fvMatrix<scalar>& eqn,
-            const label fieldi
-        );
-
         //- Add explicit contribution to compressible momentum equation
-        /*virtual void addSup
+        virtual void addSup
         (
             const volScalarField& rho,
             fvMatrix<vector>& eqn,
             const label fieldi
-        );*/
+        );
 
 };
 

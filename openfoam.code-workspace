@@ -305,7 +305,10 @@
 			"bemControl.C": "cpp",
 			"bemDirectControl.C": "cpp",
 			"polarCorrection.C": "cpp",
-			"incompressibleturbulencemodel.c": "cpp"
+			"incompressibleturbulencemodel.c": "cpp",
+			"fixedValue.C": "cpp",
+			"singlePhaseTransportModel.C": "cpp",
+			"subCycleTime.C": "cpp"
 		}
 	}
 }

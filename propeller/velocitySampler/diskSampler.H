@@ -1,5 +1,5 @@
-#ifndef PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER
-#define PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER
+#ifndef PROPELLER_DISK_SAMPLER_DISK_SAMPLER
+#define PROPELLER_DISK_SAMPLER_DISK_SAMPLER
 
 
 #include "dictionary.H"
@@ -34,6 +34,7 @@ class diskSampler
 {
 public:
     TypeName("diskSampler");
+    
     declareRunTimeSelectionTable
     (
         autoPtr,
@@ -100,9 +101,8 @@ protected:
 
 }
 
+#include "diskSampler.C"
 
-#include "diskSampler.H"
-
-#endif /* PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER */
+#endif /* PROPELLER_DISK_SAMPLER_DISK_SAMPLER */
 
 

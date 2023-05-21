@@ -1,6 +1,7 @@
 #ifndef PROPELLER_VELOCITY_SAMPLER_AZIMUTAL_MEAN
 #define PROPELLER_VELOCITY_SAMPLER_AZIMUTAL_MEAN
 
+#include "diskSampler.H"
 #include "domainSampler.H"
 #include "rotorGrid.H"
 #include "polarGrid.H"
@@ -25,14 +26,15 @@ namespace Foam
  *       atCellCenter    true;
  *   }
  */
-class azimutalMean : public domainSampler
+template<class fType>
+class azimutalMean : public domainSampler<fType>
 {
 public:
     TypeName("azimutalMean");
 
     azimutalMean(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
 
-    virtual const vectorField& sampleVelocity(const volVectorField& U);
+    virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U);
 
 private:
 
@@ -41,6 +43,8 @@ private:
 };
 
 }
+
+#include "azimutalMean.C"
 
 #endif /* PROPELLER_VELOCITY_SAMPLER_AZIMUTAL_MEAN */
 

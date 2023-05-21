@@ -22,7 +22,7 @@ protected:
 
     static typeIn SqrDistance(const FixedList<typeIn,dim>& p1, const FixedList<typeIn,dim>& p2) 
     {
-        typeIn sqDist= 0;
+        typeIn sqDist= Zero;
         
         for(label j = 0 ; j < dim; ++j)
         {

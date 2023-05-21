@@ -1,7 +1,7 @@
 #ifndef PROPELLER_VELOCITY_SAMPLER_FILE_SAMPLER
 #define PROPELLER_VELOCITY_SAMPLER_FILE_SAMPLER
 
-#include "velocitySampler.H"
+
 #include "domainSampler.H"
 #include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
@@ -26,7 +26,9 @@ namespace Foam
  * 
  * 
  */
-class fileSampler : public domainSampler
+
+template<class fType>
+class fileSampler : public domainSampler<fType>
 {
 public:
     TypeName("fileSampler");
@@ -55,14 +57,14 @@ public:
      * @param U 
      * @return const vectorField& 
      */
-    virtual const vectorField& sampleVelocity(const volVectorField& U);
-
+        virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U);
 private:
-    //- Value of the constant velocity field
-    autoPtr<volVectorField> uFromFile_;
-    vector velocity;
+    autoPtr<GeometricField<fType, fvPatchField, volMesh>> uFromFile_;
 };
+
 }
+
+#include "fileSampler.C"
 
 #endif /* PROPELLER_VELOCITY_SAMPLER_FILE_SAMPLER */
 

@@ -6,6 +6,8 @@
 #include "rotorFvMeshSel.H"
 #include "dictionary.H"
 #include "cellPointWeight.H"
+#include "vector.H"
+
 namespace Foam
 {
 
@@ -43,7 +45,7 @@ public:
 
     bool read(const dictionary& dict);
 
-    virtual const Field<fType>& sampleVelocity(const GeometricField<fType, fvPatchField, volMesh>& U);
+    virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U);
 
     bool build();
 
@@ -62,6 +64,7 @@ private:
 }
 
 #include "domainSampler.C"
+
 #endif /* PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER */
 
 
