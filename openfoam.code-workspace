@@ -304,7 +304,8 @@
 			"rotorControl.C": "cpp",
 			"bemControl.C": "cpp",
 			"bemDirectControl.C": "cpp",
-			"polarCorrection.C": "cpp"
+			"polarCorrection.C": "cpp",
+			"incompressibleturbulencemodel.c": "cpp"
 		}
 	}
 }

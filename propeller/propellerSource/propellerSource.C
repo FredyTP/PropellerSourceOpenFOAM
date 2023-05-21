@@ -2,7 +2,7 @@
 #include "addToRunTimeSelectionTable.H"
 #include "fvMatrices.H"
 #include "propellerResult.H"
-
+#include "testTemplated.H"
 #include "cellSet.H"
 #include "closestNeighbor.H"
 #include "SquareMatrix.H"
@@ -48,6 +48,7 @@ Foam::fv::propellerSource::propellerSource
     propResult_(name,mesh)
 {
     //Output propeller adimensional parameter definition
+    auto test = fieldSampler<scalar>::New(dict);
     propellerResult::OutputDefinition(Info)<<endl;
     this->read(dict);
 }

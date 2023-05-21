@@ -1,7 +1,7 @@
 #ifndef PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER
 #define PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER
 
-#include "velocitySampler.H"
+#include "diskSampler.H"
 #include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
 #include "dictionary.H"
@@ -33,7 +33,8 @@ namespace Foam
  *       atCellCenter    true;
  *   }
  */
-class domainSampler : public velocitySampler
+template<class fType>
+class domainSampler : public diskSampler<fType>
 {
 public:
     TypeName("domainSampler");
@@ -42,7 +43,7 @@ public:
 
     bool read(const dictionary& dict);
 
-    virtual const vectorField& sampleVelocity(const volVectorField& U);
+    virtual const Field<fType>& sampleVelocity(const GeometricField<fType, fvPatchField, volMesh>& U);
 
     bool build();
 
@@ -60,6 +61,7 @@ private:
 
 }
 
+#include "domainSampler.C"
 #endif /* PROPELLER_VELOCITY_SAMPLER_DOMAIN_SAMPLER */
 
 

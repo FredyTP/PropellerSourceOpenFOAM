@@ -5,16 +5,22 @@
 namespace Foam
 {
  
-    defineTypeNameAndDebug(domainSampler,0);
-    addToRunTimeSelectionTable(velocitySampler,domainSampler, dictionary);
+    
+defineTemplateTypeNameWithName(domainSampler<scalar>,"scalarDomainSampler");
+addTemplatedToRunTimeSelectionTable(diskSampler,domainSampler,scalar,dictionary);
 
-domainSampler::domainSampler(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
+
+defineTemplateTypeNameWithName(domainSampler<vector>,"vectorDomainSampler");
+addTemplatedToRunTimeSelectionTable(diskSampler,domainSampler,vector,dictionary);
+
+template<class fType>
+domainSampler<fType>::domainSampler(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh)
  : velocitySampler(rGrid,rMesh)
 {
     this->read(dict);
 }
-
-bool domainSampler::read(const dictionary &dict)
+template<class fType>
+bool domainSampler<fType>::read(const dictionary &dict)
 {
     offset = dict.getOrDefault<scalar>("offset",0.0);
     scale = dict.getOrDefault<scalar>("scale",1.0);
@@ -44,7 +50,8 @@ bool domainSampler::read(const dictionary &dict)
     return true;
 }
  
-const vectorField& domainSampler::sampleVelocity(const volVectorField& U) 
+template<class fType>
+const Field<fType>& domainSampler<fType>::sampleVelocity(const GeometricField<fType, fvPatchField, volMesh>& U) 
 {
     //If no offset and rotorGrid is integrated in cell centers
     //Then the correspondence is cell to cell
@@ -74,7 +81,8 @@ const vectorField& domainSampler::sampleVelocity(const volVectorField& U)
 
     return this->sampledVel;
 }
-bool domainSampler::build()
+template<class fType>
+bool domainSampler<fType>::build()
 {
     //If offset is 0.0 and rotorGrid is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
@@ -122,8 +130,8 @@ bool domainSampler::build()
 
     return true;
 }
-
-void domainSampler::writeSampled(const word& name)
+template<class fType>
+void domainSampler<fType>::writeSampled(const word& name)
 {
     volScalarField sampled
         (
@@ -154,7 +162,8 @@ void domainSampler::writeSampled(const word& name)
 
     sampled.write();
 }
-bool domainSampler::isDirectSample()
+template<class fType>
+bool domainSampler<fType>::isDirectSample()
 {
     return (offset == 0.0 
     && scale == 1.0

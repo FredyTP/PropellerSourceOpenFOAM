@@ -37,11 +37,5 @@ propeller/rotorControl/rotorControl.C
 propeller/rotorControl/bemControl/bemControl.C
 propeller/rotorControl/bemControl/bemDirectControl.C
 
-propeller/velocitySampler/velocitySampler.C
-propeller/velocitySampler/fixedVelocity.C
-propeller/velocitySampler/domainSampler.C
-propeller/velocitySampler/azimutalMean.C
-propeller/velocitySampler/fileSampler.C
-
 EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid
 //LIB = $(FOAM_USER_LIBBIN)/rotorSolver

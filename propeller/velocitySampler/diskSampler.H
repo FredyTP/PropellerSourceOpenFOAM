@@ -1,10 +1,12 @@
-#ifndef PROPELLER_VELOCITY_SAMPLER_VELOCITY_SAMPLER
-#define PROPELLER_VELOCITY_SAMPLER_VELOCITY_SAMPLER
+#ifndef PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER
+#define PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER
+
+
 #include "dictionary.H"
 #include "autoPtr.H"
 #include "rotorGrid.H"
 #include "rotorFvMeshSel.H"
-
+#include "runTimeSelectionTables.H"
 namespace Foam
 {
 
@@ -19,7 +21,7 @@ namespace Foam
  * 
  * -Fixed velocity sampler
  * 
- *   velocitySampler
+ *   diskSampler
  *   {
  *   
  *       type            fixedVelocity;
@@ -27,14 +29,15 @@ namespace Foam
  *       velocity        10;
  *   }
  */
-class velocitySampler
+template<class fType>
+class diskSampler
 {
 public:
-    TypeName("velocitySampler");
+    TypeName("diskSampler");
     declareRunTimeSelectionTable
     (
         autoPtr,
-        velocitySampler,
+        diskSampler,
         dictionary,
         (
             const dictionary& dict,
@@ -44,7 +47,7 @@ public:
         (dict,rGrid,rMesh)
     );
     
-    virtual ~velocitySampler() = default;
+    virtual ~diskSampler() = default;
 
     /**
      * @brief Return sampled velocities on rotor discrete positions(rotor positions goes from 0 to N)
@@ -53,7 +56,7 @@ public:
      * @param U fv velocity field
      * @return const vectorField& 
      */
-    virtual const vectorField& sampleVelocity(const volVectorField& U) = 0;
+    virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U) = 0;
 
     /**
      * @brief Write field of sampled cells used to interpolate velocity field
@@ -64,14 +67,14 @@ public:
     virtual void writeSampled(const word& name);
     
     /**
-     * @brief Builds a velocitySampler from its dictionary, rotorGrid data and fv Mesh selection
+     * @brief Builds a diskSampler from its dictionary, rotorGrid data and fv Mesh selection
      * 
      * @param dict velocity sampler dict
      * @param rDiscrete_ rotor discretization
      * @param rMesh_ fvMesh selection for rotor
-     * @return autoPtr<velocitySampler>: safe pointer to created sampler
+     * @return autoPtr<diskSampler>: safe pointer to created sampler
      */
-    static autoPtr<velocitySampler> New(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh_);
+    static autoPtr<diskSampler> New(const dictionary& dict,const rotorGrid* rGrid,const rotorFvMeshSel* rMesh_);
 
 protected:
 
@@ -81,7 +84,7 @@ protected:
      * @param rGrid 
      * @param rMesh
      */
-    velocitySampler(const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
+    diskSampler(const rotorGrid* rGrid,const rotorFvMeshSel* rMesh);
 
     const rotorGrid* rGrid_;
     const rotorFvMeshSel* rMesh_;
@@ -91,12 +94,15 @@ protected:
      * or be more efficient when constant velocity is required
      * 
      */
-    vectorField sampledVel;
+    Field<fType> sampledField_;
 };
 
 
 }
 
-#endif /* PROPELLER_VELOCITY_SAMPLER_VELOCITY_SAMPLER */
+
+#include "diskSampler.H"
+
+#endif /* PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER */
 
 
