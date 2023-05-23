@@ -26,6 +26,11 @@ protected:
     scalar nBlades_; 
     scalar tipFactor_;
 
+    scalar rhoRef_;
+    scalar speedRef_;
+    scalar nuRef_;
+    scalar soundSpeedRef_;
+
 
     dictionary gridDictionary;
     bemDirectControl control_;
@@ -57,11 +62,11 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry);
 
-    virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force, scalar theta);
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, scalar angularVelocity, volVectorField& force, scalar theta);
     
     virtual const autoPtr<rotorGrid>& grid() {return rotorGrid_;}
 
-    vector calculatePoint(const vector& U,scalar angularVelocity, const gridCell& cell, bemDebugData& data);
+    vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, bemDebugData& data);
 
     
     static inline scalar AngleOfIncidenceSTAR(const vector& relativeLocalVel);

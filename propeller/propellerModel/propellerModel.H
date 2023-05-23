@@ -23,8 +23,7 @@ class propellerModel
 
 protected:
     const rotorFvMeshSel* rotorFvMeshSel_;
-    scalar refV=1; //Refence velocity for adimensional
-    scalar refRho=1; //Reference density 
+
 public:
     TypeName("propellerModel");
 
@@ -70,12 +69,9 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry){}
 
-    virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force, scalar theta){return propellerResult();}
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, scalar angularVelocity, volVectorField& force, scalar theta){return propellerResult();}
 
     virtual const autoPtr<rotorGrid>& grid() = 0;
-
-    void setRefV(scalar v){refV=v;}
-    void setRefRho(scalar rho){refRho = rho;}
 
     const fvMesh& mesh() const { return rotorFvMeshSel_->mesh();}
 };

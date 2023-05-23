@@ -100,11 +100,6 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
 
         rotorGeometry_.buildCS();
         propellerModel_->build(rotorGeometry_);
-        //Set reference properties for aerodynamic forces and adim variables
-        propellerModel_->setRefRho(coeffs_.getOrDefault<scalar>("refRho",1.0));
-        propellerModel_->setRefV(coeffs_.getOrDefault<scalar>("refV",1.0));
-        //propellerModel_->rDiscrete().writeArea(this->name(),mesh_);
-
 
         /*-----CREATE VELOCITY SAMPLING METHOD-----*/
         //Create velocitySampler for specified rotor discrete and mesh
@@ -114,8 +109,14 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
                    &rotorFvMeshSel_);
         velSampler_->writeSampled(fv::option::name_); //Write to file sampling location
 
+        dictionary densityDict;
+        densityDict.add("type","domainSampler");
+        if(dict.findDict("densitySampler"))
+        {
+            densityDict = dict.subDict("densitySampler");
+        }
         densitySampler_ = diskSampler<scalar>::New(
-                    dict.subDict("densitySampler"),
+                    densityDict,
                     propellerModel_->grid().get(), 
                     &rotorFvMeshSel_);
         
@@ -145,6 +146,7 @@ void Foam::fv::propellerSource::addSup
     propResult_ = propellerModel_->calculate
         (
             velSampler_->sampleField(Uin),
+            nullptr,
             dynamics_->angularVelocity(),
             force,
             dynamics_->theta()
@@ -157,33 +159,10 @@ void Foam::fv::propellerSource::addSup
     //Add source term to the equation
     eqn+=force;
 
-
-    volScalarField vol
-    (
-        IOobject
-        (
-            "cellVolume",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimVolume, Zero)
-    );
-    forAll(mesh_.V(),i)
-    {
-        vol[i]=mesh_.V()[i];
-    }
     //If its time to write into files
     if(mesh_.time().writeTime())
     {
-        //To save force field into a dict
-        //force.write();
-        //Check if want to save sampled cells
         velSampler_->writeSampled(this->name());
-        vol.write();
-
     }
 }
 
@@ -196,14 +175,16 @@ void Foam::fv::propellerSource::addSup
 {
     force.ref(false)=dimensionedVector(dimVelocity/dimTime, Zero);
     //Create force vector field from mesh and set dimensions
-    Info<<"VectorFieldi: "<<fieldi<<endl;
+
     Info<< name() << ": applying source to " << eqn.psi().name() << endl;
+    Info<<fv::option::name_<<": step parameters"<<endl;
 
     const volVectorField& Uin(eqn.psi());
 
     propResult_ = propellerModel_->calculate
         (
             velSampler_->sampleField(Uin),
+            &densitySampler_->sampleField(rho),
             dynamics_->angularVelocity(),
             force,
             dynamics_->theta()
@@ -211,38 +192,13 @@ void Foam::fv::propellerSource::addSup
 
     dynamics_->integrate(mag(propResult_.torque),mesh_.time().deltaTValue());
     
-    
-    Info<<fv::option::name_<<": step parameters"<<endl;
     Info<<propResult_<<endl;
     //Add source term to the equation
     eqn+=force;
 
-
-    volScalarField vol
-    (
-        IOobject
-        (
-            "cellVolume",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimVolume, Zero)
-    );
-    forAll(mesh_.V(),i)
-    {
-        vol[i]=mesh_.V()[i];
-    }
     //If its time to write into files
     if(mesh_.time().writeTime())
     {
-        //To save force field into a dict
-        //force.write();
-        //Check if want to save sampled cells
         velSampler_->writeSampled(this->name());
-        vol.write();
-
     }
 }

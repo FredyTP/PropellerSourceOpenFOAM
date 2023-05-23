@@ -26,6 +26,11 @@ Foam::bladeElementModel::bladeElementModel
 {    
     dict.readEntry("nBlades",nBlades_);
     tipFactor_ = dict.getOrDefault<scalar>("tipFactor",1);
+
+    rhoRef_ = dict.get<scalar>("rhoRef");
+    speedRef_ = dict.get<scalar>("speedRef");
+    nuRef_ = dict.get<scalar>("viscosity");
+    soundSpeedRef_ = dict.get<scalar>("soundSpeed");
 }
 
 
@@ -71,7 +76,7 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
     bladeModel_.writeBlade(300,"blade.csv");
 }
 
-Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,scalar angularVelocity, volVectorField& force, scalar theta)
+Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U, const scalarField* rhoField, scalar angularVelocity, volVectorField& force, scalar theta)
 {
     propellerResult result;
     //Puntos de la discretizacion
@@ -130,7 +135,9 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
         mesh(),
         dimensionedScalar(dimless, Zero)
     );
-    Info<<"theta: "<<theta<<endl;
+    
+
+    //Update angle if its a bladeGrid
     const bladeGrid* bg = dynamic_cast<const bladeGrid*>(rotorGrid_.get());
     if(bg)
     {
@@ -148,8 +155,8 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     {
         gridCell& cell = cells[i]; 
         bemDebugData data;
-  
-        vector forceOverLen = this->calculatePoint(U[i],angularVelocity,cell,data);
+        scalar rho = rhoField?(*rhoField)[i]:rhoRef_;
+        vector forceOverLen = this->calculatePoint(U[i],rho,angularVelocity,cell,data);
 
 
         vector cellforce = cell.scaleForce(forceOverLen);
@@ -176,11 +183,11 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
 
     result.power = result.torque.z() * angularVelocity;
 
-    result.updateEta(this->refV);
+    result.updateEta(speedRef_);
     //Use J definition Vref/(rps * D)
-    result.updateJ(this->refV,angularVelocity,rotorGrid_->geometry().radius().get());
-    result.updateCT(this->refRho,angularVelocity,rotorGrid_->geometry().radius().get());
-    result.updateCP(this->refRho,angularVelocity,rotorGrid_->geometry().radius().get());
+    result.updateJ(speedRef_,angularVelocity,rotorGrid_->geometry().radius().get());
+    result.updateCT(rhoRef_,angularVelocity,rotorGrid_->geometry().radius().get());
+    result.updateCP(rhoRef_,angularVelocity,rotorGrid_->geometry().radius().get());
     Info<< "- Max AoA: "<<aoaMax * 180/constant::mathematical::pi <<"º"<<endl;
     Info<< "- Min AoA: "<<aoaMin * 180/constant::mathematical::pi <<"º"<<endl;
 
@@ -195,7 +202,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U,sc
     return result;
 }
 
-Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar angularVelocity, const gridCell &cell, bemDebugData& data)
+Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angularVelocity, const gridCell &cell, bemDebugData& data)
 {
     //---GET INTERPOLATED SECTION---//
     scalar radius = cell.radius();
@@ -234,11 +241,8 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
     scalar AoA = twist + pitch - phi;
 
     //---COMPUTE AERODYNAMIC FORCE ON BLADE---//
-    scalar rho = this->refRho;
-    scalar nu = 1e-5;
-    scalar re = rho*relativeSpeed*chord/nu;
-    scalar c = 345;
-    scalar mach = relativeSpeed/c;
+    scalar re = rho*relativeSpeed*chord/nuRef_;
+    scalar mach = relativeSpeed/soundSpeedRef_;
 
     scalar cl = airfoil.cl(AoA,re,mach);
     scalar cd = airfoil.cd(AoA,re,mach);
@@ -275,10 +279,8 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U, scalar ang
 inline Foam::scalar Foam::bladeElementModel::AngleOfIncidenceSTAR(const vector &relativeLocalVel)
 {
     return atan2(-relativeLocalVel.z(),sign(relativeLocalVel.x())*sqrt(pow(relativeLocalVel.x(),2)+pow(relativeLocalVel.y(),2))); //as starccm+
-    //return atan2(-relativeVel.z(),relativeVel.x());
 }
 inline Foam::scalar Foam::bladeElementModel::AngleOfIncidence(const vector &relativeLocalVel)
 {
-    //return atan2(-relativeLocalVel.z(),sign(relativeLocalVel.x())*sqrt(pow(relativeLocalVel.x(),2)+pow(relativeLocalVel.y(),2))); //as starccm+
     return atan2(-relativeLocalVel.z(),relativeLocalVel.x());
 }
