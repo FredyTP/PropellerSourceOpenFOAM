@@ -4,8 +4,8 @@
 #include "airfoilModelList.H"
 #include "bladeModelS.H"
 #include "rotorGrid.H"
-#include "bemDirectControl.H"
 #include "polarCorrection.H"
+#include "bemControl.H"
 
 namespace Foam
 {
@@ -31,9 +31,11 @@ protected:
     scalar nuRef_;
     scalar soundSpeedRef_;
 
+    //- Reference frame rotation for time-accurate blades
+    scalar psi0_;
 
     dictionary gridDictionary;
-    bemDirectControl control_;
+    autoPtr<bemControl> control_;
     effects3D::polarCorrection polarCorrection_;
 public:
     //Defines the runtime name of this class (IOpurposes?)
@@ -62,17 +64,41 @@ public:
 
     virtual void build(const rotorGeometry& rotorGeometry);
 
-    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, scalar angularVelocity, volVectorField& force, scalar theta);
-    
+    /**
+     * @brief Calculates and updates theta state, also add source term
+     * 
+     * @param U 
+     * @param rhoField 
+     * @param angularVelocity 
+     * @param force 
+     * @param theta 
+     * @return propellerResult 
+     */
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force);
+
+    /**
+     * @brief Calculates only the forces on the current state
+     * 
+     * @param U 
+     * @param rhoField 
+     * @param angularVelocity 
+     * @return propellerResult 
+     */
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const;
+
     virtual const autoPtr<rotorGrid>& grid() {return rotorGrid_;}
 
-    vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, bemDebugData& data);
+    vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, bemDebugData& data) const;
 
+    virtual void nextTimeStep(scalar dt);
     
     static inline scalar AngleOfIncidenceSTAR(const vector& relativeLocalVel);
     static inline scalar AngleOfIncidence(const vector& relativeLocalVel);
 
-    
+    inline scalar rhoRef() const { return rhoRef_;}
+    virtual rotorControl& control() { return control_.ref();};
+
+    bool isTimeAcuratte() const;
 
 };
 

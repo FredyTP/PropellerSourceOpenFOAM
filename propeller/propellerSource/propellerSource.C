@@ -121,7 +121,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
                     &rotorFvMeshSel_);
         
         /*----CREATE ROTOR DYNAMICS----*/
-        dynamics_ = rotorDynamics::New(dict.subDict("dynamics"));
+
         decrIndent(Info);
         return true;
     }
@@ -136,34 +136,7 @@ void Foam::fv::propellerSource::addSup
     const label fieldi
 )
 {
-    force.ref(false)=dimensionedVector(dimVelocity/dimTime, Zero);
-    //Create force vector field from mesh and set dimensions
-    Info<<"VectorFieldi: "<<fieldi<<endl;
-    Info<< name() << ": applying source to " << eqn.psi().name() << endl;
-
-    const volVectorField& Uin(eqn.psi());
-
-    propResult_ = propellerModel_->calculate
-        (
-            velSampler_->sampleField(Uin),
-            nullptr,
-            dynamics_->angularVelocity(),
-            force,
-            dynamics_->theta()
-        );
-
-    dynamics_->integrate(mag(propResult_.torque),mesh_.time().deltaTValue());
-    
-    Info<<fv::option::name_<<": step parameters"<<endl;
-    Info<<propResult_<<endl;
-    //Add source term to the equation
-    eqn+=force;
-
-    //If its time to write into files
-    if(mesh_.time().writeTime())
-    {
-        velSampler_->writeSampled(this->name());
-    }
+    this->addSup(volScalarField::null(),eqn,fieldi);
 }
 
 void Foam::fv::propellerSource::addSup
@@ -174,23 +147,20 @@ void Foam::fv::propellerSource::addSup
 )
 {
     force.ref(false)=dimensionedVector(dimVelocity/dimTime, Zero);
-    //Create force vector field from mesh and set dimensions
 
     Info<< name() << ": applying source to " << eqn.psi().name() << endl;
     Info<<fv::option::name_<<": step parameters"<<endl;
 
     const volVectorField& Uin(eqn.psi());
 
+    propellerModel_->nextTimeStep(mesh_.time().deltaTValue());
+
     propResult_ = propellerModel_->calculate
         (
             velSampler_->sampleField(Uin),
-            &densitySampler_->sampleField(rho),
-            dynamics_->angularVelocity(),
-            force,
-            dynamics_->theta()
+            rho.empty() ? &densitySampler_->sampleField(rho) : nullptr,
+            force
         );
-
-    dynamics_->integrate(mag(propResult_.torque),mesh_.time().deltaTValue());
     
     Info<<propResult_<<endl;
     //Add source term to the equation
@@ -201,4 +171,5 @@ void Foam::fv::propellerSource::addSup
     {
         velSampler_->writeSampled(this->name());
     }
+
 }

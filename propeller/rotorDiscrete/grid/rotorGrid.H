@@ -64,8 +64,8 @@ public:
     label nCells() const { return cells_.size();}
     virtual ~rotorGrid() = default;
 protected:
-    const rotorFvMeshSel& meshSel_;
     const rotorGeometry& rotorGeometry_;
+    const rotorFvMeshSel& meshSel_;
     label nBlades_;
     scalar minRadius_;
     scalar maxRadius_;

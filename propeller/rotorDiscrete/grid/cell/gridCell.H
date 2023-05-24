@@ -92,7 +92,7 @@ public:
      * FIELD RELATED FUNCTIONS *
     */
 
-    virtual vector scaleForce(const vector& globalForce);
+    virtual vector scaleForce(const vector& globalForce) const;
 
     
     template<class type>

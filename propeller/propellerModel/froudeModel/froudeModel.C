@@ -9,7 +9,7 @@ namespace Foam
 
     //Add to run time table to dynamically select the class based on
     //the dictionary propellerModel atribute
-    addToRunTimeSelectionTable(propellerModel,froudeModel,dictionary);
+    //addToRunTimeSelectionTable(propellerModel,froudeModel,dictionary);
 }
 
 Foam::froudeModel::froudeModel

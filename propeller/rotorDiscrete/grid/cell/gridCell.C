@@ -73,7 +73,7 @@ void gridCell::centerFromClosestCell(const vectorField &cellCenters)
 }
 
 
-vector gridCell::scaleForce(const vector &globalForce)
+vector gridCell::scaleForce(const vector &globalForce) const
 {
    return globalForce * factor_;
 }

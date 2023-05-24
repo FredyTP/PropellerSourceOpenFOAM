@@ -24,7 +24,15 @@ public:
 
     propellerResult()
     {
-        propellerResult::OutputDefinition(Info)<<endl;
+        
+    }
+    void update(scalar omega, scalar speedRef,scalar rhoRef, scalar radius)
+    {
+        power = torque.z() * omega;
+        updateEta(speedRef);
+        updateJ(speedRef,omega,radius);
+        updateCT(rhoRef,omega,radius);
+        updateCP(rhoRef,omega,radius);
     }
     inline scalar thrust() const {return force.z();}
 

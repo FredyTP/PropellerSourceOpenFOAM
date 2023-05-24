@@ -10,6 +10,7 @@ EXE_INC = \
     -I$(FOAM_SRC)/surfMesh/lnInclude \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerSource \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/bladeElementModel \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/bladeElementModel/effects3D \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete/grid \
@@ -28,14 +29,13 @@ EXE_INC = \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/bladeModel \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorMesh \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/util \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDynamics \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl/bemControl \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/velocitySampler
     
 
 
-EXE_LIBS = \
+LIB_LIBS = \
     -lfiniteVolume \
     -lfvOptions \
     -lmeshTools \

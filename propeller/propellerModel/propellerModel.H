@@ -8,6 +8,7 @@
 #include "rotorFvMeshSel.H"
 #include "rotorGrid.H"
 #include "propellerResult.H"
+#include "rotorControl.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -68,10 +69,12 @@ public:
     void setRotorMesh(const rotorFvMeshSel* rotorFvMeshSel){ rotorFvMeshSel_ = rotorFvMeshSel;}
 
     virtual void build(const rotorGeometry& rotorGeometry){}
-
-    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, scalar angularVelocity, volVectorField& force, scalar theta){return propellerResult();}
+    virtual void nextTimeStep(scalar dt){}
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force){return propellerResult();}
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const {return propellerResult();}
 
     virtual const autoPtr<rotorGrid>& grid() = 0;
+    virtual rotorControl& control() = 0;
 
     const fvMesh& mesh() const { return rotorFvMeshSel_->mesh();}
 };

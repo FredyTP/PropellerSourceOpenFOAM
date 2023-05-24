@@ -19,8 +19,6 @@
 
 #include "diskSamplerInclude.H"
 
-#include "rotorDynamics.H"
-
 namespace Foam
 {
 namespace fv
@@ -55,9 +53,6 @@ protected:
     //Velocity sampler for model
     autoPtr<diskSampler<vector>> velSampler_;
     autoPtr<diskSampler<scalar>> densitySampler_;
-
-    //Rotor dynamics control
-    autoPtr<rotorDynamics> dynamics_;
 
     volVectorField force;
 

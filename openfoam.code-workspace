@@ -308,7 +308,10 @@
 			"incompressibleturbulencemodel.c": "cpp",
 			"fixedValue.C": "cpp",
 			"singlePhaseTransportModel.C": "cpp",
-			"subCycleTime.C": "cpp"
+			"subCycleTime.C": "cpp",
+			"bemTargetCoeff.C": "cpp",
+			"gradingDescriptor.C": "cpp",
+			"nullObject.C": "cpp"
 		}
 	}
 }

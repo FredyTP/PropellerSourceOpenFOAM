@@ -10,19 +10,11 @@ class rotorControl
 {
 public:
     TypeName("rotorControl");
-    declareRunTimeSelectionTable
-    (
-        autoPtr,
-        rotorControl,
-        dictionary,
-        (
-            const dictionary& dict
-        ),
-        (dict)
-    );
+
     
     virtual ~rotorControl() = default;
 };
+
 }
 
 #endif /* PROPELLER_ROTOR_CONTROL_ROTOR_CONTROL */

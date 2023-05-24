@@ -1,14 +1,14 @@
 #include "bemDirectControl.H"
 #include "addToRunTimeSelectionTable.H"
-
+#include "bladeElementModel.H"
 namespace Foam
 {
  
 defineTypeNameAndDebug(bemDirectControl,0);
-addToRunTimeSelectionTable(rotorControl,bemDirectControl, dictionary);
+addToRunTimeSelectionTable(bemControl,bemDirectControl, dictionary);
 
 
-bemDirectControl::bemDirectControl(const dictionary& dict)
+bemDirectControl::bemDirectControl(const dictionary& dict, const bladeElementModel& bem)
  : bemControl(dict)
 {
     collectivePitch = dict.getOrDefault<scalar>("collectivePitch",0);
@@ -19,43 +19,45 @@ bemDirectControl::bemDirectControl(const dictionary& dict)
     flapping = dict.getOrDefault<scalar>("flapping",0);
     sinFlapping = dict.getOrDefault<scalar>("sinFlapping",0);
     cosFlapping = dict.getOrDefault<scalar>("cosFlapping",0);
+
+    angularVelocity_ = bemControl::readAngularVelocity(dict);
+}
+
+void bemDirectControl::correctControl(const vectorField &U, const scalarField *rhoField)
+{
+
 }
 
 scalar bemDirectControl::getAzimuth(scalar azimuth0) const
 {
-    return azimuth0-sinAzimuth*sin(azimuth0)-cosAzimuth*cos(azimuth0);
+    return AzimuthFunction(azimuth0,cosAzimuth,sinAzimuth);
 }
 
 scalar bemDirectControl::getPitch(scalar azimuth) const
 {
-    return collectivePitch-sinPitch*sin(azimuth)-cosPitch*cos(azimuth);
+    return PitchFunction(azimuth,collectivePitch,cosPitch,sinPitch);
 }
 
 scalar bemDirectControl::getFlapping(scalar azimuth) const
 {
-    return flapping-sinFlapping*sin(azimuth)-cosFlapping*cos(azimuth);
+    return FlappingFunction(azimuth,flapping,cosFlapping,sinFlapping);
 }
 
-scalar bemDirectControl::getAzimuthDot(scalar azimuth, scalar angularVelocity)
+scalar bemDirectControl::getAzimuthDot(scalar azimuth) const
 {
-    return angularVelocity*(1 - sinAzimuth*cos(azimuth) + cosAzimuth*sin(azimuth));
+    return AzimuthDotFunction(angularVelocity_,azimuth,cosAzimuth,sinAzimuth);
 }
-scalar bemDirectControl::getPitchDot(scalar azimuth, scalar angularVelocity)
+scalar bemDirectControl::getPitchDot(scalar azimuth) const
 {
-    return angularVelocity*(-sinPitch*cos(azimuth) + cosPitch*sin(azimuth));
+    return PitchDotFunction(angularVelocity_,azimuth,collectivePitch,cosPitch,sinPitch);
 }
-scalar bemDirectControl::getFlappingDot(scalar azimuth, scalar angularVelocity)
+scalar bemDirectControl::getFlappingDot(scalar azimuth) const
 {
-    return angularVelocity*(-sinFlapping*cos(azimuth) + cosFlapping*sin(azimuth));
+    return FlappingDotFunction(angularVelocity_,azimuth,flapping,cosFlapping,sinFlapping);
 }
 
-vector bemDirectControl::getBladeLocalVel(scalar azimuth, scalar angularVelocity, scalar radius)
+scalar bemDirectControl::getAngularVelocity() const
 {
-    return vector
-    (
-        -getAzimuthDot(azimuth,angularVelocity)*radius, //x-axis "backwards"
-        0,
-        getFlappingDot(azimuth,angularVelocity)*radius  //z-axis "up"
-    );
+    return angularVelocity_;
 }
 }

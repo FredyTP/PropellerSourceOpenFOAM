@@ -5,6 +5,6 @@ namespace Foam
 {
  
     defineTypeNameAndDebug(rotorControl,0);
-    defineRunTimeSelectionTable(rotorControl, dictionary);
+
 
 }

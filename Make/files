@@ -22,10 +22,6 @@ propeller/bladeModel/bladeModelS.C
 
 propeller/rotorMesh/rotorFvMeshSel.C
 
-propeller/rotorDynamics/rotorDynamics.C
-propeller/rotorDynamics/fixedPower.C
-propeller/rotorDynamics/fixedSpeed.C
-
 propeller/rotorDiscrete/grid/rotorGrid.C
 propeller/rotorDiscrete/grid/polarGrid.C
 propeller/rotorDiscrete/grid/bladeGrid.C
@@ -36,7 +32,7 @@ propeller/rotorDiscrete/grid/cell/polarCell.C
 propeller/rotorControl/rotorControl.C
 propeller/rotorControl/bemControl/bemControl.C
 propeller/rotorControl/bemControl/bemDirectControl.C
+propeller/rotorControl/bemControl/bemTargetCoeff.C
 
-
-EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid
-//LIB = $(FOAM_USER_LIBBIN)/rotorSolver
+//EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid
+LIB = $(FOAM_USER_LIBBIN)/rotorSolver
