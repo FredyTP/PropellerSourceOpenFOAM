@@ -311,7 +311,8 @@
 			"subCycleTime.C": "cpp",
 			"bemTargetCoeff.C": "cpp",
 			"gradingDescriptor.C": "cpp",
-			"nullObject.C": "cpp"
+			"nullObject.C": "cpp",
+			"writeFile.C": "cpp"
 		}
 	}
 }

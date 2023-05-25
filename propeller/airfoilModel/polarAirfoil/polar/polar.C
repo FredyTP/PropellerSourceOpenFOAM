@@ -1,6 +1,6 @@
 #include "polar.H"
 #include "linearInterpolation.H"
-
+#include "cubicSplineInterpolation.H"
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
 #include "addToRunTimeSelectionTable.H"
@@ -20,7 +20,7 @@ namespace Foam
     addToRunTimeSelectionTable(polar,polar,dictionary);
 
 
-polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re, scalar Ma, bool isRadian)
+polar::polar(bool cubicSpline, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re, scalar Ma, bool isRadian)
 {
     //The polar needs atleast 2 data-points to be functional
     
@@ -34,13 +34,22 @@ polar::polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, Li
         }
     }
     processData(alphaIn[0],cl,cd);
-    cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cl);
-    cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cd);
+    if(cubicSpline)
+    {
+        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alphaIn,cl);
+        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alphaIn,cd);
+    }
+    else
+    {
+        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cl);
+        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cd);
+    }
+
     reynolds_ = Re;
     mach_ = Ma;
 }
 
-polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma, bool isRadian)
+polar::polar(bool cubicSpline,fileName filename, scalar Re, scalar Ma, bool isRadian)
 {
     reynolds_ = Re;
     mach_ = Ma;
@@ -95,8 +104,16 @@ polar::polar(const word interpolation,fileName filename, scalar Re, scalar Ma, b
     processData(alpha[0],cl,cd);
 
     //Create polar interpolations
-    cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cl);
-    cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cd);
+    if(cubicSpline)
+    {
+        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alpha,cl);
+        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alpha,cd);
+    }
+    else
+    {
+        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cl);
+        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cd);
+    }
 }
 
 scalar polar::cl(scalar alpha) const
@@ -145,7 +162,7 @@ void polar::processData(List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd)
 
 }
 
-autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian)
+autoPtr<Foam::polar> polar::New(const word modelType, bool cubicSpline, const fileName filename, scalar Re, scalar Ma, bool isRadian)
 {
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);
@@ -168,10 +185,10 @@ autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, 
     cl = csvReader.col("CL");
     cd = csvReader.col("CD");
 
-    return autoPtr<Foam::polar>(ctorPtr(interpolation,aoa,cl,cd,Re,Ma,isRadian));
+    return autoPtr<Foam::polar>(ctorPtr(cubicSpline,aoa,cl,cd,Re,Ma,isRadian));
 }
 
-autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd, scalar Re, scalar Ma, bool isRadian)
+autoPtr<Foam::polar> polar::New(const word modelType, bool cubicSpline, List<scalar> &alpha, List<scalar> &cl, List<scalar> &cd, scalar Re, scalar Ma, bool isRadian)
 {
     //Find class contructor in tables
     auto* ctorPtr = dictionaryConstructorTable(modelType);
@@ -187,7 +204,7 @@ autoPtr<Foam::polar> polar::New(const word modelType, const word interpolation, 
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<Foam::polar>(ctorPtr(interpolation,alpha,cl,cd,Re,Ma,isRadian));
+    return autoPtr<Foam::polar>(ctorPtr(cubicSpline,alpha,cl,cd,Re,Ma,isRadian));
 }
 
 

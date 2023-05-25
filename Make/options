@@ -35,7 +35,7 @@ EXE_INC = \
     
 
 
-LIB_LIBS = \
+EXE_LIBS = \
     -lfiniteVolume \
     -lfvOptions \
     -lmeshTools \

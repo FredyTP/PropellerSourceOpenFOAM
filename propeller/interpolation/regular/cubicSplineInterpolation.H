@@ -28,6 +28,7 @@ public:
 
     }
     
+    
 
     cubicSplineInterpolation(List<scalar> inputs_, List<scalar> outputs_) 
         : parent(FixedList<List<scalar>,1>({inputs_}),outputs_)
@@ -67,7 +68,11 @@ public:
             bi[i]=(D[i]/d[i]-d[i]/3*(2*ci[i]+ci[i+1]));
         }
     }
-    
+    cubicSplineInterpolation(FixedList<List<scalar>,1> inputs_, List<scalar> outputs_)
+        : cubicSplineInterpolation(inputs_[0],outputs_)
+    {
+
+    }
     interpolated<scalar,scalar> interpolate(FixedList<scalar,1> input) const
     {
         label i1,i2;

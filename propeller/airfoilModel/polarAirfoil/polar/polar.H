@@ -22,7 +22,7 @@ public:
         polar,
         dictionary,
         (
-            const word interpolation,
+            bool cubicSpline,
             List<scalar>& alpha,
             List<scalar>& cl,
             List<scalar>& cd,
@@ -30,12 +30,12 @@ public:
             scalar Ma,
             bool isRadian
         ),
-        (interpolation, alpha,cl,cd, Re, Ma, isRadian)
+        (cubicSpline, alpha,cl,cd, Re, Ma, isRadian)
     );
 
-    polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
+    polar(bool cubicSpline, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
 
-    polar(const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian);
+    polar(bool cubicSpline, const fileName filename, scalar Re, scalar Ma, bool isRadian);
 
     virtual scalar cl(scalar alpha) const;
     virtual scalar cd(scalar alpha) const;
@@ -47,8 +47,8 @@ public:
 
     virtual ~polar() = default;
     
-    static autoPtr<Foam::polar> New(const word modelType,const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian);
-    static autoPtr<Foam::polar> New(const word modelType,const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
+    static autoPtr<Foam::polar> New(const word modelType,bool cubicSpline, const fileName filename, scalar Re, scalar Ma, bool isRadian);
+    static autoPtr<Foam::polar> New(const word modelType,bool cubicSpline, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
 protected:
 
     void processData(List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd);

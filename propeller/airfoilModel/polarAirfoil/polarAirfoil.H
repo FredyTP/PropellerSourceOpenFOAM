@@ -23,7 +23,7 @@ public:
     virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const;
 
     bool read(const dictionary& dict);
-    bool readFromPolars(word extrapolation);
+    bool readFromPolars(bool cubicSpline, word extrapolation);
 
     /**
      * Requierements: 
@@ -34,7 +34,7 @@ public:
      * - No need to have same AoA for every Mach / Re
      * - Data points dont have to be structured but it's recommended
     */
-    bool readFromCSV(word extrapolation);
+    bool readFromCSV(bool cubicSpline, word extrapolation);
 
 protected:
     inline word aoaName() const  {return colNames[0];}
