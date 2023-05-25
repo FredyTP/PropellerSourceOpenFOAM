@@ -8,7 +8,6 @@ namespace Foam
 
     //Add to run time table to dynamically select the class based on
     //the dictionary airfoilModel atribute
-
     addToRunTimeSelectionTable(airfoilModel,interpolatedAirfoil,dictionary);
 
 interpolatedAirfoil::interpolatedAirfoil()

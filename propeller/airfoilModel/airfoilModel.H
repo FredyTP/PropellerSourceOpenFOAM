@@ -49,6 +49,7 @@ private:
 
     //Export properties
     bool export_;
+    bool join_;
     fileName path_;
     scalar aoaBegin_;
     scalar aoaEnd_;

@@ -3,6 +3,7 @@
 #include "csvTable.H"
 #include "OFstream.H"
 #include "constants.H"
+#include "interpolatedAirfoil.H"
 namespace Foam
 {
 
@@ -33,6 +34,7 @@ Foam::airfoilModel::airfoilModel(word name, const dictionary& dict)
     nAoa_ = dict.getOrDefault<scalar>("aoaBegin", 360); //1deg res
     Re_ = dict.getOrDefault<List<scalar>>("Reynolds", {0}); 
     Ma_ = dict.getOrDefault<List<scalar>>("Mach", {0}); 
+    join_ = dict.getOrDefault<bool>("join", true); 
 }
 Foam::autoPtr<Foam::airfoilModel> Foam::airfoilModel::New
 (
@@ -68,7 +70,25 @@ void Foam::airfoilModel::exportAirfoil()
 {
     if(export_)
     {
-        this->writeAirfoil(path_.size()>0 ? path_ : name_+".csv",aoaBegin_,aoaEnd_,nAoa_,Re_,Ma_);
+        fileName base_name = path_.size()>0 ? path_ : static_cast<fileName>(name_);
+        Info << indent << "- Exporting airfoil: "<<name_<<endl;
+        if(!join_)
+        {
+            for(label iRe = 0 ; iRe < Re_.size();iRe++)
+            {
+                for(label iMa = 0 ; iMa < Ma_.size(); iMa++)
+                {
+                    fileName final_name = base_name + "Re_"+std::to_string(Re_[iRe]) + "Ma_"+std::to_string(Ma_[iMa])+".csv";
+
+                    this->writeAirfoil(final_name,aoaBegin_,aoaEnd_,nAoa_,{Re_[iRe]},{Ma_[iMa]});
+                }
+            }
+        }
+        else
+        {
+            this->writeAirfoil(base_name+".csv",aoaBegin_,aoaEnd_,nAoa_,Re_,Ma_);
+        }
+
     }
 }
 
@@ -76,14 +96,13 @@ void Foam::airfoilModel::writeAirfoil(fileName path, scalar alfaBegin, scalar al
 {
     scalar da = (alfaEnd-alfaBegin)/(nAlfa-1);
     
-
     label n = Reyn.size()*Mach.size()*nAlfa;
     List<scalar> clList(n),cdList(n),aoaList(n),reList(n),maList(n);
 
     label cont =0;
     for(label iRe = 0 ; iRe < Reyn.size();iRe++)
     {
-        for(label iMa = 0 ; iMa < Reyn.size();iMa++)
+        for(label iMa = 0 ; iMa < Mach.size();iMa++)
         {
             for(label i = 0; i < nAlfa;i++)
             {
@@ -97,7 +116,6 @@ void Foam::airfoilModel::writeAirfoil(fileName path, scalar alfaBegin, scalar al
             }
         }
     }
-
     csvTable<scalar,word> csv(true);
 
     csv.addCol(aoaList,"aoaRad");

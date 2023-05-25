@@ -11,8 +11,6 @@ namespace Foam
 {
 
 
-
-
 class interpolatedAirfoil
     :  public interpolated<scalar,const airfoilModel*>, public airfoilModel
 {
