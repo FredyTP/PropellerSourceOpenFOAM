@@ -23,6 +23,7 @@ protected:
     airfoilModelList airfoils_;
     bladeModelS bladeModel_;
     autoPtr<rotorGrid> rotorGrid_;
+    List<tensor> gridTensor_; //(x: LE->TE) (y: radial) (z: "up")
     scalar nBlades_; 
     scalar tipFactor_;
 
@@ -88,7 +89,7 @@ public:
 
     virtual const autoPtr<rotorGrid>& grid() {return rotorGrid_;}
 
-    vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, bemDebugData& data) const;
+    vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, const tensor& bladeTensor, bemDebugData& data) const;
 
     virtual void nextTimeStep(scalar dt);
     
@@ -100,6 +101,10 @@ public:
 
     bool isTimeAcuratte() const;
 
+    void updateTensors();
+
+    tensor cellBladeTensor(const gridCell& cell) const;
+    static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);
 };
 
 }

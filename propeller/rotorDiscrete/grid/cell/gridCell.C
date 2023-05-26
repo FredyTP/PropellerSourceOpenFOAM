@@ -41,13 +41,8 @@ void gridCell::setCenter(const vector &center)
 {
     center_=center;
     center_.z()=0;
-    updateBladeTensor();
 }
 
-void gridCell::updateBladeTensor()
-{
-    localBlade_ = rotorGrid::bladeLocalFromPoint(rotorGeometry_.cylindricalCS(),center_);
-}
 
 void gridCell::centerFromClosestCell(const vectorField &cellCenters)
 {

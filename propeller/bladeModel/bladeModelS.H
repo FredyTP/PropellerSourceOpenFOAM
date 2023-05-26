@@ -63,6 +63,13 @@ public:
     bool sectionAtRadius(scalar adimRadius, scalar& chord, scalar& twist, scalar& sweep,interpolatedAirfoil& airfoil) const;
     bool geometryAtRadius(scalar adimRadius, scalar& chord, scalar& twist, scalar& sweep) const;
 
+    /**
+     * @brief Return unchecked sweep
+     * 
+     * @param adimRadius 
+     * @return scalar 
+     */
+    scalar getSweep(scalar adimRadius) const;
     void writeBlade(label np,fileName path);
 
 };

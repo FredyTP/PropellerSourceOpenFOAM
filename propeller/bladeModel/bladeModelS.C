@@ -5,6 +5,7 @@
 #include "csvTable.H"
 #include "OFstream.H"
 #include "cubicSplineInterpolation.H"
+
 void Foam::bladeModelS::writeBlade(label np, fileName path)
 {
     scalar dr = 1.0/(np-1);
@@ -296,4 +297,9 @@ bool Foam::bladeModelS::geometryAtRadius(scalar adimRadius, scalar &chord, scala
     sweep = sweepAngle_->interpolate({adimRadius}).value();
 
     return true;
+}
+
+Foam::scalar Foam::bladeModelS::getSweep(scalar adimRadius) const
+{
+    return sweepAngle_->interpolate({adimRadius}).value();
 }

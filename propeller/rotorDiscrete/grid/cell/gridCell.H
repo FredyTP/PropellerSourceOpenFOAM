@@ -64,13 +64,6 @@ public:
     scalar azimuth() const {return center_.y();}
 
     /**
-     * @brief Returns the tensor representing the local blade axis in global CS
-     * 
-     * @return const tensor& (x: LE->TE) (y: radial) (z: "up")
-     */
-    const tensor& localBlade() const { return localBlade_; }
-
-    /**
      * @brief Set the cell center in local polar coordinates z=0
      * 
      * @param center 
@@ -110,7 +103,6 @@ public:
     label interpolatingCelli() const { return interpolatingCell_;}
 private:
     vector center_; //r-theta-0
-    tensor localBlade_; //(x: LE->TE) (y: radial) (z: "up")
 protected:
     const rotorGeometry& rotorGeometry_;
 
