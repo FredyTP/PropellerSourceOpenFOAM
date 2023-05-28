@@ -4,7 +4,7 @@ propeller/propellerSource/propellerSource.C
 
 propeller/propellerModel/propellerModel.C
 propeller/propellerModel/propellerModelNew.C
-propeller/propellerModel/froudeModel/froudeModel.C
+propeller/propellerModel/forceModel/forceModel.C
 propeller/propellerModel/bladeElementModel/bladeElementModel.C
 propeller/propellerModel/bladeElementModel/effects3D/polarCorrection.C
 

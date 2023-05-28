@@ -312,7 +312,9 @@
 			"bemTargetCoeff.C": "cpp",
 			"gradingDescriptor.C": "cpp",
 			"nullObject.C": "cpp",
-			"writeFile.C": "cpp"
+			"writeFile.C": "cpp",
+			"forceModel.C": "cpp",
+			"fmControl.C": "cpp"
 		}
 	}
 }
