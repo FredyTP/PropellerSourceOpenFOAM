@@ -316,7 +316,8 @@
 			"forceModel.C": "cpp",
 			"fmControl.C": "cpp",
 			"FieldFunctions.C": "cpp",
-			"FieldFieldFunctions.C": "cpp"
+			"FieldFieldFunctions.C": "cpp",
+			"motionSmootherAlgoTemplates.C": "cpp"
 		}
 	}
 }

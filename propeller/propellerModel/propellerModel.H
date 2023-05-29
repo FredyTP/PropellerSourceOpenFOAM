@@ -73,7 +73,7 @@ public:
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force){return propellerResult();}
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const {return propellerResult();}
 
-    virtual const autoPtr<rotorGrid>& grid() = 0;
+    virtual const autoPtr<rotorGrid>& grid() const = 0;
     virtual rotorControl& control() = 0;
 
     const fvMesh& mesh() const { return rotorFvMeshSel_->mesh();}

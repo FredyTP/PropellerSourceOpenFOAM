@@ -41,7 +41,7 @@ public:
 
     virtual rotorControl& control() {return control_.ref();};
     
-    virtual const autoPtr<rotorGrid>& grid() {return rotorGrid_;}
+    virtual const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
 private:
     
     scalar psi0_ = 0;

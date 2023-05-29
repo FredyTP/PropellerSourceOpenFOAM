@@ -66,9 +66,6 @@ void forceModel::updateTensors()
 tensor forceModel::cellBladeTensor(const gridCell &cell) const
 {
     vector center = cell.center();
-    scalar radius = center.x();
-    scalar azimuth = center.y();
-
     return propellerModel::bladeTensor(rotorGrid_->geometry().cylindricalCS(),center,0,0);
 }
 
@@ -126,9 +123,10 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     );
 
     vector normal = rotorGrid_->geometry().direction();
-    vector velAvg = vector(10,10,10);//cmptAv<vector>(U);
-    scalar speedRef = normal.inner(velAvg);
-    scalar rhoRef = rhoField == nullptr ? rhoRef_ : 1;//cmptAv(*rhoField);
+    
+    vector velAvg = average(U);
+    scalar speedRef = -normal.inner(velAvg);
+    scalar rhoRef = rhoField == nullptr ? rhoRef_ : average(*rhoField);
     scalar maxR = rotorGrid_->geometry().radius();
     scalar minR = rotorGrid_->geometry().innerRadius();
     scalar D = 2 * maxR;
@@ -161,16 +159,11 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
         // r-theta
         vector cellForce = cell.scaleForce(forceOverLen);
 
-        Info<<" - cellForce "<<cellForce<<endl;
         // global
         vector globalForce = transform(localBlade,cellForce);
-        
-        Info<<" - globalForce "<<globalForce<<endl;
 
         //x-y-z local
         vector localForce = rotorGrid_->geometry().cartesianCS().localVector(globalForce);
-
-        Info<<" - localForce "<<localForce<<endl;
         
         result.force += cellForce;
 
@@ -182,6 +175,7 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     }
 
     scalar omega = control_->getAngularVelocity();
+
     result.update(omega, speedRef,rhoRef, maxR);
 
     if(rotorFvMeshSel_->mesh().time().writeTime())
@@ -207,7 +201,7 @@ vector forceModel::ForceDistribution(scalar Ax, scalar Atheta, scalar radius, sc
     scalar fx = Ax*rStar*sqrtRstar;
     scalar ftheta = Atheta*rStar*sqrtRstar/(rStar*(1-r1h)+r1h);
 
-    return vector(fx,ftheta,0);
+    return vector(ftheta,0,fx);
 }
 
 }

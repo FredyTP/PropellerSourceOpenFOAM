@@ -33,16 +33,20 @@ public:
 
     scalar readAngularVelocity(const dictionary& dict);
 
-    virtual void correctControl(const vectorField& U, const scalarField* rhoField){}
+    virtual void correctControl(const vectorField& U, const scalarField* rhoField);
 
-    virtual scalar getAngularVelocity() {return 10;};
+    virtual scalar getAngularVelocity() {return omega_;}
 
     scalar getJ();
 
-
     static autoPtr<fmControl> New(const dictionary& dict, const forceModel& bem);
 private:
+    
+    const forceModel& forceModel_;
+
     scalar J=0.5;
+    scalar omega_;
+
 };
 
 }

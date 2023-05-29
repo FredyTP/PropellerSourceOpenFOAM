@@ -87,7 +87,7 @@ public:
      */
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const;
 
-    virtual const autoPtr<rotorGrid>& grid() {return rotorGrid_;}
+    virtual const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
 
     vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, const tensor& bladeTensor, bemDebugData& data) const;
 
