@@ -3,7 +3,7 @@
 #include "rotorGrid.H"
 #include "cubicSplineInterpolation.H"
 #include "bladeGrid.H"
-#include "axisAngleRotation.H"
+
 namespace Foam
 {
     //set and define the type name "typeName"
@@ -12,9 +12,9 @@ namespace Foam
     //Add to run time table to dynamically select the class based on
     //the dictionary propellerModel atribute
     addToRunTimeSelectionTable(propellerModel,bladeElementModel,dictionary);
-}
 
-Foam::bladeElementModel::bladeElementModel
+
+bladeElementModel::bladeElementModel
 (
     const dictionary& dict
 ) : 
@@ -37,7 +37,7 @@ Foam::bladeElementModel::bladeElementModel
 }
 
 
-void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
+void bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
     rotorGrid_ = rotorGrid::New(gridDictionary,rotorGeometry,*rotorFvMeshSel_,bladeModel_,nBlades_);
     this->updateTensors();
@@ -80,7 +80,7 @@ void Foam::bladeElementModel::build(const rotorGeometry& rotorGeometry)
     bladeModel_.writeBlade(300,"blade.csv");
 }
 
-Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force)
+propellerResult bladeElementModel::calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force)
 {
     propellerResult result;
     //Puntos de la discretizacion
@@ -190,7 +190,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField& U, c
     return result;
 }
 
-Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField &U, const scalarField *rhoField) const
+propellerResult bladeElementModel::calculate(const vectorField &U, const scalarField *rhoField) const
 {
     propellerResult result;
     //Puntos de la discretizacion
@@ -222,7 +222,7 @@ Foam::propellerResult Foam::bladeElementModel::calculate(const vectorField &U, c
     return result;
 }
 
-Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angularVelocity, const gridCell &cell, const tensor& bladeTensor, bemDebugData& data) const
+vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angularVelocity, const gridCell &cell, const tensor& bladeTensor, bemDebugData& data) const
 {
     //---GET INTERPOLATED SECTION---//
     scalar radius = cell.radius();
@@ -294,7 +294,7 @@ Foam::vector Foam::bladeElementModel::calculatePoint(const vector &U,scalar rho,
     data.localVel = U;
     return globalForceOverLenght;
 }
-void Foam::bladeElementModel::nextTimeStep(scalar dt)
+void bladeElementModel::nextTimeStep(scalar dt)
 {
     
     const bladeGrid* bg = dynamic_cast<const bladeGrid*>(rotorGrid_.get());
@@ -324,21 +324,21 @@ void Foam::bladeElementModel::nextTimeStep(scalar dt)
         this->updateTensors();
     }
 }
-inline Foam::scalar Foam::bladeElementModel::AngleOfIncidenceSTAR(const vector &relativeLocalVel)
+inline scalar bladeElementModel::AngleOfIncidenceSTAR(const vector &relativeLocalVel)
 {
     return atan2(-relativeLocalVel.z(),sign(relativeLocalVel.x())*sqrt(pow(relativeLocalVel.x(),2)+pow(relativeLocalVel.y(),2))); //as starccm+
 }
-inline Foam::scalar Foam::bladeElementModel::AngleOfIncidence(const vector &relativeLocalVel)
+inline scalar bladeElementModel::AngleOfIncidence(const vector &relativeLocalVel)
 {
     return atan2(-relativeLocalVel.z(),relativeLocalVel.x());
 }
 
-bool Foam::bladeElementModel::isTimeAcuratte() const
+bool bladeElementModel::isTimeAcuratte() const
 {
     return dynamic_cast<const bladeGrid*>(rotorGrid_.get()) != nullptr;
 }
 
-void Foam::bladeElementModel::updateTensors()
+void bladeElementModel::updateTensors()
 {
     volVectorField x
     (
@@ -380,7 +380,12 @@ void Foam::bladeElementModel::updateTensors()
         dimensionedVector(dimless, Zero)
     );
 
-    gridTensor_.resize(rotorGrid_->nCells());
+    //Resize if num change
+    if(gridTensor_.size()!=rotorGrid_->nCells())
+    {
+        gridTensor_.resize(rotorGrid_->nCells());
+    }
+
     forAll(gridTensor_,i)
     {
         gridTensor_[i]=cellBladeTensor(rotorGrid_->cells()[i]);
@@ -394,7 +399,7 @@ void Foam::bladeElementModel::updateTensors()
 
 }
 
-Foam::tensor Foam::bladeElementModel::cellBladeTensor(const gridCell &cell) const
+tensor bladeElementModel::cellBladeTensor(const gridCell &cell) const
 {
     vector center = cell.center();
     scalar radius = center.x();
@@ -402,45 +407,7 @@ Foam::tensor Foam::bladeElementModel::cellBladeTensor(const gridCell &cell) cons
     scalar sweep = bladeModel_.getSweep(radius);
     scalar flapping = control_->getFlapping(azimuth);
 
-    return bladeTensor(rotorGrid_->geometry().cylindricalCS(),center,flapping,sweep);
+    return propellerModel::bladeTensor(rotorGrid_->geometry().cylindricalCS(),center,flapping,sweep);
 }
 
-Foam::tensor Foam::bladeElementModel::bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep)
-{
-    // z- up, y -outwards from center, x perpendicular y,z (leading edge to trailing edge)
-    point global, origin;
-
-    global = cylCS.globalPosition(localPoint);
-    origin = cylCS.origin();
-
-    tensor rotTensor(cylCS.R());
-
-    // z-axis
-    const vector ax3 = rotTensor.col<2>(); // == e3 (already normalized)
-
-    // y-axis (radial direction)
-    vector ax2(global - origin);
-
-    ax2.removeCollinear(ax3);
-
-    const scalar magAxis2(mag(ax2));
-
-    // Trap zero size and colinearity
-    if (magAxis2 < SMALL)
-    {
-        return rotTensor;
-    }
-
-    ax2 /= magAxis2; // normalise
-
-    // Replace with updated local axes
-
-    rotTensor.col<0>(ax2 ^ ax3);
-    rotTensor.col<1>(ax2);
-    //Rotate around X axis to get the flapping coordsys
-    tensor rotX = coordinateRotations::axisAngle::rotation(vector::components::X,flapping,false);
-    //Rotate around new Z axis to get the sweeped coordSys
-    tensor rotZ = coordinateRotations::axisAngle::rotation(vector::components::Z,sweep,false);
-    Info<<"flapping"<<flapping<<endl;
-    return rotTensor.inner(rotX);
 }

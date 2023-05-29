@@ -29,27 +29,20 @@ public:
         (dict,model)
     );
 
-    fmControl(const dictionary& dict);
+    fmControl(const dictionary& dict, const forceModel& fmModel);
 
     scalar readAngularVelocity(const dictionary& dict);
 
-    virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
+    virtual void correctControl(const vectorField& U, const scalarField* rhoField){}
 
-    virtual scalar getAzimuth(scalar azimuth0) const = 0;
-    virtual scalar getPitch(scalar azimuth) const = 0;
-    virtual scalar getFlapping(scalar azimuth) const = 0;
+    virtual scalar getAngularVelocity() {return 10;};
 
-    virtual scalar getAzimuthDot(scalar azimuth) const = 0;
-    virtual scalar getPitchDot(scalar azimuth) const = 0;
-    virtual scalar getFlappingDot(scalar azimuth) const = 0;
-
-    virtual scalar getAngularVelocity() const = 0;
-
-    //virtual scalar getAngularVelocity() = 0;
-    vector getBladeLocalVel(scalar azimuth, scalar radius) const;
+    scalar getJ();
 
 
     static autoPtr<fmControl> New(const dictionary& dict, const forceModel& bem);
+private:
+    scalar J=0.5;
 };
 
 }

@@ -314,7 +314,9 @@
 			"nullObject.C": "cpp",
 			"writeFile.C": "cpp",
 			"forceModel.C": "cpp",
-			"fmControl.C": "cpp"
+			"fmControl.C": "cpp",
+			"FieldFunctions.C": "cpp",
+			"FieldFieldFunctions.C": "cpp"
 		}
 	}
 }

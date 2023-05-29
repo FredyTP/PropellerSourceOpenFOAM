@@ -33,6 +33,8 @@ propeller/rotorControl/rotorControl.C
 propeller/rotorControl/bemControl/bemControl.C
 propeller/rotorControl/bemControl/bemDirectControl.C
 propeller/rotorControl/bemControl/bemTargetCoeff.C
+propeller/rotorControl/fmControl/fmControl.C
+
 
 EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid
 //LIB = $(FOAM_USER_LIBBIN)/rotorSolver

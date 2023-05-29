@@ -159,7 +159,6 @@ void Foam::bladeModelS::readFromSections(const airfoilModelList &airfoilList, co
 
     if(sections.size())
     {
-
         radius.resize(sections.size());
         chord.resize(sections.size());
         twist.resize(sections.size());
@@ -235,6 +234,20 @@ void Foam::bladeModelS::readFromProperties(const airfoilModelList &airfoilList, 
         airfoilModels[i]=airfoilList.getAirfoil(airfoilNames[i]);
     }
     airfoils_.setData({radius},airfoilModels);
+}
+
+Foam::bladeModelS::bladeModelS(const List<scalar> &rAdim, const List<scalar> &chord)
+{
+    checkRadiusList(rAdim);
+    chord_ = autoPtr<regularInterpolation<scalar,scalar,1>>
+    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
+            
+    twistAngle_= autoPtr<regularInterpolation<scalar,scalar,1>>
+    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
+            
+    sweepAngle_= autoPtr<regularInterpolation<scalar,scalar,1>>
+    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
+            
 }
 
 Foam::bladeModelS::bladeModelS(

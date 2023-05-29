@@ -33,7 +33,7 @@ protected:
     scalar soundSpeedRef_;
 
     //- Reference frame rotation for time-accurate blades
-    scalar psi0_;
+    scalar psi0_ = 0;
 
     dictionary gridDictionary;
     autoPtr<bemControl> control_;
@@ -104,7 +104,7 @@ public:
     void updateTensors();
 
     tensor cellBladeTensor(const gridCell& cell) const;
-    static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);
+    
 };
 
 }

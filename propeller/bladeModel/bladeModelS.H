@@ -56,7 +56,7 @@ protected:
         void readFromSections(const airfoilModelList &airfoilList, const dictionary& dict);
         void readFromProperties(const airfoilModelList &airfoilList, const dictionary& dict);
 public:
-
+    bladeModelS(const List<scalar>& rAdim, const List<scalar>& chord);
     bladeModelS(const airfoilModelList& airfoilList, const dictionary& dict);
 
 

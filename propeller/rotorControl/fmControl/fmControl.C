@@ -8,7 +8,9 @@ namespace Foam
 defineTypeNameAndDebug(fmControl,0);
 defineRunTimeSelectionTable(fmControl, dictionary);
 
-fmControl::fmControl(const dictionary& dict)
+addToRunTimeSelectionTable(fmControl,fmControl,dictionary);
+
+fmControl::fmControl(const dictionary& dict,const forceModel& fmModel)
 {
     
 }
@@ -24,6 +26,10 @@ scalar fmControl::readAngularVelocity(const dictionary &dict)
     {
         return dict.get<scalar>("angularVelocity");
     }
+}
+scalar fmControl::getJ()
+{
+    return J;
 }
 autoPtr<fmControl> fmControl::New(const dictionary &dict, const forceModel &bem)
 {

@@ -77,6 +77,9 @@ public:
     virtual rotorControl& control() = 0;
 
     const fvMesh& mesh() const { return rotorFvMeshSel_->mesh();}
+    
+    static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);
+
 };
 
 }
