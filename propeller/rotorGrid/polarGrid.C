@@ -11,7 +11,7 @@ namespace Foam
 defineTypeNameAndDebug(polarGrid,0);
 addToRunTimeSelectionTable(rotorGrid, polarGrid, dictionary);
 
-polarGrid::polarGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, scalar nBlades)
+polarGrid::polarGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS* bladeModel, scalar nBlades)
 : rotorGrid(dict, geometry, rotorFvMeshSel, nBlades)
 {
     label nRadius = dict.get<label>("nRadial");

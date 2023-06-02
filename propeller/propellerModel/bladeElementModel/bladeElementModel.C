@@ -39,7 +39,7 @@ bladeElementModel::bladeElementModel
 
 void bladeElementModel::build(const rotorGeometry& rotorGeometry)
 {
-    rotorGrid_ = rotorGrid::New(gridDictionary,rotorGeometry,*rotorFvMeshSel_,bladeModel_,nBlades_);
+    rotorGrid_ = rotorGrid::New(gridDictionary,rotorGeometry,*rotorFvMeshSel_,&bladeModel_,nBlades_);
     this->updateTensors();
 
     volScalarField selected

@@ -29,7 +29,6 @@ public:
 
     bemControl(const dictionary& dict);
 
-    scalar readAngularVelocity(const dictionary& dict);
 
     virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
 

@@ -9,7 +9,7 @@ namespace Foam
 defineTypeNameAndDebug(bladeGrid,0);
 addToRunTimeSelectionTable(rotorGrid, bladeGrid, dictionary);
 
-bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, scalar nBlades)
+bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS* bladeModel, scalar nBlades)
 :
     rotorGrid(dict,geometry,rotorFvMeshSel,nBlades)
 {
@@ -26,9 +26,14 @@ bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, cons
     {
         buildBladesConstantChord(chord);
     }
+    else if(bladeModel)
+    {
+        buildBladesFromBladeModel(*bladeModel);
+    }
     else
     {
-        buildBladesFromBladeModel(bladeModel);
+        //Already know that not present, but to generate error msg
+        chord = dict.get<scalar>("chord");
     }
 
     setRotation(getInitialAzimuth());

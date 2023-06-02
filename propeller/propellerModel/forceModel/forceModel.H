@@ -50,7 +50,6 @@ private:
     autoPtr<rotorGrid> rotorGrid_;
     List<tensor> gridTensor_;
     autoPtr<fmControl> control_;
-    bladeModelS bladeModel_;
 
     autoPtr<regularInterpolation<scalar,scalar,1>> thrustCoeff_;
     autoPtr<regularInterpolation<scalar,scalar,1>> torqueCoeff_;
@@ -62,6 +61,9 @@ private:
 
     void updateTensors();
     tensor cellBladeTensor(const gridCell& cell) const;
+    
+public:
+    static scalar getReferenceSpeed(const vectorField& U,const vector& normal);
 
 };
 

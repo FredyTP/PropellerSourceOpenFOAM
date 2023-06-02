@@ -30,16 +30,20 @@ bool domainSampler<fType>::read(const dictionary &dict)
     {
         offset=0.0;
     }
-    atCellCenter = dict.getOrDefault<bool>("atCellCenter",this->rGrid_->samplingMode() == rotorGrid::sampleMode::spClosestCell);
     Info.stream().incrIndent();
     Info<<indent<< "- Offset: "<<offset<<endl;
     Info<<indent<< "- Scale: "<<scale<<endl;
-    Info<<indent<< "- Sample atCellCenter: "<<atCellCenter<<endl;
+    Info<<indent<< "- Sample Mode: "<<rotorGrid::sampleModeNames_.find(this->rGrid_->samplingMode()) <<endl;
 
+    if(!isDirectSample() && this->rGrid_->samplingMode() == rotorGrid::sampleMode::spCellMean)
+    {
+        FatalErrorInFunction<<"Cell Mean sampling mode is only available for 0.0 offset and 1.0 scale"
+        <<exit(FatalError);
+    }
     //For parallel computation only 0 offset anc cell-center integration is available
     if(Pstream::parRun())
     {
-        if(offset != 0.0)
+        if(offset != 0.0 || this->rGrid_->samplingMode() != rotorGrid::sampleMode::spClosestCell)
         {
             Info<<indent<<"In parallel runs, only 0 offset and cell center integration is available"<<endl;
             FatalErrorInFunction<<exit(FatalError);
@@ -60,12 +64,24 @@ const Field<fType>& domainSampler<fType>::sampleField(const GeometricField<fType
     if(isDirectSample())
     {
         const PtrList<gridCell>& rotorCells = this->rGrid_->cells();
-        forAll(rotorCells,i)
+
+        if(this->rGrid_->samplingMode() == rotorGrid::sampleMode::spClosestCell)
         {
-            this->sampledField_[i] = U.primitiveField()[rotorCells[i].interpolatingCelli()];
-        } 
+            forAll(rotorCells,i)
+            {
+                this->sampledField_[i] = U.primitiveField()[rotorCells[i].interpolatingCelli()];
+            } 
+        }
+        else
+        {
+            forAll(rotorCells,i)
+            {
+                this->sampledField_[i] = rotorCells[i].applyWeights<fType>(U.primitiveField());
+            } 
+        }
+
     }
-    else if(atCellCenter)
+    else if(this->rGrid_->samplingMode() == rotorGrid::sampleMode::spClosestCell)
     {
         forAll(this->sampledField_,i)
         {
@@ -89,7 +105,6 @@ bool domainSampler<fType>::build()
     //If offset is 0.0 and rotorGrid is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
-    Info<<"directSampler: "<<isDirectSample()<<endl;
     
     if(isDirectSample())
     {
@@ -97,7 +112,7 @@ bool domainSampler<fType>::build()
     }
     const auto& cells = this->rGrid_->cells();
     cellToSample.resize(cells.size());
-    if(!atCellCenter)
+    if(this->rGrid_->samplingMode() == rotorGrid::sampleMode::spCenter)
     {
         cellWeights.resize(cells.size());
     }
@@ -124,7 +139,7 @@ bool domainSampler<fType>::build()
                 <<exit(FatalError);
         }
 
-        if(!atCellCenter)
+        if(this->rGrid_->samplingMode() == rotorGrid::sampleMode::spCenter)
         {
             cellWeights[i] = autoPtr<cellPointWeight>::New(this->rMesh_->mesh(),rPoint,cellToSample[i]);
         }
@@ -148,11 +163,27 @@ void domainSampler<fType>::writeSampled(const word& name)
     );
     if(isDirectSample())
     {
-        forAll(this->rGrid_->cells(),i)
+        if(this->rGrid_->samplingMode() == rotorGrid::sampleMode::spClosestCell)
         {
-            const auto& cell = this->rGrid_->cells()[i];
-            sampled[cell.interpolatingCelli()] +=1.0;
+            forAll(this->rGrid_->cells(),i)
+            {
+                const auto& cell = this->rGrid_->cells()[i];
+                sampled[cell.interpolatingCelli()] +=1.0;
+            }
         }
+        else
+        {
+            forAll(this->rGrid_->cells(),i)
+            {
+                const auto& cell = this->rGrid_->cells()[i];
+                forAll(cell.cellis(),j)
+                {
+                    sampled[cell.cellis()[j]] +=1.0;
+                }
+                
+            }
+        }
+
     }
     else
     {
@@ -169,8 +200,7 @@ bool domainSampler<fType>::isDirectSample()
 {
     return (offset == 0.0 
     && scale == 1.0
-    && atCellCenter 
-    && this->rGrid_->samplingMode() == rotorGrid::sampleMode::spClosestCell);
+    && this->rGrid_->samplingMode() != rotorGrid::sampleMode::spCenter);
 }
 
 }

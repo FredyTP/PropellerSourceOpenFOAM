@@ -68,6 +68,8 @@ Description
 #include "turbulentTransportModel.H"
 #include "simpleControl.H"
 #include "fvOptions.H"
+#include "functionSolver.H"
+#include <functional>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -78,6 +80,19 @@ int main(int argc, char *argv[])
         "Steady-state solver for incompressible, turbulent flows."
     );
 
+    std::function<scalarField(const scalarField&)> pol = 
+    [](const scalarField& x){return scalarField(1,(x[0]-1)*(x[0]+1));};
+
+    Info<<"x = " <<Foam::util::functionSolver<1>::NewtonRapson
+    (
+        pol,
+        scalarField(1,-0.0001),
+        scalarField(1,0.001),
+        0.5,
+        100,
+        1e-7,
+        true
+    )<<endl;;
     #include "postProcess.H"
 
     #include "addCheckCaseOptions.H"

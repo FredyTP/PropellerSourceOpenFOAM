@@ -22,18 +22,20 @@ propeller/bladeModel/bladeModelS.C
 
 propeller/rotorMesh/rotorFvMeshSel.C
 
-propeller/rotorDiscrete/grid/rotorGrid.C
-propeller/rotorDiscrete/grid/polarGrid.C
-propeller/rotorDiscrete/grid/bladeGrid.C
-propeller/rotorDiscrete/grid/cell/gridCell.C
-propeller/rotorDiscrete/grid/cell/bladeCell.C
-propeller/rotorDiscrete/grid/cell/polarCell.C
+propeller/rotorGrid/rotorGrid.C
+propeller/rotorGrid/polarGrid.C
+propeller/rotorGrid/bladeGrid.C
+propeller/rotorGrid/cell/gridCell.C
+propeller/rotorGrid/cell/bladeCell.C
+propeller/rotorGrid/cell/polarCell.C
 
 propeller/rotorControl/rotorControl.C
 propeller/rotorControl/bemControl/bemControl.C
 propeller/rotorControl/bemControl/bemDirectControl.C
 propeller/rotorControl/bemControl/bemTargetCoeff.C
 propeller/rotorControl/fmControl/fmControl.C
+propeller/rotorControl/fmControl/fmDirectControl.C
+
 
 
 EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid

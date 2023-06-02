@@ -11,7 +11,7 @@ class rotorControl
 public:
     TypeName("rotorControl");
 
-    
+    static scalar readAngularVelocity(const dictionary& dict);
     virtual ~rotorControl() = default;
 };
 

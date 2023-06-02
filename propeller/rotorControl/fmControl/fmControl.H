@@ -1,7 +1,5 @@
-#ifndef PROPELLER_ROTOR_CONTROL_FM_CONTROL_BEM_CONTROL
-#define PROPELLER_ROTOR_CONTROL_FM_CONTROL_BEM_CONTROL
-#ifndef PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_CONTROL
-#define PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_CONTROL
+#ifndef PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_CONTROL
+#define PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_CONTROL
 
 #include "rotorControl.H"
 #include "unitConversion.H"
@@ -31,28 +29,20 @@ public:
 
     fmControl(const dictionary& dict, const forceModel& fmModel);
 
-    scalar readAngularVelocity(const dictionary& dict);
+    virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
 
-    virtual void correctControl(const vectorField& U, const scalarField* rhoField);
+    virtual scalar getAngularVelocity() const = 0;
 
-    virtual scalar getAngularVelocity() {return omega_;}
-
-    scalar getJ();
+    virtual scalar getJ() const = 0;
 
     static autoPtr<fmControl> New(const dictionary& dict, const forceModel& bem);
-private:
+    
+protected:
     
     const forceModel& forceModel_;
-
-    scalar J=0.5;
-    scalar omega_;
-
 };
 
 }
 
 
-#endif /* PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_CONTROL */
-
-
-#endif /* PROPELLER_ROTOR_CONTROL_FM_CONTROL_BEM_CONTROL */
+#endif /* PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_CONTROL */

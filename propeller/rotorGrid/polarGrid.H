@@ -23,7 +23,7 @@ public:
         const dictionary& dict,
         const rotorGeometry& geometry,
         const rotorFvMeshSel &rotorFvMeshSel,
-        const bladeModelS& bladeModel,
+        const bladeModelS* bladeModel,
         scalar nBlades
     );
 

@@ -20,7 +20,7 @@ bemDirectControl::bemDirectControl(const dictionary& dict, const bladeElementMod
     sinFlapping = dict.getOrDefault<scalar>("sinFlapping",0);
     cosFlapping = dict.getOrDefault<scalar>("cosFlapping",0);
 
-    angularVelocity_ = bemControl::readAngularVelocity(dict);
+    angularVelocity_ = rotorControl::readAngularVelocity(dict);
 }
 
 void bemDirectControl::correctControl(const vectorField &U, const scalarField *rhoField)

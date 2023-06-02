@@ -317,7 +317,13 @@
 			"fmControl.C": "cpp",
 			"FieldFunctions.C": "cpp",
 			"FieldFieldFunctions.C": "cpp",
-			"motionSmootherAlgoTemplates.C": "cpp"
+			"motionSmootherAlgoTemplates.C": "cpp",
+			"fmControl copy.C": "cpp",
+			"fmDirectControl.C": "cpp",
+			"McCowanWaveModel.C": "cpp",
+			"squarematrix.c": "cpp",
+			"smoothSolver.C": "cpp",
+			"EulerSI.C": "cpp"
 		}
 	}
 }

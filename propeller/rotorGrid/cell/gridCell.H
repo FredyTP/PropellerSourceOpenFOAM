@@ -100,6 +100,9 @@ public:
     template<class type>
     void applyField(Field<type>& field,const List<type>& values) const;
     
+    template<class type>
+    type applyWeights(const Field<type>& field) const;
+    
     label interpolatingCelli() const { return interpolatingCell_;}
 private:
     vector center_; //r-theta-0
@@ -111,7 +114,6 @@ protected:
     List<scalar> weights_;
     label interpolatingCell_=-1;
 
-    void updateBladeTensor();
 };
 
 template <class type>
@@ -144,6 +146,16 @@ inline void gridCell::applyField(Field<type> &field, const List<type> &values) c
     {
         field[cellis_[i]]=values[i];
     }
+}
+template <class type>
+inline type gridCell::applyWeights(const Field<type> &field) const
+{
+    type ret = Zero;
+    forAll(cellis_,i)
+    {
+        ret += field[cellis_[i]]*weights_[i];
+    }
+    return ret;
 }
 }
 

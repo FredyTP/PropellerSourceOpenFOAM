@@ -42,7 +42,7 @@ void bemTargetCoeff::read(const dictionary &dict)
         dTheta_ = degToRad(dTheta_);
     }
 
-    angularVelocity_ = bemControl::readAngularVelocity(dict);
+    angularVelocity_ = rotorControl::readAngularVelocity(dict);
 }
 
 void bemTargetCoeff::correctControl(const vectorField &U, const scalarField *rhoField)

@@ -22,6 +22,7 @@ rotorGrid::sampleModeNames_
 ({
     {sampleMode::spCenter, "center"},
     {sampleMode::spClosestCell, "closestCell"},
+    {sampleMode::spCellMean,"cellMean"}
 });
 
 rotorGrid::rotorGrid(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, label nBlades)
@@ -44,7 +45,7 @@ void rotorGrid::setCenterFromClosestCell()
 
 void Foam::rotorGrid::updateCenters()
 {
-    if(samplingMode() == spCenter)
+    if(samplingMode() == spCenter || samplingMode() == spCellMean)
     {
         forAll(cells_, i)
         {
@@ -95,7 +96,7 @@ tensor rotorGrid::bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, con
     return rotTensor;
 }
 
-autoPtr<rotorGrid> Foam::rotorGrid::New(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS &bladeModel, scalar nBlades)
+autoPtr<rotorGrid> Foam::rotorGrid::New(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS* bladeModel, scalar nBlades)
 {
      //Get model Type name (Ex: simpleAirfoil) 
     //From typeNkey from dictionary (airfoilModel)

@@ -18,8 +18,7 @@ forceModel::forceModel
 (
     const dictionary& dict
 ) : propellerModel(dict,typeName),
-    gridDictionary_(dict.subDict("rotorGrid")),
-    bladeModel_({0,1},{0.1,0.1})
+    gridDictionary_(dict.subDict("rotorGrid"))
 {
 
     Info<<"Creating force Model"<<endl;
@@ -69,9 +68,15 @@ tensor forceModel::cellBladeTensor(const gridCell &cell) const
     return propellerModel::bladeTensor(rotorGrid_->geometry().cylindricalCS(),center,0,0);
 }
 
+scalar forceModel::getReferenceSpeed(const vectorField & U, const vector & normal)
+{
+    vector velAvg = average(U);
+    return (-normal.inner(velAvg));
+}
+
 void forceModel::build(const rotorGeometry &rotorGeometry)
 {
-    rotorGrid_ = rotorGrid::New(gridDictionary_,rotorGeometry,*rotorFvMeshSel_,bladeModel_,1);
+    rotorGrid_ = rotorGrid::New(gridDictionary_,rotorGeometry,*rotorFvMeshSel_,nullptr,1);
     this->updateTensors();
 }
 
@@ -123,9 +128,8 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     );
 
     vector normal = rotorGrid_->geometry().direction();
-    
-    vector velAvg = average(U);
-    scalar speedRef = -normal.inner(velAvg);
+    scalar speedRef = getReferenceSpeed(U,normal);
+
     scalar rhoRef = rhoField == nullptr ? rhoRef_ : average(*rhoField);
     scalar maxR = rotorGrid_->geometry().radius();
     scalar minR = rotorGrid_->geometry().innerRadius();

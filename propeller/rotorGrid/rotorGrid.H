@@ -41,7 +41,7 @@ public:
             const dictionary& dict,
             const rotorGeometry& geometry,
             const rotorFvMeshSel &rotorFvMeshSel,
-            const bladeModelS& bladeModel,
+            const bladeModelS* bladeModel,
             scalar nBlades
         ),
         (dict,geometry,rotorFvMeshSel,bladeModel,nBlades)
@@ -60,7 +60,7 @@ public:
     PtrList<gridCell>& cells() { return cells_;}
     sampleMode samplingMode() const {return sampleMode_;}
     static tensor bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, const point &localPoint);
-    static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS& bladeModel, scalar nBlades);
+    static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS* bladeModel, scalar nBlades);
     label nCells() const { return cells_.size();}
     virtual ~rotorGrid() = default;
 protected:

@@ -12,19 +12,7 @@ bemControl::bemControl(const dictionary& dict)
 {
     
 }
-scalar bemControl::readAngularVelocity(const dictionary &dict)
-{
-    scalar rpm;
 
-    if(dict.readIfPresent("rpm",rpm))
-    {
-        return rpmToRads(rpm);
-    }
-    else
-    {
-        return dict.get<scalar>("angularVelocity");
-    }
-}
 vector bemControl::getBladeLocalVel(scalar azimuth, scalar radius) const
 {
     return vector

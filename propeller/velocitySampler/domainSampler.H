@@ -55,7 +55,7 @@ public:
 private:
     scalar offset;
     scalar scale;
-    bool atCellCenter;
+   
     List<label> cellToSample;
     List<point> posToSample;
     List<autoPtr<cellPointWeight>> cellWeights;
