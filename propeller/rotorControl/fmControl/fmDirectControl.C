@@ -22,16 +22,15 @@ fmDirectControl::fmDirectControl(const dictionary& dict,const forceModel& fmMode
 void fmDirectControl::correctControl(const vectorField & U, const scalarField * rhoField)
 {
     vector normal = forceModel_.grid()->geometry().direction();
-    scalar diameter = 2 * forceModel_.grid()->geometry().radius();
     scalar speedRef = forceModel::getReferenceSpeed(U,normal);
 
     if(fixedJ_)
     {
-        omega_ = speedRef/(J_/constant::mathematical::twoPi*diameter);
+        omega_ = fmControl::getOmegaFromJ(J_,speedRef);
     }
     else
     {
-        J_ = speedRef/(omega_/constant::mathematical::twoPi*diameter);
+        J_ = fmControl::getJFromOmega(omega_,speedRef);
     }
 }
 scalar fmDirectControl::getAngularVelocity() const
