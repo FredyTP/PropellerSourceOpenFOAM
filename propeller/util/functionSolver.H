@@ -12,24 +12,32 @@ namespace util
 {
 
 
+/**
+ * @brief Wrapper template class for function 0 finder.
+ * The available type of solver is for N-dim input N-dim output functions
+ * 
+ * @tparam N 
+ */
 template<label N>
 class functionSolver
 {
 
 public:
-typedef scalarField varType;
-typedef std::function<varType(varType)> funcType;
+    typedef scalarField varType;
+    typedef std::function<varType(varType)> funcType;
 
-static varType NewtonRapson
-(
-    const funcType& f,
-    const varType& x0,
-    const varType& dx,
-    scalar relax,
-    label maxIter,
-    scalar tol,
-    bool verbose
-);
+
+    static varType NewtonRapson
+    (
+        const funcType& f,
+        const varType& x0,
+        const varType& dx,
+        scalar relax,
+        label maxIter,
+        scalar tol,
+        bool verbose
+    );
+
 
 };
 
@@ -79,8 +87,8 @@ inline typename functionSolver<N>::varType functionSolver<N>::NewtonRapson
         solve(J,old);
         varType xNew = x - relax * old;
 
-    
-        err = sqrt(sumSqr(xNew-x));
+        varType ytest = f(xNew);
+        err = sqrt(sumSqr(ytest));
 
         x = xNew;
         ++iter;
@@ -104,6 +112,7 @@ inline typename functionSolver<N>::varType functionSolver<N>::NewtonRapson
     return x;
 
 }
+
 
 }
 }
