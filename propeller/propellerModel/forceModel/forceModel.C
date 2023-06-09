@@ -214,7 +214,6 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     scalar Atheta = AthetaCoefficient(torque,minR,maxR);
 
     const PtrList<gridCell>& cells = rotorGrid_->cells();
-    const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
 
     forAll(cells,i)
     {
