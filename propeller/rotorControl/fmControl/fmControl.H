@@ -36,6 +36,9 @@ public:
     virtual scalar getJ() const = 0;
 
     static autoPtr<fmControl> New(const dictionary& dict, const forceModel& bem);
+
+    scalar getJFromOmega(scalar omega, scalar speed);
+    scalar getOmegaFromJ(scalar J, scalar speed);
     
 protected:
     
