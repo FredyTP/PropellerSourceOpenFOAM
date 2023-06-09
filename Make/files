@@ -31,10 +31,10 @@ propeller/rotorGrid/cell/polarCell.C
 
 propeller/rotorControl/rotorControl.C
 propeller/rotorControl/bemControl/bemControl.C
-propeller/rotorControl/bemControl/bemDirectControl.C
-propeller/rotorControl/bemControl/bemTargetCoeff.C
+propeller/rotorControl/bemControl/bemFixedValue.C
+propeller/rotorControl/bemControl/bemTargetValue.C
 propeller/rotorControl/fmControl/fmControl.C
-propeller/rotorControl/fmControl/fmDirectControl.C
+propeller/rotorControl/fmControl/fmFixedValue.C
 propeller/rotorControl/fmControl/fmTargetValue.C
 
 

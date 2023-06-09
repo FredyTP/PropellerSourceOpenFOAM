@@ -1,15 +1,15 @@
-#include "fmDirectControl.H"
+#include "fmFixedValue.H"
 #include "addToRunTimeSelectionTable.H"
 #include "forceModel.H"
 
 namespace Foam
 {
  
-defineTypeNameAndDebug(fmDirectControl,0);
+defineTypeNameAndDebug(fmFixedValue,0);
 
-addToRunTimeSelectionTable(fmControl,fmDirectControl,dictionary);
+addToRunTimeSelectionTable(fmControl,fmFixedValue,dictionary);
 
-fmDirectControl::fmDirectControl(const dictionary& dict,const forceModel& fmModel)
+fmFixedValue::fmFixedValue(const dictionary& dict,const forceModel& fmModel)
  : fmControl(dict,fmModel)
 {
     fixedJ_ = dict.readIfPresent("J",J_);
@@ -19,7 +19,7 @@ fmDirectControl::fmDirectControl(const dictionary& dict,const forceModel& fmMode
     }
 }
 
-void fmDirectControl::correctControl(const vectorField & U, const scalarField * rhoField)
+void fmFixedValue::correctControl(const vectorField & U, const scalarField * rhoField)
 {
     vector normal = forceModel_.grid()->geometry().direction();
     scalar speedRef = forceModel::getReferenceSpeed(U,normal);
@@ -33,11 +33,11 @@ void fmDirectControl::correctControl(const vectorField & U, const scalarField * 
         J_ = fmControl::getJFromOmega(omega_,speedRef);
     }
 }
-scalar fmDirectControl::getAngularVelocity() const
+scalar fmFixedValue::getAngularVelocity() const
 {
     return omega_;
 }
-scalar fmDirectControl::getJ() const
+scalar fmFixedValue::getJ() const
 {
     return J_;
 }

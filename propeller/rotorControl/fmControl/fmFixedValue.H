@@ -1,5 +1,5 @@
-#ifndef PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_DIRECT_CONTROL
-#define PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_DIRECT_CONTROL
+#ifndef PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_FIXED_VALUE
+#define PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_FIXED_VALUE
 
 
 #include "fmControl.H"
@@ -11,12 +11,12 @@ namespace Foam
 {
 
 class forceModel;
-class fmDirectControl : public fmControl
+class fmFixedValue : public fmControl
 {
 public:
-    TypeName("fmDirectControl");
+    TypeName("fmFixedValue");
 
-    fmDirectControl(const dictionary& dict, const forceModel& fmModel);
+    fmFixedValue(const dictionary& dict, const forceModel& fmModel);
 
     scalar readAngularVelocity(const dictionary& dict);
 
@@ -39,4 +39,4 @@ private:
 
 
 
-#endif /* PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_DIRECT_CONTROL */
+#endif /* PROPELLER_ROTOR_CONTROL_FM_CONTROL_FM_FIXED_VALUE */

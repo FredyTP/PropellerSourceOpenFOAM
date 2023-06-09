@@ -13,6 +13,7 @@ class forceModel;
 class fmTargetValue : public fmControl
 {
 public:
+
     TypeName("fmTargetValue");
 
     fmTargetValue(const dictionary& dict, const forceModel& fmModel);

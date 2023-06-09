@@ -325,7 +325,10 @@
 			"smoothSolver.C": "cpp",
 			"EulerSI.C": "cpp",
 			"fmDirectControl copy.C": "cpp",
-			"fmTargetValue.C": "cpp"
+			"fmTargetValue.C": "cpp",
+			"bemTargetValue.C": "cpp",
+			"bemFixedValue.C": "cpp",
+			"fmFixedValue.C": "cpp"
 		}
 	}
 }

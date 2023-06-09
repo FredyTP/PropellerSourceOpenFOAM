@@ -1,17 +1,17 @@
-#ifndef PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_DIRECT_CONTROL
-#define PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_DIRECT_CONTROL
+#ifndef PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_FIXED_VALUE
+#define PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_FIXED_VALUE
 
 #include "bemControl.H"
 
 namespace Foam
 {
 
-class bemDirectControl : public bemControl
+class bemFixedValue : public bemControl
 {
 public:
-    TypeName("bemDirectControl");
+    TypeName("bemFixedValue");
 
-    bemDirectControl(const dictionary& dict, const bladeElementModel& bem);
+    bemFixedValue(const dictionary& dict, const bladeElementModel& bem);
 
     void correctControl(const vectorField& U, const scalarField* rhoField);
 
@@ -37,4 +37,4 @@ private:
 
 }
 
-#endif /* PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_DIRECT_CONTROL */
+#endif /* PROPELLER_ROTOR_CONTROL_BEM_CONTROL_BEM_FIXED_VALUE */

@@ -1,6 +1,7 @@
 #ifndef PROPELLER_PROPELLER_MODEL_PROPELLER_RESULT
 #define PROPELLER_PROPELLER_MODEL_PROPELLER_RESULT
 
+#include "fvMesh.H"
 #include "regIOobject.H"
 namespace Foam
 {
