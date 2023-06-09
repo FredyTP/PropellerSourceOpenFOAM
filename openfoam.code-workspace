@@ -323,7 +323,9 @@
 			"McCowanWaveModel.C": "cpp",
 			"squarematrix.c": "cpp",
 			"smoothSolver.C": "cpp",
-			"EulerSI.C": "cpp"
+			"EulerSI.C": "cpp",
+			"fmDirectControl copy.C": "cpp",
+			"fmTargetValue.C": "cpp"
 		}
 	}
 }

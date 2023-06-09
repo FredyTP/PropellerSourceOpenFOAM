@@ -35,6 +35,7 @@ propeller/rotorControl/bemControl/bemDirectControl.C
 propeller/rotorControl/bemControl/bemTargetCoeff.C
 propeller/rotorControl/fmControl/fmControl.C
 propeller/rotorControl/fmControl/fmDirectControl.C
+propeller/rotorControl/fmControl/fmTargetValue.C
 
 
 

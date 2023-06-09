@@ -169,7 +169,7 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
         //x-y-z local
         vector localForce = rotorGrid_->geometry().cartesianCS().localVector(globalForce);
         
-        result.force += cellForce;
+        result.force += localForce;
 
         vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
         result.torque += localForce.cross(localPos);
@@ -192,7 +192,58 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
 
 propellerResult forceModel::calculate(const vectorField &U, const scalarField *rhoField) const
 {
-    return propellerResult();
+    propellerResult result;
+
+    vector normal = rotorGrid_->geometry().direction();
+    scalar speedRef = getReferenceSpeed(U,normal);
+
+    scalar rhoRef = rhoField == nullptr ? rhoRef_ : average(*rhoField);
+    scalar maxR = rotorGrid_->geometry().radius();
+    scalar minR = rotorGrid_->geometry().innerRadius();
+    scalar D = 2 * maxR;
+
+    scalar J = control_->getJ();
+
+    scalar Kt = thrustCoeff_->interpolate({J}).value();
+    scalar Kq = torqueCoeff_->interpolate({J}).value();
+
+    scalar thrust = Kt*rhoRef*pow(speedRef,2)*pow(D,2)/pow(J,2);
+    scalar torque = Kq*rhoRef*pow(speedRef,2)*pow(D,3)/pow(J,2);
+
+    scalar Ax = AxCoefficient(thrust,minR,maxR);
+    scalar Atheta = AthetaCoefficient(torque,minR,maxR);
+
+    const PtrList<gridCell>& cells = rotorGrid_->cells();
+    const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
+
+    forAll(cells,i)
+    {
+        const gridCell& cell = cells[i]; 
+        const tensor& localBlade = gridTensor_[i];
+        scalar cellR = cell.center().x();
+
+        vector forceOverLen = ForceDistribution(Ax,Atheta,cellR,minR,maxR);
+        // r-theta
+        vector cellForce = cell.scaleForce(forceOverLen);
+
+        // global
+        vector globalForce = transform(localBlade,cellForce);
+
+        //x-y-z local
+        vector localForce = rotorGrid_->geometry().cartesianCS().localVector(globalForce);
+        
+        result.force += localForce;
+
+        vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
+        result.torque += localForce.cross(localPos);
+
+    }
+
+    scalar omega = control_->getAngularVelocity();
+
+    result.update(omega, speedRef,rhoRef, maxR);
+
+    return result;
 }
 
 vector forceModel::ForceDistribution(scalar Ax, scalar Atheta, scalar radius, scalar minRadius, scalar maxRadius)
