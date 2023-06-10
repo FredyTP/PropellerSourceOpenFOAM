@@ -28,7 +28,7 @@ void fmTargetValue::correctControl(const vectorField & U, const scalarField * rh
 
     if(targetThrust_)
     {
-        auto trim = util::functionSolver<1>::NewtonRapson(forceFunction(U,rhoField),x0,x0/100,0.5,100,1e-12,true);
+        auto trim = util::functionSolver::NewtonRapson(1,forceFunction(U,rhoField),x0,x0/100,0.5,100,1e-12,true);
 
         Info<< "Final force: "<<forceFunction(U,rhoField)(scalarList(1,J_))+thrust_<<endl;
     }

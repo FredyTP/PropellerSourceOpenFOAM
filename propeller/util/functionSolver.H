@@ -15,10 +15,8 @@ namespace util
 /**
  * @brief Wrapper template class for function 0 finder.
  * The available type of solver is for N-dim input N-dim output functions
- * 
- * @tparam N 
+ *  
  */
-template<label N>
 class functionSolver
 {
 
@@ -29,6 +27,7 @@ public:
 
     static varType NewtonRapson
     (
+        label N,
         const funcType& f,
         const varType& x0,
         const varType& dx,
@@ -41,9 +40,9 @@ public:
 
 };
 
-template <label N>
-inline typename functionSolver<N>::varType functionSolver<N>::NewtonRapson
+inline typename functionSolver::varType functionSolver::NewtonRapson
 (
+    label N,
     const funcType& f,
     const varType& x0,
     const varType& dx,
@@ -80,11 +79,12 @@ inline typename functionSolver<N>::varType functionSolver<N>::NewtonRapson
             //Set J cmp
             for(label j =0; j <N;j++)
             {
-                J(i,j) = dy[j];
+                J(j,i) = dy[j];
             }
             x=xlast;
         }
         solve(J,old);
+        
         varType xNew = x - relax * old;
 
         varType ytest = f(xNew);

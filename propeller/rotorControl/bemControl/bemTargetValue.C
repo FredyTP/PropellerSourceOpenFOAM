@@ -7,6 +7,29 @@ namespace Foam
 defineTypeNameAndDebug(bemTargetValue,0);
 addToRunTimeSelectionTable(bemControl,bemTargetValue, dictionary);
 
+const Enum<bemTargetValue::controlVar> 
+bemTargetValue::controlVarNames_
+({
+    {controlVar::omega, "angularVelocity"},
+    {controlVar::collectivePitch, "collectivePitch"},   
+    {controlVar::ciclicPitchCos, "ciclicPitchCos"},   
+    {controlVar::ciclicPitchSin, "ciclicPitchSin"}   
+});
+
+const Enum<bemTargetValue::outputVar>
+bemTargetValue::outputVarNames_
+({
+    {outputVar::forceX, "forceX"},
+    {outputVar::forceY, "forceY"},
+    {outputVar::forceZ, "forceZ"},
+    {outputVar::torqueX, "torqueX"},
+    {outputVar::torqueY, "torqueY"},
+    {outputVar::torqueZ, "torqueZ"},
+    {outputVar::power, "power"},
+
+});
+
+
 bemTargetValue::bemTargetValue(const dictionary &dict, const bladeElementModel& bem)
 :
     bemControl(dict),
@@ -24,16 +47,24 @@ bemTargetValue::bemTargetValue(const dictionary &dict, const bladeElementModel& 
 
 void bemTargetValue::read(const dictionary &dict)
 {
-    dict.readEntry("thrust", target_[outputVar::forceZ]);
-    dict.readEntry("pitch", target_[outputVar::torqueX]);
-    dict.readEntry("roll", target_[outputVar::torqueY]);
+    //Read target variables and get the list of the targets used
+    usedTarget_ = target_.readIfPresent(dict,outputVarNames_);
 
-    control_[controlVar::collectivePitch] = degToRad(dict.get<scalar>("theta0Ini"));
-    control_[controlVar::ciclicPitchCos] = degToRad(dict.get<scalar>("theta1cIni"));
-    control_[controlVar::ciclicPitchSin] = degToRad(dict.get<scalar>("theta1sIni"));
+    //Read control variables initial value for thos used and state for thos unused
+    control_.readOrDefault(dict,controlVarNames_,0);
+    control_[controlVar::omega] = rotorControl::readAngularVelocity(dict);
 
+    //Get used control variables
+    List<word> controlNames = dict.get<List<word>>("controlVariables");
+    
+    usedControl_.resize(controlNames.size());
+    forAll(controlNames, i)
+    {
+        usedControl_[i] = controlVarNames_.get(controlNames[i]);
+    }
+
+    //Read simulation properties
     dict.readEntry("calcFrequency", calcFrequency_);
-
     dict.readIfPresent("nIter", nIter_);
     dict.readIfPresent("tol", tol_);
     dict.readIfPresent("relax", relax_);
@@ -42,20 +73,6 @@ void bemTargetValue::read(const dictionary &dict)
     {
         dTheta_ = degToRad(dTheta_);
     }
-
-    control_[controlVar::omega] = rotorControl::readAngularVelocity(dict);
-
-    usedControl_.resize(3);
-    usedTarget_.resize(3);
-
-    usedControl_[0]=controlVar::collectivePitch;
-    usedControl_[1]=controlVar::ciclicPitchCos;
-    usedControl_[2]=controlVar::ciclicPitchSin;
-
-    usedTarget_[0]=outputVar::forceZ;
-    usedTarget_[1]=outputVar::torqueX;
-    usedTarget_[2]=outputVar::torqueY;
-
 }
 
 void bemTargetValue::correctControl(const vectorField &U, const scalarField *rhoField)
@@ -70,7 +87,21 @@ void bemTargetValue::correctControl(const vectorField &U, const scalarField *rho
         const scalar rhoRef = bem_.rhoRef();
         scalarField x0;
         control_.get(x0,usedControl_);
-        util::functionSolver<3>::NewtonRapson(solverFunction(U,rhoField),x0,scalarField(3,dTheta_),relax_,nIter_,tol_,true);
+        Info<<control_<<endl;
+        Info<<x0<<endl;
+        util::functionSolver::NewtonRapson
+        (
+            usedControl_.size(),
+            solverFunction(U,rhoField),
+            x0,
+            scalarField(usedControl_.size(),dTheta_),
+            relax_,
+            nIter_,
+            tol_,
+            true
+        );
+
+        Info<<control_<<endl;
     }
 }
 
@@ -136,12 +167,19 @@ std::function<scalarField(scalarField)> bemTargetValue::solverFunction(const vec
 {
     return [this,U,rhoField](const scalarField& control)
     {
+        
         control_.set(control,usedControl_);
+        
         auto result = bem_.calculate(U,rhoField);
         outputVarType output = outputFromResult(result);
+
         scalarField values;
         output.get(values,usedTarget_);
-        return output;
+        scalarField targetValues;
+        target_.get(targetValues,usedTarget_);
+
+        values = values - targetValues;
+        return values;
     };
 }
 typename bemTargetValue::outputVarType bemTargetValue::outputFromResult(const propellerResult &result) const
@@ -154,6 +192,7 @@ typename bemTargetValue::outputVarType bemTargetValue::outputFromResult(const pr
     ret[outputVar::torqueX] = result.torque.x();
     ret[outputVar::torqueY] = result.torque.y();
     ret[outputVar::torqueZ] = result.torque.z();
+    ret[outputVar::power] = result.power;
 
     return ret;
 }

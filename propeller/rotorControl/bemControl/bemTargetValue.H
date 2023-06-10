@@ -4,6 +4,7 @@
 #include "bemControl.H"
 #include "EnumField.H"
 #include "propellerResult.H"
+#include "Enum.H"
 
 namespace Foam
 {
@@ -25,10 +26,14 @@ public:
         forceZ,
         torqueX,
         torqueY,
-        torqueZ
+        torqueZ,
+        power
     };
 
-    typedef util::EnumField<outputVar,6> outputVarType;
+    const static Enum<controlVar> controlVarNames_;
+    const static Enum<outputVar> outputVarNames_;
+
+    typedef util::EnumField<outputVar,7> outputVarType;
     typedef util::EnumField<controlVar,4> controlVarType;
 
     TypeName("bemTargetValue");
@@ -36,7 +41,7 @@ public:
     bemTargetValue(const dictionary& dict, const bladeElementModel& bem);
 
     void read(const dictionary& dict);
-
+    
     void correctControl(const vectorField& U, const scalarField* rhoField);
 
     scalar getAzimuth(scalar azimuth0) const;

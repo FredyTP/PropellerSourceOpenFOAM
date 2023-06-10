@@ -328,7 +328,8 @@
 			"fmTargetValue.C": "cpp",
 			"bemTargetValue.C": "cpp",
 			"bemFixedValue.C": "cpp",
-			"fmFixedValue.C": "cpp"
+			"fmFixedValue.C": "cpp",
+			"scalarMatrices.C": "cpp"
 		}
 	}
 }

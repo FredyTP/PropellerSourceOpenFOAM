@@ -2,6 +2,7 @@
 #define PROPELLER_UTIL_ENUM_FIELD
 #include "scalarField.H"
 #include "label.H"
+#include "Enum.H"
 
 namespace Foam
 {
@@ -23,9 +24,36 @@ public:
     {
 
     }
-
-    void set(const scalarField& values, const List<enumType>& pos)
+    List<enumType> readIfPresent(const dictionary& dict, const Enum<enumType>& enumNames)
     {
+        const List<word>& names = enumNames.names();
+        const List<int>& values = enumNames.values();
+        List<enumType> found;
+
+        forAll(names,i)
+        {
+            if(dict.readIfPresent(names[i], scalarField::operator[](values[i])))
+            {
+                Info<<"i: "<<i<<endl;
+                Info<<"name: "<<names[i]<<endl;
+                Info<<"enum: "<<values[i]<<endl;
+                found.append(static_cast<enumType>(values[i]));
+            }
+        }
+        return found;
+    }
+    void readOrDefault(const dictionary& dict, const Enum<enumType>& enumNames, scalar defaultVal)
+    {
+        const List<word>& names = enumNames.names();
+        const List<int>& values = enumNames.values();
+
+        forAll(names,i)
+        {
+            scalarField::operator[](values[i]) =  dict.getOrDefault<scalar>(names[i], defaultVal);
+        }
+    }
+    void set(const scalarField& values, const List<enumType>& pos)
+    { 
         if(values.size()!= pos.size())
         {
             return;
