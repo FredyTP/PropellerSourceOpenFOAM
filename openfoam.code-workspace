@@ -329,7 +329,9 @@
 			"bemTargetValue.C": "cpp",
 			"bemFixedValue.C": "cpp",
 			"fmFixedValue.C": "cpp",
-			"scalarMatrices.C": "cpp"
+			"scalarMatrices.C": "cpp",
+			"readHelper.C": "cpp",
+			"foamVtmWriter.C": "cpp"
 		}
 	}
 }

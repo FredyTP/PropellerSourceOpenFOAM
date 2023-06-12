@@ -1,4 +1,5 @@
 #include "polarCorrection.H"
+#include "unitConversion.H"
 
 namespace Foam
 {
@@ -41,7 +42,7 @@ void polarCorrection::correct(scalar &cl3d, scalar cl2d, scalar alpha, scalar ch
 void polarCorrection::Snel(scalar &cl3d, scalar cl2d, scalar alpha, scalar chord, scalar radius, scalar maxRadius)
 {
     //Only correct for alpha between 0 and 50 deg
-    if(alpha < 0.0 || alpha > deg50inRad || cl2d <= VSMALL)
+    if(alpha < 0.0 || alpha > 50_deg || cl2d <= VSMALL)
     {
         cl3d=cl2d;
         return;
@@ -61,9 +62,9 @@ void polarCorrection::Snel(scalar &cl3d, scalar cl2d, scalar alpha, scalar chord
 
     scalar Dcl = 3.1*pow(chord/radius,2)*(cl_pot-cl2d);
     scalar highAlphaFactor = 1.0;
-    if(alpha>deg30inRad) 
+    if(alpha>30_deg) 
     {
-        highAlphaFactor = 1.0 - (alpha-deg30inRad)/(deg50inRad-deg30inRad);
+        highAlphaFactor = 1.0 - (alpha-30_deg)/(20_deg);
     } 
     
     cl3d = cl2d + highAlphaFactor * Dcl;
@@ -72,7 +73,7 @@ void polarCorrection::Snel(scalar &cl3d, scalar cl2d, scalar alpha, scalar chord
 void polarCorrection::SnelPumping(scalar &cl3d, scalar cl2d, scalar alpha, scalar chord, scalar radius, scalar maxRadius, scalar angularVelocity, scalar Veff)
 {
     //Only correct for alpha between 0 and 50 deg
-    if(alpha < 0.0 || alpha >deg50inRad || radius < VSMALL || Veff < VSMALL)
+    if(alpha < 0.0 || alpha >50_deg || radius < VSMALL || Veff < VSMALL)
     {
         cl3d=cl2d;
         return;
@@ -91,9 +92,9 @@ void polarCorrection::SnelPumping(scalar &cl3d, scalar cl2d, scalar alpha, scala
 
     scalar Dcl = 3.1*pow((angularVelocity*radius*chord)/(Veff*radius),2)*(cl_pot-cl2d);
     scalar highAlphaFactor = 1.0;
-    if(alpha>deg30inRad) 
+    if(alpha>30_deg) 
     {
-        highAlphaFactor = 1.0 - (alpha-deg30inRad)/(deg20inRad);
+        highAlphaFactor = 1.0 - (alpha-30_deg)/(20_deg);
     } 
     
     cl3d = cl2d + highAlphaFactor * Dcl;

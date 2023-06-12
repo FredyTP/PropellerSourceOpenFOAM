@@ -69,11 +69,6 @@ static void SnelPumping(scalar& cl3d, scalar cl2d, scalar alpha, scalar chord, s
 
 private:
     model usedModel_;
-
-    constexpr static scalar deg30inRad = 30.0/180.0*constant::mathematical::pi;
-    constexpr static scalar deg50inRad = 50.0/180.0*constant::mathematical::pi;
-    constexpr static scalar deg20inRad = 20.0/180.0*constant::mathematical::pi;
-
 }; 
 }
 }
