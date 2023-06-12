@@ -99,6 +99,21 @@ template<class type>
         return true;
     }
 
+template<class typeIn, class typeOu, label dim>
+class constantInterpolation : public interpolationTable<typeIn,typeOu,dim>
+{
+    public:
+    constantInterpolation(const typeOu& value) : value_(value) {}
+
+    bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) { return true;}
+    interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
+    {
+        return interpolated<typeIn,typeOu>({1},{value_});
+    }
+    label size() { return 1; }
+    private:
+    typeOu value_;
+};
 
 }
 
