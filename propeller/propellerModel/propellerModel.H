@@ -74,8 +74,7 @@ public:
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const {return propellerResult();}
 
     virtual const autoPtr<rotorGrid>& grid() const = 0;
-    virtual rotorControl& control() = 0;
-
+    
     const fvMesh& mesh() const { return rotorFvMeshSel_->mesh();}
     
     static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);

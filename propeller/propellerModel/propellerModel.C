@@ -58,7 +58,7 @@ tensor propellerModel::bladeTensor(const coordSystem::cylindrical &cylCS, const 
     //Rotate around X axis to get the flapping coordsys
     tensor rotX = coordinateRotations::axisAngle::rotation(vector::components::X,flapping,false);
     //Rotate around new Z axis to get the sweeped coordSys
-    tensor rotZ = coordinateRotations::axisAngle::rotation(vector::components::Z,sweep,false);
+    //tensor rotZ = coordinateRotations::axisAngle::rotation(vector::components::Z,sweep,false);
     return rotTensor.inner(rotX);
 }
 
