@@ -16,7 +16,7 @@ protected:
     List<typeOu> nodes;
 public:
     interpolated(){}
-
+    interpolated(const List<typeIn>& coe, const List<typeOu>& nod) : coeff(coe), nodes(nod) {}
     List<typeIn>& coefficients(){return coeff;}
     List<typeOu>& points(){return nodes;}
 
