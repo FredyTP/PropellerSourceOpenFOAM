@@ -2,7 +2,8 @@
 #include "addToRunTimeSelectionTable.H"
 #include "bladeGrid.H"
 #include "linearInterpolation.H"
-
+#include "fmControl.H"
+#include "readHelper.H"
 
 namespace Foam
 {
@@ -13,6 +14,19 @@ namespace Foam
     //the dictionary propellerModel atribute
     addToRunTimeSelectionTable(propellerModel,forceModel,dictionary);
 
+const Enum<forceModel::controlVar> 
+forceModel::controlVarNames_
+({
+    {controlVar::omega, "angularVelocity"}
+});
+
+const Enum<forceModel::outputVar>
+forceModel::outputVarNames_
+({
+    {outputVar::forceZ, "forceZ"},
+    {outputVar::torqueZ, "torqueZ"},
+    {outputVar::power, "power"}
+});
 
 forceModel::forceModel
 (
@@ -20,21 +34,7 @@ forceModel::forceModel
 ) : propellerModel(dict,typeName),
     gridDictionary_(dict.subDict("rotorGrid"))
 {
-
-    Info<<"Creating force Model"<<endl;
-    rhoRef_ = dict.get<scalar>("rhoRef");
-    control_ = fmControl::New(dict.subDict("control"),*this);
-
-    List<scalar> J({0,1});
-    List<scalar> CT({0,0.1});
-    List<scalar> CQ({0,0.01});
-
-    thrustCoeff_ = autoPtr<regularInterpolation<scalar,scalar,1>>
-    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({J}),CT);
-    torqueCoeff_ = autoPtr<regularInterpolation<scalar,scalar,1>>
-    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({J}),CQ);
-
-
+    read(dict);
 }
 
 scalar forceModel::AxCoefficient(scalar thrust, scalar minRadius, scalar maxRadius)
@@ -67,11 +67,25 @@ tensor forceModel::cellBladeTensor(const gridCell &cell) const
     vector center = cell.center();
     return propellerModel::bladeTensor(rotorGrid_->geometry().cylindricalCS(),center,0,0);
 }
-
+scalar forceModel::getReferenceSpeed(const vectorField & U) const
+{
+    vector normal = rotorGrid_->geometry().direction();
+    return forceModel::getReferenceSpeed(U,normal);
+}
 scalar forceModel::getReferenceSpeed(const vectorField & U, const vector & normal)
 {
     vector velAvg = average(U);
     return (-normal.inner(velAvg));
+}
+
+void forceModel::read(const dictionary &dict)
+{
+    Info<<"Creating force Model"<<endl;
+    rhoRef_ = dict.get<scalar>("rhoRef");
+    control_ = fmControl::New(dict.subDict("control"),*this);
+
+    thrustCoeff_ = util::NewInterpolationFromDict(dict,"J","CT");
+    torqueCoeff_ = util::NewInterpolationFromDict(dict,"J","CQ");
 }
 
 void forceModel::build(const rotorGeometry &rotorGeometry)
@@ -127,8 +141,8 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
         dimensionedVector(dimForce, Zero)
     );
 
-    vector normal = rotorGrid_->geometry().direction();
-    scalar speedRef = getReferenceSpeed(U,normal);
+
+    scalar speedRef = getReferenceSpeed(U);
 
     scalar rhoRef = rhoField == nullptr ? rhoRef_ : average(*rhoField);
     scalar maxR = rotorGrid_->geometry().radius();

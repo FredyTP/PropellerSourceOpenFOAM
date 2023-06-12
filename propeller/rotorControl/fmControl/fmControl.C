@@ -33,16 +33,18 @@ autoPtr<fmControl> fmControl::New(const dictionary &dict, const forceModel &bem)
     return autoPtr<fmControl>(ctorPtr(dict, bem));
 }
 
-scalar fmControl::getJFromOmega(scalar omega, scalar speed)
+scalar fmControl::getJFromOmega(scalar omega, scalar speed) const
 {
     scalar diameter = 2 * forceModel_.grid()->geometry().radius();
 
     return speed/(omega/constant::mathematical::twoPi*diameter);
 }
-scalar fmControl::getOmegaFromJ(scalar J, scalar speed)
+scalar fmControl::getOmegaFromJ(scalar J, scalar speed) const
 {
     scalar diameter = 2 * forceModel_.grid()->geometry().radius();
 
     return speed/(J/constant::mathematical::twoPi*diameter);
 }
+
+
 }

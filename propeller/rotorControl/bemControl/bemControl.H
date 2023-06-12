@@ -5,12 +5,12 @@
 #include "unitConversion.H"
 #include "vectorField.H"
 #include "scalarField.H"
-
+#include "bladeElementModel.H"
 namespace Foam
 {
 
-class bladeElementModel;
-class bemControl : public rotorControl
+
+class bemControl : public rotorControlTemplate<bladeElementModel>
 {
 public:
     TypeName("bemControl");

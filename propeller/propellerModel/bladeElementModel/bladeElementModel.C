@@ -3,6 +3,7 @@
 #include "rotorGrid.H"
 #include "cubicSplineInterpolation.H"
 #include "bladeGrid.H"
+#include "bemControl.H"
 
 namespace Foam
 {
@@ -13,6 +14,27 @@ namespace Foam
     //the dictionary propellerModel atribute
     addToRunTimeSelectionTable(propellerModel,bladeElementModel,dictionary);
 
+const Enum<bladeElementModel::controlVar> 
+bladeElementModel::controlVarNames_
+({
+    {controlVar::omega, "angularVelocity"},
+    {controlVar::collectivePitch, "collectivePitch"},   
+    {controlVar::ciclicPitchCos, "ciclicPitchCos"},   
+    {controlVar::ciclicPitchSin, "ciclicPitchSin"}   
+});
+
+const Enum<bladeElementModel::outputVar>
+bladeElementModel::outputVarNames_
+({
+    {outputVar::forceX, "forceX"},
+    {outputVar::forceY, "forceY"},
+    {outputVar::forceZ, "forceZ"},
+    {outputVar::torqueX, "torqueX"},
+    {outputVar::torqueY, "torqueY"},
+    {outputVar::torqueZ, "torqueZ"},
+    {outputVar::power, "power"},
+
+});
 
 bladeElementModel::bladeElementModel
 (

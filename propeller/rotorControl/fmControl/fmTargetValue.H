@@ -18,25 +18,46 @@ public:
 
     fmTargetValue(const dictionary& dict, const forceModel& fmModel);
 
-    scalar readAngularVelocity(const dictionary& dict);
-
     virtual void correctControl(const vectorField& U, const scalarField* rhoField);
+    
+    void read(const dictionary &dict);
 
     virtual scalar getAngularVelocity() const;
 
     virtual scalar getJ() const;
 
+    std::function<scalarField(scalarField)> solverFunction(const vectorField&u, const scalarField *rhoField);
+
+    outputVarType outputFromResult(const propellerResult& result) const;
  
 private:
-    std::function<scalarField(scalarField)> forceFunction(const vectorField& U, const scalarField* rhoField);
-    std::function<scalarField(scalarField)> torqueFunction(const vectorField& U, const scalarField* rhoField);
+    scalar refSpeed_;
+    bool updateOmega_ = false;
+    bool updateJ_ = false;
+    scalar initalJ_;
+    //- Number of iterations between calls to 'correct'
+    label calcFrequency_;
 
-    bool targetThrust_;
-    scalar thrust_;
-    scalar torque_;
+    //- Target coefficient vector (thrust force, roll moment, pitch moment)
+    outputVarType target_;
 
-    scalar J_;
-    scalar omega_;
+    //- Pitch angles (collective, roll, pitch) [rad]
+    controlVarType control_;
+
+    //- Used variables
+    List<outputVar> usedTarget_;
+    List<controlVar> usedControl_;
+
+    //- Maximum number of iterations in trim routine
+    label nIter_;
+
+    //- Relaxation factor
+    scalar relax_;
+
+    //- Convergence tolerance
+    scalar tol_;
+
+    
 
 };
 

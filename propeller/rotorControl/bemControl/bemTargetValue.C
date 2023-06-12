@@ -1,33 +1,10 @@
 #include "bemTargetValue.H"
-#include "bladeElementModel.H"
 #include "unitConversion.H"
 #include "functionSolver.H"
 namespace Foam 
 {
 defineTypeNameAndDebug(bemTargetValue,0);
 addToRunTimeSelectionTable(bemControl,bemTargetValue, dictionary);
-
-const Enum<bemTargetValue::controlVar> 
-bemTargetValue::controlVarNames_
-({
-    {controlVar::omega, "angularVelocity"},
-    {controlVar::collectivePitch, "collectivePitch"},   
-    {controlVar::ciclicPitchCos, "ciclicPitchCos"},   
-    {controlVar::ciclicPitchSin, "ciclicPitchSin"}   
-});
-
-const Enum<bemTargetValue::outputVar>
-bemTargetValue::outputVarNames_
-({
-    {outputVar::forceX, "forceX"},
-    {outputVar::forceY, "forceY"},
-    {outputVar::forceZ, "forceZ"},
-    {outputVar::torqueX, "torqueX"},
-    {outputVar::torqueY, "torqueY"},
-    {outputVar::torqueZ, "torqueZ"},
-    {outputVar::power, "power"},
-
-});
 
 
 bemTargetValue::bemTargetValue(const dictionary &dict, const bladeElementModel& bem)
@@ -48,10 +25,10 @@ bemTargetValue::bemTargetValue(const dictionary &dict, const bladeElementModel& 
 void bemTargetValue::read(const dictionary &dict)
 {
     //Read target variables and get the list of the targets used
-    usedTarget_ = target_.readIfPresent(dict,outputVarNames_);
+    usedTarget_ = target_.readIfPresent(dict,bladeElementModel::outputVarNames_);
 
     //Read control variables initial value for thos used and state for thos unused
-    control_.readOrDefault(dict,controlVarNames_,0);
+    control_.readOrDefault(dict,bladeElementModel::controlVarNames_,0);
     control_[controlVar::omega] = rotorControl::readAngularVelocity(dict);
 
     //Get used control variables
@@ -60,7 +37,7 @@ void bemTargetValue::read(const dictionary &dict)
     usedControl_.resize(controlNames.size());
     forAll(controlNames, i)
     {
-        usedControl_[i] = controlVarNames_.get(controlNames[i]);
+        usedControl_[i] = bladeElementModel::controlVarNames_.get(controlNames[i]);
     }
 
     //Read simulation properties

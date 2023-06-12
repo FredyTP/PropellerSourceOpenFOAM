@@ -5,12 +5,11 @@
 #include "unitConversion.H"
 #include "vectorField.H"
 #include "scalarField.H"
-
+#include "forceModel.H"
 namespace Foam
 {
 
-class forceModel;
-class fmControl : public rotorControl
+class fmControl : public rotorControlTemplate<forceModel>
 {
 public:
     TypeName("fmControl");
@@ -37,8 +36,8 @@ public:
 
     static autoPtr<fmControl> New(const dictionary& dict, const forceModel& bem);
 
-    scalar getJFromOmega(scalar omega, scalar speed);
-    scalar getOmegaFromJ(scalar J, scalar speed);
+    scalar getJFromOmega(scalar omega, scalar speed) const;
+    scalar getOmegaFromJ(scalar J, scalar speed) const;
     
 protected:
     

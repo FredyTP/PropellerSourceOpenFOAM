@@ -25,11 +25,14 @@ public:
 
     scalar getAngularVelocity() const;
 private:
-    scalar collectivePitch, sinPitch, cosPitch;
+    //- Control var (angularVelocity collective roll pitch) [rad/s rad rad rad]
+    controlVarType control_;
+
+    //- Lagging parameters
     scalar sinAzimuth, cosAzimuth;
+
+    //- Flapping parameters
     scalar flapping, sinFlapping, cosFlapping;
-    
-    scalar angularVelocity_;
 };
 
 

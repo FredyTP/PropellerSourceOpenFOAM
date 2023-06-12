@@ -12,29 +12,6 @@ namespace Foam
 class bemTargetValue : public bemControl
 {
 public:
-    enum class controlVar
-    {
-        omega=0,
-        collectivePitch,
-        ciclicPitchCos,
-        ciclicPitchSin
-    };
-    enum class outputVar
-    {
-        forceX=0,
-        forceY,
-        forceZ,
-        torqueX,
-        torqueY,
-        torqueZ,
-        power
-    };
-
-    const static Enum<controlVar> controlVarNames_;
-    const static Enum<outputVar> outputVarNames_;
-
-    typedef util::EnumField<outputVar,7> outputVarType;
-    typedef util::EnumField<controlVar,4> controlVarType;
 
     TypeName("bemTargetValue");
 

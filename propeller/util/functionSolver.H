@@ -69,6 +69,7 @@ inline typename functionSolver::varType functionSolver::NewtonRapson
         for(label i = 0;i<N;i++)
         {
             x[i] -= dx[i]/2.0;
+   
             varType y0 = f(x);
 
             x[i] += dx[i];
@@ -83,6 +84,7 @@ inline typename functionSolver::varType functionSolver::NewtonRapson
             }
             x=xlast;
         }
+        
         solve(J,old);
         
         varType xNew = x - relax * old;
@@ -98,13 +100,13 @@ inline typename functionSolver::varType functionSolver::NewtonRapson
     {
         if (iter == maxIter)
         {
-            Info<< "    solution not converged in " << iter
+            Info<<indent<< "solution not converged in " << iter
                 << " iterations, final residual = " << err
                 << "(" << tol << ")" << endl;
         }
         else
         {
-            Info<< "    final residual = " << err << "(" << tol
+            Info<<indent<< "final residual = " << err << "(" << tol
                 << "), iterations = " << iter << endl;
         }
     }

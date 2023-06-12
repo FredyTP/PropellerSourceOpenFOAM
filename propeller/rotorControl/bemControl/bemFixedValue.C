@@ -11,16 +11,14 @@ addToRunTimeSelectionTable(bemControl,bemFixedValue, dictionary);
 bemFixedValue::bemFixedValue(const dictionary& dict, const bladeElementModel& bem)
  : bemControl(dict)
 {
-    collectivePitch = dict.getOrDefault<scalar>("collectivePitch",0);
-    sinPitch = dict.getOrDefault<scalar>("sinPitch",0);
-    cosPitch = dict.getOrDefault<scalar>("cosPitch",0);
+    control_.readOrDefault(dict,bladeElementModel::controlVarNames_,0);
     sinAzimuth = dict.getOrDefault<scalar>("sinAzimuth",0);
     cosAzimuth = dict.getOrDefault<scalar>("cosAzimuth",0);
     flapping = dict.getOrDefault<scalar>("flapping",0);
     sinFlapping = dict.getOrDefault<scalar>("sinFlapping",0);
     cosFlapping = dict.getOrDefault<scalar>("cosFlapping",0);
 
-    angularVelocity_ = rotorControl::readAngularVelocity(dict);
+    control_[controlVar::omega] = rotorControl::readAngularVelocity(dict);
 }
 
 void bemFixedValue::correctControl(const vectorField &U, const scalarField *rhoField)
@@ -35,7 +33,13 @@ scalar bemFixedValue::getAzimuth(scalar azimuth0) const
 
 scalar bemFixedValue::getPitch(scalar azimuth) const
 {
-    return PitchFunction(azimuth,collectivePitch,cosPitch,sinPitch);
+    return PitchFunction
+    (
+        azimuth,
+        control_[controlVar::collectivePitch],
+        control_[controlVar::ciclicPitchCos],
+        control_[controlVar::ciclicPitchSin]
+    );
 }
 
 scalar bemFixedValue::getFlapping(scalar azimuth) const
@@ -45,19 +49,26 @@ scalar bemFixedValue::getFlapping(scalar azimuth) const
 
 scalar bemFixedValue::getAzimuthDot(scalar azimuth) const
 {
-    return AzimuthDotFunction(angularVelocity_,azimuth,cosAzimuth,sinAzimuth);
+    return AzimuthDotFunction(control_[controlVar::omega],azimuth,cosAzimuth,sinAzimuth);
 }
 scalar bemFixedValue::getPitchDot(scalar azimuth) const
 {
-    return PitchDotFunction(angularVelocity_,azimuth,collectivePitch,cosPitch,sinPitch);
+    return PitchDotFunction
+    (
+        control_[controlVar::omega],
+        azimuth,
+        control_[controlVar::collectivePitch],
+        control_[controlVar::ciclicPitchCos],
+        control_[controlVar::ciclicPitchSin]
+    );
 }
 scalar bemFixedValue::getFlappingDot(scalar azimuth) const
 {
-    return FlappingDotFunction(angularVelocity_,azimuth,flapping,cosFlapping,sinFlapping);
+    return FlappingDotFunction(control_[controlVar::omega],azimuth,flapping,cosFlapping,sinFlapping);
 }
 
 scalar bemFixedValue::getAngularVelocity() const
 {
-    return angularVelocity_;
+    return control_[controlVar::omega];
 }
 }

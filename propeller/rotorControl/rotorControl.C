@@ -4,8 +4,6 @@
 
 namespace Foam
 {
- 
-defineTypeNameAndDebug(rotorControl,0);
 
 scalar rotorControl::readAngularVelocity(const dictionary &dict)
 {

@@ -5,7 +5,7 @@
 #include "bladeModelS.H"
 #include "rotorGrid.H"
 #include "polarCorrection.H"
-#include "bemControl.H"
+
 
 namespace Foam
 {
@@ -14,6 +14,8 @@ struct bemDebugData
     scalar cl,cd,phi,aoa,radius,chord,twist,sweep;
     vector localVel;
 };
+class bemControl;
+
 class bladeElementModel
 :
     public propellerModel
@@ -42,6 +44,28 @@ public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("bladeElementModel");
 
+    enum class controlVar
+    {
+        omega=0,
+        collectivePitch,
+        ciclicPitchCos,
+        ciclicPitchSin
+    };
+    enum class outputVar
+    {
+        forceX=0,
+        forceY,
+        forceZ,
+        torqueX,
+        torqueY,
+        torqueZ,
+        power
+    };
+    const static Enum<controlVar> controlVarNames_;
+    const static Enum<outputVar> outputVarNames_;
+    
+    static const label N_control = 4;
+    static const label N_output = 7;
     // Constructors
 
         //- Construct from components
@@ -97,7 +121,6 @@ public:
     static inline scalar AngleOfIncidence(const vector& relativeLocalVel);
 
     inline scalar rhoRef() const { return rhoRef_;}
-    virtual rotorControl& control() { return control_.ref();};
 
     bool isTimeAcuratte() const;
 
