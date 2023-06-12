@@ -260,6 +260,16 @@ csvTable<dataType, headerType>::csvTable(bool hasHeader_,label skipLines_)
 }
 
 template <class dataType, class headerType>
+csvTable<dataType, headerType>::csvTable(const dictionary& dict)
+{
+    hasHeader = dict.getOrDefault<bool>("header",true);
+    skipLines = dict.getOrDefault<label>("skipLines",0);
+
+    fileName csvPath = dict.get<fileName>("csv");
+    this->readFile(csvPath);
+}
+
+template <class dataType, class headerType>
 csvTable<dataType, headerType>::~csvTable()
 {
     

@@ -56,6 +56,7 @@ public:
     List<List<dataType>> col2(headerType headerName) const;
 
     csvTable(bool hasHeader_=false,label skipLines_ = 0);
+    csvTable(const dictionary& dict);
     ~csvTable();
 
     template<class A, class B>
