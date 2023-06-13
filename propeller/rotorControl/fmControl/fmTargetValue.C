@@ -41,6 +41,14 @@ void fmTargetValue::read(const dictionary &dict)
     dict.readIfPresent("tol", tol_);
     dict.readIfPresent("relax", relax_);
     dict.readIfPresent("dx", dx_);
+
+    if(dx_.size() != usedControl_.size())
+    {
+        FatalErrorInFunction
+            << "dx size must be "
+            <<usedControl_.size()
+            <<exit(FatalError);
+    }
 }
 
 

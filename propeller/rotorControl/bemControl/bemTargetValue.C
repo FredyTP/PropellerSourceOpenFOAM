@@ -50,6 +50,13 @@ void bemTargetValue::read(const dictionary &dict)
     {
         dx_ = scalarField(usedControl_.size(), 0.01);
     }
+    if(dx_.size() != usedControl_.size())
+    {
+        FatalErrorInFunction
+            << "dx size must be "
+            <<usedControl_.size()
+            <<exit(FatalError);
+    }
 }
 
 void bemTargetValue::correctControl(const vectorField &U, const scalarField *rhoField)
@@ -77,7 +84,6 @@ void bemTargetValue::correctControl(const vectorField &U, const scalarField *rho
             true
         );
 
-        Info<<control_<<endl;
     }
 }
 
