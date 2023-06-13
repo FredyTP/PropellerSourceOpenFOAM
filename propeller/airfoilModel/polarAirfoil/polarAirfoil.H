@@ -49,7 +49,7 @@ private:
     fileName file_;
     //Use logarithmic reynolds internally to interpolation
     bool logRe_;
-    typedef interpolationTable<scalar,polar*,2> polarTable;
+    typedef InterpolationTable<scalar,polar*,2> polarTable;
     List<autoPtr<polar>> polars_;
     autoPtr<polarTable> polarInterpolated;
     FixedList<word,5> colNames{"AoA","CL","CD","Re","Ma"};

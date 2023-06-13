@@ -1,5 +1,5 @@
-#ifndef PROPELLER_AIRFOIL_MODEL_INTERPOLATED_AIRFOIL
-#define PROPELLER_AIRFOIL_MODEL_INTERPOLATED_AIRFOIL
+#ifndef PROPELLER_AIRFOIL_MODEL_INTERPOLATED_AIRFOIL_INTERPOLATED_AIRFOIL
+#define PROPELLER_AIRFOIL_MODEL_INTERPOLATED_AIRFOIL_INTERPOLATED_AIRFOIL
 
 
 #include "airfoilModel.H"
@@ -12,14 +12,14 @@ namespace Foam
 
 
 class interpolatedAirfoil
-    :  public interpolated<scalar,const airfoilModel*>, public airfoilModel
+    :  public Interpolated<scalar,const airfoilModel*>, public airfoilModel
 {
 public:
     TypeName("interpolatedAirfoil");
 
     interpolatedAirfoil();
     interpolatedAirfoil(word name, const dictionary& dict);
-    interpolatedAirfoil(interpolated<scalar,const airfoilModel*>& other);
+    interpolatedAirfoil(Interpolated<scalar,const airfoilModel*>& other);
 
     void build(const airfoilModelList& airfoilList);
 
@@ -34,5 +34,5 @@ private:
 }
 
 
-#endif /* PROPELLER_AIRFOIL_MODEL_INTERPOLATED_AIRFOIL */
+#endif /* PROPELLER_AIRFOIL_MODEL_INTERPOLATED_AIRFOIL_INTERPOLATED_AIRFOIL */
 

@@ -3,10 +3,10 @@
 #include "fvMatrices.H"
 #include "propellerResult.H"
 #include "cellSet.H"
-#include "closestNeighbor.H"
+#include "ClosestNeighbor.H"
 #include "SquareMatrix.H"
 #include "simpleMatrix.H"
-#include "regularInterpolation.H"
+#include "RegularInterpolation.H"
 #include "csvTable.H"
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 

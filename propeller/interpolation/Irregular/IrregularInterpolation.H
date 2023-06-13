@@ -6,18 +6,18 @@
 #include "List.H"
 #include "scalar.H"
 #include "label.H"
-#include "interpolationTable.H"
+#include "InterpolationTable.H"
 namespace Foam
 {
 
 template<class typeIn, class typeOu, label dim>
-class irregularInterpolation 
-: public interpolationTable<typeIn,typeOu,dim>
+class IrregularInterpolation 
+: public InterpolationTable<typeIn,typeOu,dim>
 {
 public:
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const=0;
+    virtual Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const=0;
 
-    virtual ~irregularInterpolation() = default;
+    virtual ~IrregularInterpolation() = default;
 protected:
 
     static typeIn SqrDistance(const FixedList<typeIn,dim>& p1, const FixedList<typeIn,dim>& p2) 

@@ -2,7 +2,7 @@
 #define PROPELLER_AIRFOIL_MODEL_POLAR_AIRFOIL_POLAR
 
 #include <string>
-#include "regularInterpolation.H"
+#include "RegularInterpolation.H"
 #include "autoPtr.H"
 #include "dictionary.H"
 #include "scalar.H"
@@ -60,8 +60,8 @@ protected:
     scalar cd_alpha_max;
     scalar cd_alpha_min;
 private:
-    autoPtr<regularInterpolation<scalar,scalar,1>> cl_alpha;
-    autoPtr<regularInterpolation<scalar,scalar,1>> cd_alpha;
+    autoPtr<RegularInterpolation<scalar,scalar,1>> cl_alpha;
+    autoPtr<RegularInterpolation<scalar,scalar,1>> cd_alpha;
     scalar reynolds_;
     scalar mach_;
 };

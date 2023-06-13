@@ -1,7 +1,7 @@
 #include "polarAirfoil.H"
 #include "addToRunTimeSelectionTable.H"
 #include "IFstream.H"
-#include "linearInterpolation.H"
+#include "LinearInterpolation.H"
 #include "csvTable.H"
 
 namespace Foam
@@ -71,7 +71,7 @@ bool polarAirfoil::read(const dictionary& dict)
         ReMa[i][1]=polars_[i]->mach();
     }
 
-    polarInterpolated = autoPtr<interpolationTable<scalar,polar*,2>>::NewFrom<linearInterpolation<scalar,polar*,2>>();
+    polarInterpolated = autoPtr<InterpolationTable<scalar,polar*,2>>::NewFrom<LinearInterpolation<scalar,polar*,2>>();
     polarInterpolated->setRawData(ReMa,polarList);
 
     return true;

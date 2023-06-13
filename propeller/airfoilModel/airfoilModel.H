@@ -4,7 +4,7 @@
 #include "dictionary.H"
 #include "scalar.H"
 #include "autoPtr.H"
-#include "interpolated.H"
+#include "Interpolated.H"
 namespace Foam
 {
 

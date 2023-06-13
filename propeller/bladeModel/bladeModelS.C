@@ -5,6 +5,7 @@
 #include "csvTable.H"
 #include "OFstream.H"
 #include "cubicSplineInterpolation.H"
+#include "readHelper.H"
 
 void Foam::bladeModelS::writeBlade(label np, fileName path)
 {
@@ -39,71 +40,6 @@ void Foam::bladeModelS::writeBlade(label np, fileName path)
 
     OFstream file(path);
     file<<csv;
-
-}
-
-void Foam::bladeModelS::readField(const dictionary &dict, csvTable<scalar, word> &table, autoPtr<regularInterpolation<scalar,scalar,1>> &field, bool isAngle)
-{
-    word from = dict.get<word>("from");
-
-    scalarList radiusList;
-    scalarList valuesList;
-    bool isCubic=false;
-    
-    if(from == "csv")
-    {
-        word dataCol = dict.get<word>("data");
-        word radiusCol = dict.get<word>("radius");
-        valuesList = table.col(dataCol);
-        radiusList = table.col(radiusCol);
-        isCubic = dict.getOrDefault<bool>("cubicSpline",false);
-    }
-    else if(from == "list")
-    {
-        valuesList = dict.get<scalarList>("data");
-        radiusList = dict.get<scalarList>("radius");
-        isCubic = dict.getOrDefault<bool>("cubicSpline",false);
-    }
-    else if(from == "constant")
-    {
-        scalar data = dict.get<scalar>("data");
-        valuesList.append(data);
-        valuesList.append(data);
-
-        radiusList.append(0.0);
-        radiusList.append(1.0);
-    }
-    else
-    {
-        FatalErrorInFunction
-            <<"From: "<<from<< " doesn't exit."
-            <<exit(FatalError);
-    }
-
-    if(isAngle)
-    {
-        if(!isRadian_)
-        {
-            forAll(valuesList,i)
-            {
-                valuesList[i]=degToRad(valuesList[i]);
-            }
-        }
-    }
-    if(isCubic && radiusList.size() < 3)
-    {
-        Warning
-        <<"Cannot use cubic spline if list.size() < 3 using linear interpolation on: "
-        <<radiusList<<endl;
-    }
-    if(isCubic && radiusList.size()>2)
-    {
-        field = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radiusList,valuesList);
-    }
-    else
-    {
-        field = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radiusList}),valuesList);
-    }
 
 }
 
@@ -184,15 +120,15 @@ void Foam::bladeModelS::readFromSections(const airfoilModelList &airfoilList, co
         }
         if(isCubic && radius.size()>2)
         {
-            chord_ = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radius,chord);
-            twistAngle_ = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radius,twist);
-            sweepAngle_ = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radius,sweep);
+            chord_ = autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radius,chord);
+            twistAngle_ = autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radius,twist);
+            sweepAngle_ = autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(radius,sweep);
         }
         else
         {
-            chord_ = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radius}),chord);
-            twistAngle_ = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radius}),twist);
-            sweepAngle_ = autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radius}),sweep);
+            chord_ = autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<LinearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radius}),chord);
+            twistAngle_ = autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<LinearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radius}),twist);
+            sweepAngle_ = autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<LinearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({radius}),sweep);
         }
         airfoils_.setData({radius},airfoils);
         
@@ -210,22 +146,58 @@ void Foam::bladeModelS::readFromProperties(const airfoilModelList &airfoilList, 
     fileName csvFile = dict.getOrDefault<fileName>("csv","");
 
     csvTable<scalar,word> bladeCSV(true);
+    csvTable<scalar,word>* ptrCSV = nullptr;
     if(!csvFile.empty())
     {
         bladeCSV.readFile(csvFile);
+        ptrCSV = &bladeCSV;
     }
 
-    const dictionary& chordDist = dict.subDict("chord");
-    const dictionary& twistDist = dict.subDict("twist");
-    const dictionary& sweepDist = dict.subDict("sweep");
-    const dictionary& airfoilDist = dict.subDict("airfoils");
+    const dictionary& chordDict = dict.subDict("chord");
+    const dictionary& twistDict = dict.subDict("twist");
+    const dictionary& sweepDict = dict.subDict("sweep");
+    const dictionary& airfoilDict = dict.subDict("airfoil");
 
-    readField(chordDist,bladeCSV,chord_);
-    readField(twistDist,bladeCSV,twistAngle_,true);
-    readField(sweepDist,bladeCSV,sweepAngle_,true);
 
-    wordList airfoilNames = airfoilDist.get<wordList>("data");
-    scalarList radius = airfoilDist.get<scalarList>("radius"); 
+    chord_ = util::NewInterpolationFromDict
+    (
+        chordDict,
+        "radius",
+        "chord",
+        false,
+        true,
+        ptrCSV
+    );
+    twistAngle_ = util::NewInterpolationFromDict
+    (
+        twistDict,
+        "radius",
+        "twist",
+        !isRadian_,
+        true,
+        ptrCSV
+    );
+    sweepAngle_ = util::NewInterpolationFromDict
+    (
+        sweepDict,
+        "radius",
+        "sweep",
+        !isRadian_,
+        true,
+        ptrCSV
+    );
+    chord_ = util::NewInterpolationFromDict
+    (
+        airfoilDict,
+        "radius",
+        "chord",
+        !isRadian_,
+        true,
+        ptrCSV
+    );
+
+    scalarList radius = airfoilDict.get<scalarList>("radius"); 
+    wordList airfoilNames = airfoilDict.get<wordList>("airfoil");
 
     List<const airfoilModel*> airfoilModels(airfoilNames.size());
 
@@ -239,14 +211,14 @@ void Foam::bladeModelS::readFromProperties(const airfoilModelList &airfoilList, 
 Foam::bladeModelS::bladeModelS(const List<scalar> &rAdim, const List<scalar> &chord)
 {
     checkRadiusList(rAdim);
-    chord_ = autoPtr<regularInterpolation<scalar,scalar,1>>
-    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
+    chord_ = autoPtr<RegularInterpolation<scalar,scalar,1>>
+    ::NewFrom<LinearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
             
-    twistAngle_= autoPtr<regularInterpolation<scalar,scalar,1>>
-    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
+    twistAngle_= autoPtr<RegularInterpolation<scalar,scalar,1>>
+    ::NewFrom<LinearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
             
-    sweepAngle_= autoPtr<regularInterpolation<scalar,scalar,1>>
-    ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
+    sweepAngle_= autoPtr<RegularInterpolation<scalar,scalar,1>>
+    ::NewFrom<LinearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({rAdim}),chord);
             
 }
 
@@ -292,7 +264,7 @@ bool Foam::bladeModelS::sectionAtRadius(scalar adimRadius, scalar& chord, scalar
     {
         return false;
     }
-    interpolated<scalar,const airfoilModel*> afl = airfoils_.interpolate({adimRadius});
+    Interpolated<scalar,const airfoilModel*> afl = airfoils_.interpolate({adimRadius});
     airfoil = interpolatedAirfoil(afl);
 
     return true;

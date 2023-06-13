@@ -1,7 +1,7 @@
 #ifndef PROPELLER_INTERPOLATION_IRREGULAR_INVERSE_DISTANCE_INVERSE_DISTANCE
 #define PROPELLER_INTERPOLATION_IRREGULAR_INVERSE_DISTANCE_INVERSE_DISTANCE
 
-#include "irregularInterpolation.H"
+#include "IrregularInterpolation.H"
 
 namespace Foam
 {
@@ -9,8 +9,8 @@ namespace Foam
  * Inverse distance weighting algorithm for interpolating irregular data
 */
 template<class typeIn, class typeOu, label dim>
-class inverseDistance
-: public irregularInterpolation<typeIn,typeOu,dim>
+class InverseDistance
+: public IrregularInterpolation<typeIn,typeOu,dim>
 {
 private:
     const List<FixedList<typeIn,dim>> inputs;
@@ -18,7 +18,7 @@ private:
     label nInterpolationPoints;
 public:
 
-    inverseDistance(
+    InverseDistance(
         const List<FixedList<typeIn,dim>> inputs_,
         const List<typeOu> outputs_,
         label nIntPoints = -1
@@ -33,7 +33,7 @@ public:
 };
 }
 //Add template definitions
-#include "inverseDistance.C"
+#include "InverseDistance.C"
 
 
 

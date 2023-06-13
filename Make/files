@@ -37,7 +37,7 @@ propeller/rotorControl/fmControl/fmControl.C
 propeller/rotorControl/fmControl/fmFixedValue.C
 propeller/rotorControl/fmControl/fmTargetValue.C
 
-
+propeller/util/readHelper.C
 
 EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid
 //LIB = $(FOAM_USER_LIBBIN)/rotorSolver

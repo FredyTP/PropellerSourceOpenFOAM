@@ -1,11 +1,11 @@
-#include "closestNeighbor.H"
+#include "ClosestNeighbor.H"
 #include "label.H"
 
 namespace Foam
 {
 
 template <class typeIn, class typeOu, label dim>
-closestNeighbor<typeIn, typeOu, dim>::closestNeighbor(const List<FixedList<typeIn, dim>> inputs_, const List<typeOu> outputs_)
+ClosestNeighbor<typeIn, typeOu, dim>::ClosestNeighbor(const List<FixedList<typeIn, dim>> inputs_, const List<typeOu> outputs_)
 : inputs(inputs_), outputs(outputs_)
 {
     //initialize some internal process data if required (?)
@@ -16,11 +16,11 @@ closestNeighbor<typeIn, typeOu, dim>::closestNeighbor(const List<FixedList<typeI
 }
 
 template <class typeIn, class typeOu, label dim>
-interpolated<typeIn, typeOu> closestNeighbor<typeIn, typeOu, dim>::interpolate(
+Interpolated<typeIn, typeOu> ClosestNeighbor<typeIn, typeOu, dim>::interpolate(
 
     FixedList<typeIn, dim> input) const
 {
-    interpolated<typeIn, typeOu> result;
+    Interpolated<typeIn, typeOu> result;
 
     scalar minDistanceSq = 1e300;
     label minIndex = -1;
@@ -32,7 +32,7 @@ interpolated<typeIn, typeOu> closestNeighbor<typeIn, typeOu, dim>::interpolate(
         const FixedList<typeIn, dim> &testPoint =
             inputs[i];
 
-        scalar sqDist = irregularInterpolation<typeIn, typeOu, dim>::SqrDistance(input, testPoint);
+        scalar sqDist = IrregularInterpolation<typeIn, typeOu, dim>::SqrDistance(input, testPoint);
 
         if (sqDist < minDistanceSq)
         {
@@ -56,12 +56,12 @@ interpolated<typeIn, typeOu> closestNeighbor<typeIn, typeOu, dim>::interpolate(
 }
 
 template <class typeIn, class typeOu, label dim>
-label closestNeighbor<typeIn, typeOu, dim>::size()
+label ClosestNeighbor<typeIn, typeOu, dim>::size()
 {
     return outputs.size();
 }
 template <class typeIn, class typeOu, label dim>
-bool closestNeighbor<typeIn, typeOu, dim>::setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
+bool ClosestNeighbor<typeIn, typeOu, dim>::setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
 {
     return false;
 }

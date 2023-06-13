@@ -3,7 +3,7 @@
 #include "addToRunTimeSelectionTable.H"
 #include "IFstream.H"
 #include "csvTable.H"
-#include "closestNeighbor.H"
+#include "ClosestNeighbor.H"
 
 namespace Foam
 {
@@ -53,7 +53,7 @@ bool fileSampler<vector>::read(const dictionary &dict)
         }
 
 
-        closestNeighbor<scalar,vector,3> interp(pos,vel);
+        ClosestNeighbor<scalar,vector,3> interp(pos,vel);
 
         const List<vector>& cellCenter = this->rMesh_->mesh().C();
         volVectorField U
@@ -131,7 +131,7 @@ bool fileSampler<scalar>::read(const dictionary &dict)
         }
 
 
-        closestNeighbor<scalar,scalar,3> interp(pos,vx);
+        ClosestNeighbor<scalar,scalar,3> interp(pos,vx);
 
         const List<vector>& cellCenter = this->rMesh_->mesh().C();
         volScalarField U

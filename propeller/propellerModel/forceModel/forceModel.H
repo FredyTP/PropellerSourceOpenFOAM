@@ -1,7 +1,7 @@
 #ifndef PROPELLER_PROPELLER_MODEL_FORCE_MODEL_FORCE_MODEL
 #define PROPELLER_PROPELLER_MODEL_FORCE_MODEL_FORCE_MODEL
 #include "propellerModel.H"
-
+#include "RegularInterpolation.H"
 #include "vector.H"
 #include "tensor.H"
 
@@ -71,8 +71,8 @@ private:
     List<tensor> gridTensor_;
     autoPtr<fmControl> control_;
 
-    autoPtr<interpolationTable<scalar,scalar,1>> thrustCoeff_;
-    autoPtr<interpolationTable<scalar,scalar,1>> torqueCoeff_;
+    autoPtr<RegularInterpolation<scalar,scalar,1>> thrustCoeff_;
+    autoPtr<RegularInterpolation<scalar,scalar,1>> torqueCoeff_;
 
     static vector ForceDistribution(scalar Ax, scalar Atheta, scalar radius, scalar minRadius, scalar maxRadius);
 

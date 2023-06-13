@@ -9,14 +9,14 @@ namespace Foam
 
 
 template<class typeIn,class typeOu>
-class interpolated
+class Interpolated
 {
 protected:
     List<typeIn> coeff;
     List<typeOu> nodes;
 public:
-    interpolated(){}
-    interpolated(const List<typeIn>& coe, const List<typeOu>& nod) : coeff(coe), nodes(nod) {}
+    Interpolated(){}
+    Interpolated(const List<typeIn>& coe, const List<typeOu>& nod) : coeff(coe), nodes(nod) {}
     List<typeIn>& coefficients(){return coeff;}
     List<typeOu>& points(){return nodes;}
 

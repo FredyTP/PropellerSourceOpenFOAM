@@ -1,7 +1,7 @@
 #include "forceModel.H"
 #include "addToRunTimeSelectionTable.H"
 #include "bladeGrid.H"
-#include "linearInterpolation.H"
+#include "LinearInterpolation.H"
 #include "fmControl.H"
 #include "readHelper.H"
 

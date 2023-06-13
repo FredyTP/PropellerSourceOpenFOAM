@@ -17,7 +17,8 @@ fmTargetValue::fmTargetValue(const dictionary& dict,const forceModel& fmModel)
     usedControl_(1,controlVar::omega),
     nIter_(50),
     tol_(1e-8),
-    relax_(1.0)
+    relax_(1.0),
+    dx_(1,0.1)
 {
     read(dict);
 }
@@ -39,6 +40,7 @@ void fmTargetValue::read(const dictionary &dict)
     dict.readIfPresent("nIter", nIter_);
     dict.readIfPresent("tol", tol_);
     dict.readIfPresent("relax", relax_);
+    dict.readIfPresent("dx", dx_);
 }
 
 

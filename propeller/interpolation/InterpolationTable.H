@@ -3,7 +3,7 @@
 
 #include "scalar.H"
 #include "FixedList.H"
-#include "interpolated.H"
+#include "Interpolated.H"
 
 namespace Foam
 {
@@ -25,25 +25,25 @@ enum extrapolationMode
  * dim : must be a positive integer
 */
 template<class typeIn, class typeOu, label dim>
-class interpolationTable
+class InterpolationTable
 {
 protected:
     extrapolationMode exMode = extrapolationMode::emConstant;
 public:
 
-    typedef interpolationTable<typeIn,typeOu,dim> baseTable;
+    typedef InterpolationTable<typeIn,typeOu,dim> baseTable;
 
     void setExtrapolationMode(extrapolationMode mode) {exMode = mode;}
 
     
-    interpolationTable(){}
+    InterpolationTable(){}
 
-    virtual ~interpolationTable() = default;
+    virtual ~InterpolationTable() = default;
     
     /**
      * Return interpolated value from input
     */
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const = 0;
+    virtual Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const = 0;
 
     /**
      * @brief returns a list of interpolated coefficients and nodes
@@ -53,7 +53,7 @@ public:
     //virtual void interpolationList(FixedList<typeIn,dim> input,List<typeIn>& coeff,List<typeOu>& values)=0;
 
     //Definition for single input tables
-    virtual interpolated<typeIn,typeOu> interpolate(typeIn input) const 
+    virtual Interpolated<typeIn,typeOu> interpolate(typeIn input) const 
     {
         return interpolate(FixedList<typeIn,dim>(input));
     }
@@ -71,8 +71,8 @@ public:
 
     virtual label size() = 0;
 
-    //static autoPtr<interpolationTable> New();
-    static autoPtr<interpolationTable> NewFromRaw(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
+    //static autoPtr<InterpolationTable> New();
+    static autoPtr<InterpolationTable> NewFromRaw(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
 
     /**
      * @brief Checks if the input list grown monotonically
@@ -80,7 +80,7 @@ public:
      * @tparam type 
      * @param checkList 
      * @return true 
-     * @return false 
+     * @return false inverseDistance
      */
     
     
@@ -99,21 +99,7 @@ template<class type>
         return true;
     }
 
-template<class typeIn, class typeOu, label dim>
-class constantInterpolation : public interpolationTable<typeIn,typeOu,dim>
-{
-    public:
-    constantInterpolation(const typeOu& value) : value_(value) {}
 
-    bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) { return true;}
-    interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
-    {
-        return interpolated<typeIn,typeOu>({1},{value_});
-    }
-    label size() { return 1; }
-    private:
-    typeOu value_;
-};
 
 }
 

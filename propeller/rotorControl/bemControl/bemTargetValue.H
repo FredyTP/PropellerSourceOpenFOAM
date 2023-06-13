@@ -42,6 +42,17 @@ private:
     //- Number of iterations between calls to 'correct'
     label calcFrequency_;
 
+    //- Maximum number of iterations in trim routine
+    label nIter_;
+
+    //- Relaxation factor
+    scalar relax_;
+
+    //- dx used to compute gradient
+    scalarField dx_;
+
+    //- Convergence tolerance
+    scalar tol_;
     //- Target coefficient vector (thrust force, roll moment, pitch moment)
     outputVarType target_;
 
@@ -51,14 +62,7 @@ private:
     List<outputVar> usedTarget_;
     List<controlVar> usedControl_;
 
-    //- Maximum number of iterations in trim routine
-    label nIter_;
 
-    scalar relax_;
-
-    scalar dTheta_;
-    //- Convergence tolerance
-    scalar tol_;
 };
 
 

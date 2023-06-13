@@ -30,7 +30,7 @@ interpolatedAirfoil::interpolatedAirfoil(word name,const dictionary& dict)
     this->coeff = coefficients;
 }
 
-interpolatedAirfoil::interpolatedAirfoil(interpolated<scalar, const airfoilModel *> &other)
+interpolatedAirfoil::interpolatedAirfoil(Interpolated<scalar, const airfoilModel *> &other)
 {
     this->coeff = other.coefficients();
     this->nodes = other.points();

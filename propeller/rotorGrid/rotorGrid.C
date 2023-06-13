@@ -2,7 +2,6 @@
 #include "polarGrid.H"
 #include "bladeGrid.H"
 #include "mathematicalConstants.H"
-#include "regularInterpolation.H"
 
 #include "runTimeSelectionTables.H"
 

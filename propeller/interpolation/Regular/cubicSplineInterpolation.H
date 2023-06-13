@@ -3,7 +3,7 @@
 
 #include "List.H"
 #include "scalar.H"
-#include "regularInterpolation.H"
+#include "RegularInterpolation.H"
 #include "SquareMatrix.H"
 #include "simpleMatrix.H"
 
@@ -16,10 +16,10 @@ namespace Foam
  * equations
  * 
  */
-class cubicSplineInterpolation : public regularInterpolation<scalar,scalar,1>
+class cubicSplineInterpolation : public RegularInterpolation<scalar,scalar,1>
 {
 private:
-    typedef regularInterpolation<scalar,scalar,1> parent;
+    typedef RegularInterpolation<scalar,scalar,1> parent;
     scalarList bi,ci,di;
 public:
 
@@ -73,11 +73,11 @@ public:
     {
 
     }
-    interpolated<scalar,scalar> interpolate(FixedList<scalar,1> input) const
+    Interpolated<scalar,scalar> interpolate(FixedList<scalar,1> input) const
     {
         label i1,i2;
-        interpolated<scalar,scalar> interp;
-        label result = regularInterpolation<scalar,scalar,1>::FindIndex(input[0],parent::inputs[0],i1,i2);
+        Interpolated<scalar,scalar> interp;
+        label result = RegularInterpolation<scalar,scalar,1>::FindIndex(input[0],parent::inputs[0],i1,i2);
 
         if(result==0)
         {                

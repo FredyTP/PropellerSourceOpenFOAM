@@ -1,27 +1,27 @@
 #include "readHelper.H"
 #include "scalarList.H"
 #include "unitConversion.H"
-#include "linearInterpolation.H"
+#include "LinearInterpolation.H"
 #include "cubicSplineInterpolation.H"
 namespace Foam
 {
 namespace util
 {
-template<class typeIn, class typeOu>
-void ReadInterpolationList
+
+autoPtr<RegularInterpolation<scalar,scalar,1>> NewInterpolationFromDict
 (
     const dictionary& dict,
     word x_name,
     word y_name,
-    List<typeIn>& xList,
-    List<typeOu>& yList,
     bool convertToRad,
     bool enableCSV,
     const csvTable<scalar,word>* csv
 )
 {
+    List<scalar> xList;
+    List<scalar> yList;
+
     word from = dict.get<word>("from");
-    
     if(from == "csv")
     {
         if(!enableCSV)
@@ -41,7 +41,7 @@ void ReadInterpolationList
         }
         else
         {
-            csvTable<typeIn,word> table(dict);
+            csvTable<scalar,word> table(dict);
             xList = table.col(xCol);
             yList = table.col(yCol);
         }
@@ -73,24 +73,12 @@ void ReadInterpolationList
         }
     }
 
-}
-
-template<class typeIn, class typeOu>
-autoPtr<interpolationTable<typeIn,typeOu,1>> NewInterpolationFromDict
-(
-    const dictionary& dict,
-    const List<typeIn>& xList,
-    const List<typeOu>& yList
-)
-{
-    word from = dict.get<word>("from");
-
     bool isCubic = dict.getOrDefault<bool>("cubicSpline",false);
     
     if(xList.size() == 0 && yList.size()==1)
     {
-        return autoPtr<interpolationTable<scalar,scalar,1>>
-            ::NewFrom<constantInterpolation<scalar,scalar,1>>(yList.first());
+        return autoPtr<RegularInterpolation<scalar,scalar,1>>
+            ::NewFrom<ConstantInterpolation<scalar,scalar,1>>(yList.first());
     }
   
     if(isCubic && xList.size() < 3)
@@ -101,34 +89,17 @@ autoPtr<interpolationTable<typeIn,typeOu,1>> NewInterpolationFromDict
     }
     if(isCubic && xList.size() >= 3)
     {
-        return autoPtr<interpolationTable<scalar,scalar,1>>
+        return autoPtr<RegularInterpolation<scalar,scalar,1>>
         ::NewFrom<cubicSplineInterpolation>(xList,yList);
     }
     else
     {
-        return autoPtr<interpolationTable<scalar,scalar,1>>
-        ::NewFrom<linearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({xList}),yList);
+        return autoPtr<RegularInterpolation<scalar,scalar,1>>
+        ::NewFrom<LinearInterpolation<scalar,scalar,1>>(FixedList<scalarList,1>({xList}),yList);
     }
 
 }
 
-
-autoPtr<interpolationTable<scalar,scalar,1>> NewInterpolationFromDict
-(
-    const dictionary& dict,
-    word x_name,
-    word y_name,
-    bool convertToRad,
-    bool enableCSV,
-    const csvTable<scalar,word>* csv
-)
-{
-    List<scalar> xList;
-    List<scalar> yList;
-
-    ReadInterpolationList<scalar,scalar>(dict,x_name,y_name,xList,yList,convertToRad,enableCSV,csv);
-    return NewInterpolationFromDict<scalar,scalar>(dict,xList,yList);
-}
 
 
 

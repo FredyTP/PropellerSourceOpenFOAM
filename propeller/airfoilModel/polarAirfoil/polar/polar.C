@@ -1,5 +1,5 @@
 #include "polar.H"
-#include "linearInterpolation.H"
+#include "LinearInterpolation.H"
 #include "cubicSplineInterpolation.H"
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
@@ -36,13 +36,13 @@ polar::polar(bool cubicSpline, List<scalar>& alpha, List<scalar>& cl, List<scala
     processData(alphaIn[0],cl,cd);
     if(cubicSpline)
     {
-        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alphaIn,cl);
-        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alphaIn,cd);
+        cl_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alphaIn,cl);
+        cd_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alphaIn,cd);
     }
     else
     {
-        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cl);
-        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alphaIn,cd);
+        cl_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<LinearInterpolation<scalar,scalar,1>>(alphaIn,cl);
+        cd_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<LinearInterpolation<scalar,scalar,1>>(alphaIn,cd);
     }
 
     reynolds_ = Re;
@@ -106,13 +106,13 @@ polar::polar(bool cubicSpline,fileName filename, scalar Re, scalar Ma, bool isRa
     //Create polar interpolations
     if(cubicSpline)
     {
-        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alpha,cl);
-        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alpha,cd);
+        cl_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alpha,cl);
+        cd_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<cubicSplineInterpolation>(alpha,cd);
     }
     else
     {
-        cl_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cl);
-        cd_alpha =  autoPtr<regularInterpolation<scalar,scalar,1>>::NewFrom<linearInterpolation<scalar,scalar,1>>(alpha,cd);
+        cl_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<LinearInterpolation<scalar,scalar,1>>(alpha,cl);
+        cd_alpha =  autoPtr<RegularInterpolation<scalar,scalar,1>>::NewFrom<LinearInterpolation<scalar,scalar,1>>(alpha,cd);
     }
 }
 

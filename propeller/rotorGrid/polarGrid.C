@@ -1,8 +1,8 @@
 #include "polarGrid.H"
 #include "mathematicalConstants.H"
-#include "regularInterpolation.H"
 #include "polarCell.H"
 #include "addToRunTimeSelectionTable.H"
+#include "RegularInterpolation.H"
 
 namespace Foam
 {
@@ -56,8 +56,8 @@ void polarGrid::assignFvCells()
         label ir=0;
         label unused;
         label it=0;
-        int result = regularInterpolation<scalar,scalar,1>::FindIndex(polar.x(),this->radius(),ir,unused);
-        regularInterpolation<scalar,scalar,1>::FindIndex(polar.y(),this->theta(),it,unused);
+        int result = RegularInterpolation<scalar,scalar,1>::FindIndex(polar.x(),this->radius(),ir,unused);
+        RegularInterpolation<scalar,scalar,1>::FindIndex(polar.y(),this->theta(),it,unused);
 
         if(result == 1)
         {

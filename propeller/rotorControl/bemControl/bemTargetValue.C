@@ -17,7 +17,7 @@ bemTargetValue::bemTargetValue(const dictionary &dict, const bladeElementModel& 
     nIter_(50),
     tol_(1e-8),
     relax_(1.0),
-    dTheta_(degToRad(0.1))
+    dx_(1,0)
 {
     read(dict);
 }
@@ -46,9 +46,9 @@ void bemTargetValue::read(const dictionary &dict)
     dict.readIfPresent("tol", tol_);
     dict.readIfPresent("relax", relax_);
 
-    if (dict.readIfPresent("dTheta", dTheta_))
+    if (!dict.readIfPresent("dx", dx_))
     {
-        dTheta_ = degToRad(dTheta_);
+        dx_ = scalarField(usedControl_.size(), 0.01);
     }
 }
 
@@ -64,14 +64,13 @@ void bemTargetValue::correctControl(const vectorField &U, const scalarField *rho
         const scalar rhoRef = bem_.rhoRef();
         scalarField x0;
         control_.get(x0,usedControl_);
-        Info<<control_<<endl;
-        Info<<x0<<endl;
+  
         util::functionSolver::NewtonRapson
         (
             usedControl_.size(),
             solverFunction(U,rhoField),
             x0,
-            scalarField(usedControl_.size(),dTheta_),
+            dx_,
             relax_,
             nIter_,
             tol_,

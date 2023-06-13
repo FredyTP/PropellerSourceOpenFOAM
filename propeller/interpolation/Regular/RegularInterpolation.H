@@ -3,8 +3,8 @@
 
 #include "List.H"
 #include "scalar.H"
-#include "interpolationTable.H"
-#include "interpolated.H"
+#include "InterpolationTable.H"
+#include "Interpolated.H"
 
 namespace Foam
 {
@@ -21,19 +21,19 @@ namespace Foam
  * the number of coefficients can be "easily" obtained
 */
 template<class typeIn, class typeOu, label dim>
-class regularInterpolation : public interpolationTable<typeIn,typeOu,dim>
+class RegularInterpolation : public InterpolationTable<typeIn,typeOu,dim>
 {
 
 public:
 
-    virtual ~regularInterpolation() = default;
+    virtual ~RegularInterpolation() = default;
     
     /**
-     * @brief returns a list of interpolated coefficients and nodes
+     * @brief returns a list of Interpolated coefficients and nodes
      * 
-     * The reconstructed interpolated value is : coeff_1 * value_1 + coeff_2 * value_2 ...
+     * The reconstructed Interpolated value is : coeff_1 * value_1 + coeff_2 * value_2 ...
     */
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input_) const = 0;
+    virtual Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input_) const = 0;
 
     typeOu getOutput(label idx)
     {
@@ -60,7 +60,7 @@ public:
         }
         return tam;
     }
-    friend Ostream& operator<<(Ostream& os, const regularInterpolation<typeIn,typeOu,dim>& table) 
+    friend Ostream& operator<<(Ostream& os, const RegularInterpolation<typeIn,typeOu,dim>& table) 
     {
         for(label i=0;i<table.outputs.size();i++)
         {
@@ -94,7 +94,7 @@ protected:
     //Iteration order in which the dimensions are traveled (0 1 2 3...)
     FixedList<label,dim> order;
 public:
-    regularInterpolation()
+    RegularInterpolation()
     {
         
     }
@@ -134,7 +134,7 @@ public:
      *  
     */
 
-    regularInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_) 
+    RegularInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_) 
         : inputs(inputs_), outputs(outputs_)
     {
         for(label i = 0; i < dim; i++)
@@ -146,7 +146,7 @@ public:
             Info<<"interpolation sizes are inconsistent"<<endl;
         }
     }
-    regularInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_,FixedList<label,dim> iterationOrder) 
+    RegularInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_,FixedList<label,dim> iterationOrder) 
         : inputs(inputs_), outputs(outputs_), order(iterationOrder)
     {
         
@@ -280,7 +280,7 @@ public:
     /**
      * @brief Find linear interpolation indexes
      * 
-     * @param input value that will be interpolated
+     * @param input value that will be Interpolated
      * @param inputs gridded data points
      * @param i1 index of closest data point < input
      * @param i2 index of closest data point > input
@@ -334,7 +334,21 @@ public:
 
 };
 
+template<class typeIn, class typeOu, label dim>
+class ConstantInterpolation : public RegularInterpolation<typeIn,typeOu,dim>
+{
+    public:
+    ConstantInterpolation(const typeOu& value) : value_(value) {}
 
+    bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) { return true;}
+    Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
+    {
+        return Interpolated<typeIn,typeOu>({1},{value_});
+    }
+    label size() { return 1; }
+    private:
+    typeOu value_;
+};
 
 }
 

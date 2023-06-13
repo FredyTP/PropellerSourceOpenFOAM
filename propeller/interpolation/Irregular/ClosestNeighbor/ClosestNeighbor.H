@@ -1,24 +1,24 @@
 #ifndef PROPELLER_INTERPOLATION_IRREGULAR_CLOSEST_NEIGHBOR_CLOSEST_NEIGHBOR
 #define PROPELLER_INTERPOLATION_IRREGULAR_CLOSEST_NEIGHBOR_CLOSEST_NEIGHBOR
-#include "irregularInterpolation.H"
+#include "IrregularInterpolation.H"
 
 namespace Foam
 {
 template<class typeIn, class typeOu, label dim>
-class closestNeighbor
-: public irregularInterpolation<typeIn,typeOu,dim>
+class ClosestNeighbor
+: public IrregularInterpolation<typeIn,typeOu,dim>
 {
 private:
     const List<FixedList<typeIn,dim>> inputs;
     const List<typeOu> outputs;
 public:
 
-    closestNeighbor(
+    ClosestNeighbor(
         const List<FixedList<typeIn,dim>> inputs_,
         const List<typeOu> outputs_
     );
     
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const;
+    virtual Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const;
 
     virtual label size();
 
@@ -27,7 +27,7 @@ public:
 };
 }
 //Add template definitions
-#include "closestNeighbor.C"
+#include "ClosestNeighbor.C"
 
 
 

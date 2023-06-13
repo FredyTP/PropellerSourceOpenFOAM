@@ -3,7 +3,7 @@
 
 #include "List.H"
 #include "scalar.H"
-#include "regularInterpolation.H"
+#include "RegularInterpolation.H"
 
 
 namespace Foam
@@ -11,13 +11,13 @@ namespace Foam
 
 
 template<class typeIn, class typeOu, label dim>
-class linearInterpolation : public regularInterpolation<typeIn,typeOu,dim>
+class LinearInterpolation : public RegularInterpolation<typeIn,typeOu,dim>
 {
 private:
-    typedef regularInterpolation<typeIn,typeOu,dim> parent;
+    typedef RegularInterpolation<typeIn,typeOu,dim> parent;
 public:
 
-    linearInterpolation()
+    LinearInterpolation()
     {
         
     }
@@ -44,13 +44,13 @@ public:
      *  
     */
 
-    linearInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_) 
-        : regularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_)
+    LinearInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_) 
+        : RegularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_)
     {
 
     }
-    linearInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_,FixedList<label,dim> iterationOrder) 
-        : regularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_,iterationOrder)
+    LinearInterpolation(FixedList<List<typeIn>,dim> inputs_, List<typeOu> outputs_,FixedList<label,dim> iterationOrder) 
+        : RegularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_,iterationOrder)
     {
 
     }
@@ -67,15 +67,15 @@ public:
      *                                                                 (1 2 2)  ->   x7
      *                                                                 (2 2 2)  ->   x8
     */
-    linearInterpolation(List<FixedList<typeIn,dim>> inputs_, List<typeOu> outputs_,bool raw) 
-        : regularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_,raw)
+    LinearInterpolation(List<FixedList<typeIn,dim>> inputs_, List<typeOu> outputs_,bool raw) 
+        : RegularInterpolation<typeIn,typeOu,dim>(inputs_,outputs_,raw)
     {
 
     }
     
-    interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
+    Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
     {
-        interpolated<typeIn,typeOu> iReturn;
+        Interpolated<typeIn,typeOu> iReturn;
         auto& coeff = iReturn.coefficients();
         auto& values = iReturn.points();
 
@@ -87,7 +87,7 @@ public:
         //Get index and results
         for(label i = 0; i< dim; i++)
         {
-            result[i] = regularInterpolation<typeIn,typeOu,dim>::FindIndex(input[i],parent::inputs[i],indexIt[i][0],indexIt[i][1]);
+            result[i] = RegularInterpolation<typeIn,typeOu,dim>::FindIndex(input[i],parent::inputs[i],indexIt[i][0],indexIt[i][1]);
             //<out of bounds>
             if(result[i]==0)
             {                

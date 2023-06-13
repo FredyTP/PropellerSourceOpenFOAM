@@ -57,6 +57,9 @@ private:
     //- Convergence tolerance
     scalar tol_;
 
+    //- Dx used
+    scalarList dx_;
+
     
 
 };

@@ -1,7 +1,7 @@
 #ifndef PROPELLER_BLADE_MODEL_BLADE_MODEL_S
 #define PROPELLER_BLADE_MODEL_BLADE_MODEL_S
 
-#include "linearInterpolation.H"
+#include "LinearInterpolation.H"
 #include "airfoilModelList.H"
 #include "scalar.H"
 #include "label.H"
@@ -12,7 +12,6 @@
 #include "rotorGeometry.H"
 #include "csvTable.H"
 #include "interpolatedAirfoil.H"
-#include "regularInterpolation.H"
 
 namespace Foam
 {
@@ -38,17 +37,16 @@ protected:
         //------------BLADE PROPERTIES-----------//
 
         //- Airfoil of each section
-        autoPtr<regularInterpolation<scalar,scalar,1>> chord_;
-        autoPtr<regularInterpolation<scalar,scalar,1>> twistAngle_;
-        autoPtr<regularInterpolation<scalar,scalar,1>> sweepAngle_;
-        linearInterpolation<scalar,const airfoilModel*,1> airfoils_;
+        autoPtr<RegularInterpolation<scalar,scalar,1>> chord_;
+        autoPtr<RegularInterpolation<scalar,scalar,1>> twistAngle_;
+        autoPtr<RegularInterpolation<scalar,scalar,1>> sweepAngle_;
+        LinearInterpolation<scalar,const airfoilModel*,1> airfoils_;
 
         bool isRadian_ = false;
 
         //- Optional input file
         fileName fName_;
 
-        void readField(const dictionary& dict,csvTable<scalar,word>& table,autoPtr<regularInterpolation<scalar,scalar,1>>& field, bool isAngle = false);
 
         void checkBlade();
         void checkRadiusList(const List<scalar>& radiuslist);
