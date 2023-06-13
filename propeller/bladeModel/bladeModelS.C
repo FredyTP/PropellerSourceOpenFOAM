@@ -186,15 +186,6 @@ void Foam::bladeModelS::readFromProperties(const airfoilModelList &airfoilList, 
         true,
         ptrCSV
     );
-    chord_ = util::NewInterpolationFromDict
-    (
-        airfoilDict,
-        "radius",
-        "chord",
-        !isRadian_,
-        true,
-        ptrCSV
-    );
 
     scalarList radius = airfoilDict.get<scalarList>("radius"); 
     wordList airfoilNames = airfoilDict.get<wordList>("airfoil");
