@@ -98,17 +98,23 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         Info<<"Rotor Geometry of: "<< fv::option::name()<<endl
         << rotorGeometry_;
 
+        /*-----BUILD PROPELLER MODEL AND COORDINATE SYSTEM-----*/
         rotorGeometry_.buildCS();
         propellerModel_->build(rotorGeometry_);
 
         /*-----CREATE VELOCITY SAMPLING METHOD-----*/
         //Create velocitySampler for specified rotor discrete and mesh
+        Info<<endl;
+        Info<<"Velocity sampler:"<<endl;
         velSampler_ = diskSampler<vector>::New(
                    dict.subDict("velocitySampler"),
                    propellerModel_->grid().get(), 
                    &rotorFvMeshSel_);
+
         velSampler_->writeSampled(fv::option::name_); //Write to file sampling location
 
+        Info<<endl;
+        Info<<"Density sampler (ignore if incompressible):"<<endl;
         dictionary densityDict;
         densityDict.add("type","domainSampler");
         if(dict.findDict("densitySampler"))
@@ -153,7 +159,14 @@ void Foam::fv::propellerSource::addSup
 
     const volVectorField& Uin(eqn.psi());
 
-    propellerModel_->nextTimeStep(mesh_.time().deltaTValue());
+    if(propellerModel_->nextTimeStep(mesh_.time().deltaTValue()))
+    {
+        //If changes are made updating time step
+
+        velSampler_->build();
+        densitySampler_->build();
+    }
+
 
     propResult_ = propellerModel_->calculate
         (
