@@ -167,7 +167,7 @@ public:
      *                                                                 (1 2 2)  ->   x7
      *                                                                 (2 2 2)  ->   x8
     */
-    bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
+    virtual bool setRawData(const List<List<typeIn>>& inputs_, const List<typeOu>& outputs_)
     {
         for(label i = 0; i < dim; i++)
         {
