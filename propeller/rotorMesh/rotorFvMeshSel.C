@@ -322,6 +322,28 @@ void rotorFvMeshSel::syncCellData()
     {
         reduce(parCells[i],sumOp<labelList>());
     }
+
+    label corecount=0;
+    forAll(parNcells,i)
+    {
+        if(parNcells[i]!=0)
+        {
+            corecount++;
+            coreNo_=i;
+        }
+    }
+    
+    sameCore_ = corecount==1;
+    Info<<indent<< "- Is single Core: "<<sameCore_<<endl;
+    if(!sameCore_)
+    {
+        coreNo_=-1;
+    }
+    else
+    {
+        Info<<indent<<"- Core No. owner: "<<coreNo_<<endl;
+    }
+    
 }
 
 /**

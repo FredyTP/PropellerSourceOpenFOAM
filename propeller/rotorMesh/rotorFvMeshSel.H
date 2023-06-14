@@ -65,6 +65,8 @@ private:
     List<label> parNcells; //num of cells in each processor
     List<List<label>> parCells; //cell index for each processor
 
+    bool sameCore_ = false;
+    label coreNo_ = 0;
 
 public:
 TypeName("rotorFvMeshSel");
@@ -87,6 +89,9 @@ TypeName("rotorFvMeshSel");
         inline scalar radius() const {return meshGeometry_.radius().get();}
         inline scalar maxRadius() const {return maxPointRadius;}
         inline bool isBuilt() const {return built_;}
+        inline bool isSingleCore() const {return sameCore_;}
+        inline bool isMultiCore() const {return !isSingleCore();}
+        inline label coreNo() const {return coreNo_;}
     //BUILD SELECTION
         void build(rotorGeometry& rotorGeometry);
 
