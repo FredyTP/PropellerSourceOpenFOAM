@@ -52,6 +52,7 @@ private:
     typedef InterpolationTable<scalar,polar*,2> polarTable;
     List<autoPtr<polar>> polars_;
     autoPtr<polarTable> polarInterpolated;
+    
     FixedList<word,5> colNames{"AoA","CL","CD","Re","Ma"};
     
     bool isRadian_ = false;

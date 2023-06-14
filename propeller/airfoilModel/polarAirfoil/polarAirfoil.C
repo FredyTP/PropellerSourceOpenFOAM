@@ -3,6 +3,7 @@
 #include "IFstream.H"
 #include "LinearInterpolation.H"
 #include "csvTable.H"
+#include "readHelper.H"
 
 namespace Foam
 {
@@ -71,8 +72,12 @@ bool polarAirfoil::read(const dictionary& dict)
         ReMa[i][1]=polars_[i]->mach();
     }
 
-    polarInterpolated = autoPtr<InterpolationTable<scalar,polar*,2>>::NewFrom<LinearInterpolation<scalar,polar*,2>>();
-    polarInterpolated->setRawData(ReMa,polarList);
+    polarInterpolated = util::NewInterpolationFromRaw<scalar,polar*,2>(dict,ReMa,polarList);
+    //Info<<"Created polars"<<endl;
+    //Info<<"is good ? "<<polarInterpolated.good()<<endl;
+    //polarInterpolated->interpolate({1,1});
+    //polarInterpolated = autoPtr<InterpolationTable<scalar,polar*,2>>::NewFrom<LinearInterpolation<scalar,polar*,2>>();
+    //polarInterpolated->setRawData(ReMa,polarList);
 
     return true;
 }
