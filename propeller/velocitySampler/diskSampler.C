@@ -36,7 +36,6 @@ autoPtr<diskSampler<fType>> diskSampler<fType>::New(const dictionary &dict, cons
     //Get model Type name (Ex: fixedVelocity) 
     //From type key from dictionary (propellerModel)
     const word modelType(dict.get<word>("type")); 
-    Info<<endl;
     Info<< "Selecting " << typeName << " " << modelType << endl;
 
     //Find class contructor in tables
@@ -54,7 +53,6 @@ autoPtr<diskSampler<fType>> diskSampler<fType>::New(const dictionary &dict, cons
         ) << exit(FatalIOError);
     }
 
-    Info<<"Returning disk sampler"<<endl;
     return autoPtr<Foam::diskSampler<fType>>(ctorPtr(dict,rGrid,rMesh));
 
 }

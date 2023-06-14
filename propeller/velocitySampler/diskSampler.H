@@ -1,5 +1,5 @@
-#ifndef PROPELLER_DISK_SAMPLER_DISK_SAMPLER
-#define PROPELLER_DISK_SAMPLER_DISK_SAMPLER
+#ifndef PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER
+#define PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER
 
 
 #include "dictionary.H"
@@ -67,6 +67,7 @@ public:
      */
     virtual void writeSampled(const word& name);
     
+    virtual void build() {};
     /**
      * @brief Builds a diskSampler from its dictionary, rotorGrid data and fv Mesh selection
      * 
@@ -103,6 +104,6 @@ protected:
 
 #include "diskSampler.C"
 
-#endif /* PROPELLER_DISK_SAMPLER_DISK_SAMPLER */
+#endif /* PROPELLER_VELOCITY_SAMPLER_DISK_SAMPLER */
 
 
