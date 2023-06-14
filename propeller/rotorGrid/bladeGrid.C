@@ -66,15 +66,6 @@ void bladeGrid::assignFvCells()
         }
     }
 }
-void bladeGrid::build()
-{
-    forAll(cells_,i)
-    {
-        cells_[i].checkCells();
-        cells_[i].buildWeigths();
-    }
-    updateCenters();
-}
 void bladeGrid::setRotation(const List<scalar>& thetas)
 {
     updateThetas(thetas);

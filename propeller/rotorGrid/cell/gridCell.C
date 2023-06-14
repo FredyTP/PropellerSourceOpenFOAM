@@ -1,6 +1,6 @@
 #include "gridCell.H"
 #include "rotorGrid.H"
-
+#include "Pstream.H"
 namespace Foam
 {
 
@@ -12,7 +12,7 @@ void gridCell::addCelli(label celli,scalar weight)
 }
 
 
-void gridCell::buildWeigths()
+void gridCell::buildWeigths(bool parCheck)
 {
     scalar totalw=0.0;
 
@@ -21,19 +21,37 @@ void gridCell::buildWeigths()
         totalw+=weights_[i];
     }
 
+    reduce(totalw,sumOp<scalar>());
+
     forAll(weights_,i)
     {
         weights_[i]/=totalw;
     }
 }
-void gridCell::checkCells()
+void gridCell::checkCells(bool parCheck, label core)
 {
-    if(cellis_.size()==0)
+    label ncell = cellis_.size();
+    
+    if(parCheck)
     {
-        FatalErrorInFunction
-            <<"Some gridCells doesnt contain any fvCell"
-            <<exit(FatalError);
+        reduce(ncell,sumOp<label>());
+        if(ncell==0)
+        {
+            FatalErrorInFunction
+                <<"Some gridCells doesnt contain any fvCell"
+                <<exit(FatalError);
+        }
     }
+    else if(core == Pstream::myProcNo())
+    {
+        if(ncell==0)
+        {
+            FatalErrorInFunction
+                <<"Some gridCells doesnt contain any fvCell"
+                <<exit(FatalError);
+        }
+    }
+
 }
 
 
@@ -50,6 +68,7 @@ void gridCell::centerFromClosestCell(const vectorField &cellCenters)
     scalar minDistSq = VGREAT;
     vector gridCC = getCellCenter();
     gridCC = localCyl.globalPosition(gridCC);
+    interpolatingCell_ = -1;
     forAll(cellis_,i)
     {
         label celli = cellis_[i];
@@ -61,10 +80,28 @@ void gridCell::centerFromClosestCell(const vectorField &cellCenters)
             interpolatingCell_ = celli;
         }
     }
-    vector newCenter = cellCenters[interpolatingCell_];
-    newCenter = localCyl.localPosition(newCenter);
-    newCenter.z()=0;
-    this->setCenter(newCenter);
+
+    vector newCenter;
+    Tuple2<scalar,vector> distpos;
+    if(interpolatingCell_!=-1)
+    {
+        newCenter = cellCenters[interpolatingCell_];
+        newCenter = localCyl.localPosition(newCenter);
+        newCenter.z()=0;
+    }
+
+    distpos.first()=minDistSq;
+    distpos.second()=newCenter;
+
+    reduce(distpos,minFirstOp<scalar>());    
+    this->setCenter(distpos.second());
+
+    //Only interpolate cell from the closest one and disable other cores
+    if(newCenter != distpos.second())
+    {
+        interpolatingCell_ = -1;
+    }
+    
 }
 
 

@@ -31,7 +31,6 @@ public:
 
     void setRotation(const List<scalar>& thetas){}
     void assignFvCells();
-    void build();
 
     gridCell& cell(label i, label j) { return cells_[index(i,j,0)];}
     const List<scalar>& radius() const {return radius_;}

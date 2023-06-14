@@ -18,7 +18,7 @@ polarGrid::polarGrid(const dictionary &dict, const rotorGeometry &geometry, cons
     label nTheta = dict.get<label>("nAzimutal");
     radius_.resize(nRadius+1);
     theta_.resize(nTheta+1);
-    ijkAddressing::reset(nRadius,nTheta,0);
+    ijkAddressing::reset(nRadius,nTheta,1);
 
     scalar dr = (maxRadius_-minRadius_)/nRadius;
     scalar dt = (constant::mathematical::twoPi)/nTheta;
@@ -66,15 +66,7 @@ void polarGrid::assignFvCells()
     }
 }
 
-void polarGrid::build()
-{
-    forAll(cells_,i)
-    {
-        cells_[i].checkCells();
-        cells_[i].buildWeigths();
-    }
-    updateCenters();
-}
+
 
 
 void polarGrid::buildGrid()

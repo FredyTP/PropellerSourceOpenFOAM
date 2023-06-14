@@ -33,9 +33,9 @@ public:
      */
     void addCelli(label celli,scalar weight);
 
-    void buildWeigths();
+    void buildWeigths(bool parCheck = false);
 
-    void checkCells();
+    void checkCells(bool parCheck = false, label core=0);
 
     /**
      * @brief Returns a list of the fvCell indexs

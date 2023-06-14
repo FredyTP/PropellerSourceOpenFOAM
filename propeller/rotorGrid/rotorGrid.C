@@ -41,7 +41,15 @@ void rotorGrid::setCenterFromClosestCell()
         cells_[i].centerFromClosestCell(cellCenter);
     }
 }
-
+void rotorGrid::build()
+{
+    forAll(cells_,i)
+    {
+        cells_[i].checkCells(!meshSel_.isSingleCore(), meshSel_.coreNo());
+        cells_[i].buildWeigths(!meshSel_.isSingleCore());
+    }
+    updateCenters();
+}
 void Foam::rotorGrid::updateCenters()
 {
     if(samplingMode() == spCenter || samplingMode() == spCellMean)
@@ -52,7 +60,7 @@ void Foam::rotorGrid::updateCenters()
             cells_[i].setCenter(center);
         }
     }
-    else if(samplingMode() ==spClosestCell)
+    else if(samplingMode() == spClosestCell)
     {
         setCenterFromClosestCell();
     }

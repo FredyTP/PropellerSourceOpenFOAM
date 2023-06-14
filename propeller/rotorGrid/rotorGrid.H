@@ -50,7 +50,7 @@ public:
     rotorGrid(const dictionary& dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, label nBlades);
 
     virtual void assignFvCells() = 0;
-    virtual void build() = 0;
+    void build();
     virtual void setRotation(const List<scalar>& thetas)=0;
 
     void setCenterFromClosestCell();
