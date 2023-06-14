@@ -9,12 +9,14 @@ namespace Foam
 {
 
 
-enum extrapolationMode
+enum class extrapolationMode
 {
     emConstant = 0,
     emZero,
     emExtrapolate, //not in use
 };
+
+
 /**
  * Base class for interpolation tables with no specified interpolation algorithm
  * 
@@ -67,12 +69,9 @@ public:
      * If data set is not correct, return false
      * if could be fit, return true
     */                                                         
-    virtual bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) = 0;
+    virtual bool setRawData(const List<List<typeIn>>& inputs_, const List<typeOu>& outputs_) = 0;
 
     virtual label size() = 0;
-
-    //static autoPtr<InterpolationTable> New();
-    static autoPtr<InterpolationTable> NewFromRaw(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
 
     /**
      * @brief Checks if the input list grown monotonically
@@ -101,6 +100,6 @@ template<class type>
 
 
 
-}
 
+}
 #endif /* PROPELLER_INTERPOLATION_INTERPOLATION_TABLE */
