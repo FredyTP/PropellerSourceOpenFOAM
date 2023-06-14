@@ -115,7 +115,7 @@ public:
 
     vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, const tensor& bladeTensor, bemDebugData& data) const;
 
-    virtual void nextTimeStep(scalar dt);
+    virtual bool nextTimeStep(scalar dt);
     
     static inline scalar AngleOfIncidenceSTAR(const vector& relativeLocalVel);
     static inline scalar AngleOfIncidence(const vector& relativeLocalVel);

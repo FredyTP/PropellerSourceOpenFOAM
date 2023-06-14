@@ -94,7 +94,7 @@ void forceModel::build(const rotorGeometry &rotorGeometry)
     this->updateTensors();
 }
 
-void forceModel::nextTimeStep(scalar dt)
+bool forceModel::nextTimeStep(scalar dt)
 {
     const bladeGrid* bg = dynamic_cast<const bladeGrid*>(rotorGrid_.get());
     if(bg)
@@ -121,7 +121,9 @@ void forceModel::nextTimeStep(scalar dt)
         }
         rotorGrid_->setRotation(initialPos);
         this->updateTensors();
+        return true;
     }    
+    return false;
 }
 
 propellerResult forceModel::calculate(const vectorField &U, const scalarField *rhoField, volVectorField &force)

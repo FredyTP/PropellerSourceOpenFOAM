@@ -54,7 +54,7 @@ public:
     void read(const dictionary& dict);
 
     virtual void build(const rotorGeometry& rotorGeometry);
-    virtual void nextTimeStep(scalar dt);
+    virtual bool nextTimeStep(scalar dt);
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force);
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const;
 

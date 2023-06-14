@@ -69,7 +69,7 @@ public:
     void setRotorMesh(const rotorFvMeshSel* rotorFvMeshSel){ rotorFvMeshSel_ = rotorFvMeshSel;}
 
     virtual void build(const rotorGeometry& rotorGeometry){}
-    virtual void nextTimeStep(scalar dt){}
+    virtual bool nextTimeStep(scalar dt){return false;}
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force){return propellerResult();}
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const {return propellerResult();}
 

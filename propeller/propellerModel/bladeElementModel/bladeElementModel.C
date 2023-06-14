@@ -188,13 +188,20 @@ propellerResult bladeElementModel::calculate(const vectorField& U, const scalarF
         if(data.aoa>aoaMax) aoaMax=data.aoa;
         if(data.aoa<aoaMin) aoaMin=data.aoa;
 
+        if(std::abs(data.aoa) <= 0.005)
+        {
+            Info<<"AOA 0"<<endl;
+            Info<<data.aoa<<endl;
+            Info<<data.phi<<endl;
+            Info<<U[i]<<endl;
+            Info<<cell.center().x()<<endl;
+            Info<<cell.center().y()<<endl;
+            scalar chord,twist,sweep;
+            bladeModel_.geometryAtRadius(cell.center().x()/rotorGrid_->geometry().radius(),chord,twist,sweep);
+            Info<<twist<<endl;
+        }
+
     }
-
-    reduce(aoaMax,maxOp<scalar>());
-    reduce(aoaMin,minOp<scalar>());
-
-    reduce(result.force,sumOp<vector>());
-    reduce(result.torque,sumOp<vector>());
 
     result.update(angularVelocity,speedRef_,rhoRef_,rotorGrid_->geometry().radius());
     
@@ -233,10 +240,8 @@ propellerResult bladeElementModel::calculate(const vectorField &U, const scalarF
         result.force += localForce;
         vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
         result.torque += localForce.cross(localPos);
-    }
 
-    reduce(result.force,sumOp<vector>());
-    reduce(result.torque,sumOp<vector>());
+    }
 
     result.update(angularVelocity,speedRef_,rhoRef_,rotorGrid_->geometry().radius());
 
@@ -254,6 +259,8 @@ vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angu
     interpolatedAirfoil airfoil;
     if(!bladeModel_.sectionAtRadius(radius/maxRadius,chord,twist,sweep,airfoil))
     {
+        Info<<"Section outside"<<endl;
+        Info<<"Radius: "<<radius<<endl;
         return Zero;
     }       
 
@@ -316,7 +323,7 @@ vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angu
     data.localVel = U;
     return globalForceOverLenght;
 }
-void bladeElementModel::nextTimeStep(scalar dt)
+bool bladeElementModel::nextTimeStep(scalar dt)
 {
     
     const bladeGrid* bg = dynamic_cast<const bladeGrid*>(rotorGrid_.get());
@@ -344,7 +351,10 @@ void bladeElementModel::nextTimeStep(scalar dt)
         }
         rotorGrid_->setRotation(initialPos);
         this->updateTensors();
+
+        return true;
     }
+    return false;
 }
 inline scalar bladeElementModel::AngleOfIncidenceSTAR(const vector &relativeLocalVel)
 {
