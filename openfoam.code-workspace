@@ -331,7 +331,11 @@
 			"fmFixedValue.C": "cpp",
 			"scalarMatrices.C": "cpp",
 			"readHelper.C": "cpp",
-			"foamVtmWriter.C": "cpp"
+			"foamVtmWriter.C": "cpp",
+			"lduMeshTemplates.C": "cpp",
+			"PstreamGather.C": "cpp",
+			"createShellMesh.C": "cpp",
+			"boundBox.C": "cpp"
 		}
 	}
 }

@@ -29,6 +29,8 @@ bool fileSampler<vector>::read(const dictionary &dict)
 
 
     fileName csvpath = dict.getOrDefault<fileName>("csv","");
+
+    //Convert csv data to field data with interpolation method
     if(csvpath!="")
     {
         csvTable<scalar,word> table(true);

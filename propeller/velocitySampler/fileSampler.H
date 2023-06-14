@@ -57,7 +57,7 @@ public:
      * @param U 
      * @return const vectorField& 
      */
-        virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U);
+    virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U);
 private:
     autoPtr<GeometricField<fType, fvPatchField, volMesh>> uFromFile_;
 };
