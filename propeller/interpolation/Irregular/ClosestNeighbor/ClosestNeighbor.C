@@ -61,9 +61,34 @@ label ClosestNeighbor<typeIn, typeOu, dim>::size()
     return outputs.size();
 }
 template <class typeIn, class typeOu, label dim>
-bool ClosestNeighbor<typeIn, typeOu, dim>::setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_)
+bool ClosestNeighbor<typeIn, typeOu, dim>::setRawData(const List<List<typeIn>>& inputs_, const List<typeOu>& outputs_)
 {
-    return false;
+    /**
+     * Can try to fix ill-formed data, or not...
+    */
+    label inSize = inputs_.size();
+    label outSize = outputs_.size();
+
+    if(inSize!=outSize)
+    {
+        return false;
+    }
+    inputs.resize(inSize);
+    outputs.resize(outSize);
+
+    for(label i = 0; i< inSize;i++)
+    {
+        if(inputs_[i].size()<dim)
+        {
+            return false;
+        }
+        for(label j =0;j<dim;j++)
+        {
+            inputs[i][j]=inputs_[i][j];
+        }
+        outputs[i]=outputs_[i];
+    }
+    return true;
 }
 
 }

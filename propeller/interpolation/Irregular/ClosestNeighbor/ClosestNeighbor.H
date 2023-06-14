@@ -9,9 +9,11 @@ class ClosestNeighbor
 : public IrregularInterpolation<typeIn,typeOu,dim>
 {
 private:
-    const List<FixedList<typeIn,dim>> inputs;
-    const List<typeOu> outputs;
+    List<FixedList<typeIn,dim>> inputs;
+    List<typeOu> outputs;
 public:
+
+    ClosestNeighbor() = default;
 
     ClosestNeighbor(
         const List<FixedList<typeIn,dim>> inputs_,
@@ -22,7 +24,7 @@ public:
 
     virtual label size();
 
-    bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
+    virtual bool setRawData(const List<List<typeIn>>& inputs_, const List<typeOu>& outputs_);
    
 };
 }
