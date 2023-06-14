@@ -1,11 +1,19 @@
-#include "inverseDistance.H"
+#include "InverseDistance.H"
 #include "label.H"
-
+#include "Tuple2.H"
 namespace Foam
 {
 
+
 template <class typeIn, class typeOu, label dim>
-inverseDistance<typeIn, typeOu, dim>::inverseDistance(const List<FixedList<typeIn, dim>> inputs_, const List<typeOu> outputs_,label nIntPoints)
+InverseDistance<typeIn, typeOu, dim>::InverseDistance(int nIntPoints) 
+    : nInterpolationPoints(nIntPoints)
+{
+
+}
+
+template <class typeIn, class typeOu, label dim>
+InverseDistance<typeIn, typeOu, dim>::InverseDistance(const List<FixedList<typeIn, dim>> inputs_, const List<typeOu> outputs_,int nIntPoints)
 : inputs(inputs_), outputs(outputs_), nInterpolationPoints(nIntPoints)
 {
     //initialize some internal process data if required (?)
@@ -15,13 +23,13 @@ inverseDistance<typeIn, typeOu, dim>::inverseDistance(const List<FixedList<typeI
     }
 }
 template <class typeIn, class typeOu, label dim>
-interpolated<typeIn, typeOu> inverseDistance<typeIn, typeOu, dim>::interpolate(
+Interpolated<typeIn, typeOu> InverseDistance<typeIn, typeOu, dim>::interpolate(
 
     FixedList<typeIn, dim> input) const
 {
 
     // THIS ALGORITHM IS NOT OPTIMIZED!! IT CAN BE VERY SLOW IN BIG DATA BASES (O(N^2))
-    interpolated<typeIn, typeOu> result;
+    Interpolated<typeIn, typeOu> result;
 
     List<Tuple2<scalar,label>> dists(inputs.size());
     List<label> indexes;
@@ -35,7 +43,7 @@ interpolated<typeIn, typeOu> inverseDistance<typeIn, typeOu, dim>::interpolate(
     {
         const FixedList<typeIn, dim> &testPoint =
             inputs[i];
-        dists[i].first() = sqrt(irregularInterpolation<typeIn, typeOu, dim>::SqrDistance(input, testPoint));    
+        dists[i].first() = sqrt(IrregularInterpolation<typeIn, typeOu, dim>::SqrDistance(input, testPoint));    
         dists[i].second() = i;
     }
 
@@ -82,27 +90,29 @@ interpolated<typeIn, typeOu> inverseDistance<typeIn, typeOu, dim>::interpolate(
 }
 
 template <class typeIn, class typeOu, label dim>
-bool inverseDistance<typeIn, typeOu, dim>::setRawData(List<List<typeIn>> &inputs_, List<typeOu> &outputs_)
+bool InverseDistance<typeIn, typeOu, dim>::setRawData(const List<List<typeIn>>& inputs_, const List<typeOu>& outputs_)
 {
     /**
      * Can try to fix ill-formed data, or not...
     */
-    if(inputs_.size()!=outputs_.size())
+    label inSize = inputs_.size();
+    label outSize = outputs_.size();
+
+    if(inSize!=outSize)
     {
         return false;
     }
-    inputs.resize(inputs_.size());
-    outputs.resize(inputs_.size());
+    inputs.resize(inSize);
+    outputs.resize(outSize);
 
-    for(label i = 0; i< inputs.size();i++)
+    for(label i = 0; i< inSize;i++)
     {
+        if(inputs_[i].size()<dim)
+        {
+            return false;
+        }
         for(label j =0;j<dim;j++)
         {
-            if(inputs_.size()<dim)
-            {
-                return false;
-            }
-
             inputs[i][j]=inputs_[i][j];
         }
         outputs[i]=outputs_[i];
@@ -111,7 +121,7 @@ bool inverseDistance<typeIn, typeOu, dim>::setRawData(List<List<typeIn>> &inputs
 }
 
 template <class typeIn, class typeOu, label dim>
-label inverseDistance<typeIn, typeOu, dim>::size()
+label InverseDistance<typeIn, typeOu, dim>::size()
 {
     return outputs.size();
 }

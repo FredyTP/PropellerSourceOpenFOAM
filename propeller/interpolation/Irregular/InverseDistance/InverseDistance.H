@@ -13,20 +13,23 @@ class InverseDistance
 : public IrregularInterpolation<typeIn,typeOu,dim>
 {
 private:
-    const List<FixedList<typeIn,dim>> inputs;
-    const List<typeOu> outputs;
-    label nInterpolationPoints;
+    List<FixedList<typeIn,dim>> inputs;
+    List<typeOu> outputs;
+    int nInterpolationPoints;
 public:
 
-    InverseDistance(
+    InverseDistance(label nIntPoints = -1);
+    
+    InverseDistance
+    (
         const List<FixedList<typeIn,dim>> inputs_,
         const List<typeOu> outputs_,
-        label nIntPoints = -1
+        int nIntPoints = -1
     );
     
-    virtual interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const;
+    virtual Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const;
 
-    virtual bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_);
+    virtual bool setRawData(const List<List<typeIn>>& inputs_, const List<typeOu>& outputs_);
 
     virtual label size();
    
