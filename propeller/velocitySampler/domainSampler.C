@@ -33,22 +33,23 @@ bool domainSampler<fType>::read(const dictionary &dict)
     Info.stream().incrIndent();
     Info<<indent<< "- Offset: "<<offset<<endl;
     Info<<indent<< "- Scale: "<<scale<<endl;
-    Info<<indent<< "- Sample Mode: "<<rotorGrid::sampleModeNames_.find(this->rGrid_->samplingMode()) <<endl;
+    Info<<indent<< "- Sample Mode: "<<rotorGrid::sampleModeNames_.get(this->rGrid_->samplingMode()) <<endl;
+    Info<<indent<< "- Direct Sample: "<< isDirectSample() <<endl;
 
     if(!isDirectSample() && this->rGrid_->samplingMode() == rotorGrid::sampleMode::spCellMean)
     {
         FatalErrorInFunction<<"Cell Mean sampling mode is only available for 0.0 offset and 1.0 scale"
         <<exit(FatalError);
     }
-    //For parallel computation only 0 offset anc cell-center integration is available
-    if(Pstream::parRun())
+    //For parallel computation only 0 offset and cell-center integration is available
+    /*if(Pstream::parRun() && this->rMesh_->isMultiCore())
     {
-        if(offset != 0.0 || this->rGrid_->samplingMode() != rotorGrid::sampleMode::spClosestCell)
+        if(!isDirectSample())
         {
-            Info<<indent<<"In parallel runs, only 0 offset and cell center integration is available"<<endl;
-            FatalErrorInFunction<<exit(FatalError);
+            Info<<indent<<"In parallel runs, only 0 offset is available"<<endl;
+            //FatalErrorInFunction<<exit(FatalError);
         }
-    }
+    }*/
     
     this->build();
 
@@ -69,15 +70,24 @@ const Field<fType>& domainSampler<fType>::sampleField(const GeometricField<fType
         {
             forAll(rotorCells,i)
             {
-                this->sampledField_[i] = U.primitiveField()[rotorCells[i].interpolatingCelli()];
-            } 
+                label celli = rotorCells[i].interpolatingCelli();
+                if(celli!=-1)
+                {
+                    this->sampledField_[i] = U.primitiveField()[celli];
+                }
+                else
+                {
+                    this->sampledField_[i] = Zero;
+                }
+            }       
         }
-        else
+        else //Average
         {
             forAll(rotorCells,i)
             {
                 this->sampledField_[i] = rotorCells[i].applyWeights<fType>(U.primitiveField());
             } 
+            
         }
 
     }
@@ -85,30 +95,46 @@ const Field<fType>& domainSampler<fType>::sampleField(const GeometricField<fType
     {
         forAll(this->sampledField_,i)
         {
-            this->sampledField_[i]=U.primitiveField()[cellToSample[i]];
+            label celli = cellToSample[i];
+            if(celli != -1)
+            {
+                this->sampledField_[i]=U.primitiveField()[celli];
+            }
+            else
+            {
+                this->sampledField_[i]=Zero;
+            }
         }     
+
     }
     else
     {
         interpolationCellPoint<fType> interp(U);
         forAll(this->sampledField_,i)
         {
-            this->sampledField_[i]=interp.interpolate(*(cellWeights[i].get()));       
+            if(cellWeights[i].good())
+            {
+                this->sampledField_[i]=interp.interpolate(*(cellWeights[i].get()));       
+            }
+            else
+            {
+                this->sampledField_[i] = Zero;
+            }
         }      
     }
+    reduce(this->sampledField_,sumOp<Field<fType>>());
 
     return this->sampledField_;
 }
 template<class fType>
-bool domainSampler<fType>::build()
+void domainSampler<fType>::build()
 {
     //If offset is 0.0 and rotorGrid is equal to rotorFvMeshSel
     //There is no need to find cells or offset position, and the returned
     //velocity will be the velocity at cell center i of the rotor
-    
     if(isDirectSample())
     {
-        return true;
+        return;
     }
     const auto& cells = this->rGrid_->cells();
     cellToSample.resize(cells.size());
@@ -116,36 +142,55 @@ bool domainSampler<fType>::build()
     {
         cellWeights.resize(cells.size());
     }
+
+    //Check if cell found in any of the cores
+    labelList foundCell(cells.size());
     //Iterate over all discretization points
     forAll(cells, i)
     {
         //Get global coordinates
         vector localPoint = cells[i].center();
+
         //Scale radius
         localPoint.x() = localPoint.x()*scale;
         point rPoint = this->rGrid_->geometry().cylindricalCS().globalPosition(localPoint);
         
         //Add the offset normal to the geometry
         rPoint += this->rGrid_->geometry().direction().get() * offset;
+        
         //Find the cell where the point is and set to the list
         cellToSample[i] = this->rMesh_->mesh().findCell(rPoint); 
 
         if(cellToSample[i]==-1)
         {
-            FatalErrorInFunction
-                << "sampledCell at position = "
-                << localPoint 
-                <<", is outside computational domain"
-                <<exit(FatalError);
+            foundCell[i] = 0;
+        }
+        else
+        {
+            foundCell[i] = 1;
         }
 
         if(this->rGrid_->samplingMode() == rotorGrid::sampleMode::spCenter)
         {
-            cellWeights[i] = autoPtr<cellPointWeight>::New(this->rMesh_->mesh(),rPoint,cellToSample[i]);
+            if(cellToSample[i] != -1)
+            {
+                cellWeights[i] = autoPtr<cellPointWeight>::New(this->rMesh_->mesh(),rPoint,cellToSample[i]);
+            }
         }
     }
-
-    return true;
+    
+    //Check cellToSample
+    reduce(foundCell,sumOp<labelList>());
+    label idx = foundCell.find(0);
+    if(idx != -1)
+    {
+        FatalErrorInFunction
+        << "sampledCell at position = "
+        << cells[idx].center()
+        <<", is outside computational domain"
+        <<exit(FatalError);
+    }
+    
 }
 template<class fType>
 void domainSampler<fType>::writeSampled(const word& name)
@@ -168,7 +213,11 @@ void domainSampler<fType>::writeSampled(const word& name)
             forAll(this->rGrid_->cells(),i)
             {
                 const auto& cell = this->rGrid_->cells()[i];
-                sampled[cell.interpolatingCelli()] +=1.0;
+                label celli = cell.interpolatingCelli();
+                if(celli!=-1)
+                {
+                    sampled[celli] +=1.0;
+                }
             }
         }
         else
@@ -189,7 +238,11 @@ void domainSampler<fType>::writeSampled(const word& name)
     {
         forAll(cellToSample,i)
         {
-            sampled[cellToSample[i]]+=1.0;   
+            label celli = cellToSample[i];
+            if(celli != -1)
+            {
+                sampled[celli]+=1.0;   
+            }
         }
     }
 

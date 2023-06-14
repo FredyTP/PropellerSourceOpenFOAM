@@ -47,7 +47,7 @@ public:
 
     virtual const Field<fType>& sampleField(const GeometricField<fType, fvPatchField, volMesh>& U);
 
-    bool build();
+    void build();
 
     void writeSampled(const word& name);
 
