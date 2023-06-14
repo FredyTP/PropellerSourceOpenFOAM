@@ -1,5 +1,4 @@
 #include "readHelper.H"
-#include "scalarList.H"
 #include "unitConversion.H"
 #include "LinearInterpolation.H"
 #include "cubicSplineInterpolation.H"
@@ -100,7 +99,12 @@ autoPtr<RegularInterpolation<scalar,scalar,1>> NewInterpolationFromDict
 
 }
 
-
+const Enum<interpolationMethod> interpolationNames
+({
+    {interpolationMethod::linear, "linear"},
+    {interpolationMethod::closestNeighbor, "closestNeighbor"},
+    {interpolationMethod::inverseDistance, "inverseDistance"}
+});
 
 
 }
