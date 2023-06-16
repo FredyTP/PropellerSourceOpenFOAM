@@ -22,7 +22,6 @@ public:
         const bladeModelS* bladeModel,
         scalar nBlades
     );
-
     
     virtual void assignFvCells();
     

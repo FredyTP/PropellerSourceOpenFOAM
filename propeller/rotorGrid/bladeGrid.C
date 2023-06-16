@@ -2,7 +2,7 @@
 #include "unitConversion.H"
 #include "axisAngleRotation.H"
 #include "bladeCell.H"
-#include "delaunayTriangulation.H"
+#include "geometry.H"
 namespace Foam
 {
 
@@ -58,7 +58,7 @@ void bladeGrid::assignFvCells()
             {
                 continue;
             }       
-            if(delaunayTriangulation::isInsideCell(bCell->actualPoints(),fakeCell,center))
+            if(util::geometry::isInsideCell(bCell->actualPoints(),fakeCell,center))
             {
                 cells_.get(j)->addCelli(celli,weights[celli]);          
                 break;

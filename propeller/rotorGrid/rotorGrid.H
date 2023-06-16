@@ -51,7 +51,6 @@ public:
 
     virtual void assignFvCells() = 0;
     void build();
-    virtual void setRotation(const List<scalar>& thetas)=0;
 
     void setCenterFromClosestCell();
     void updateCenters();

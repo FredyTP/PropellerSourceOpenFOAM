@@ -63,6 +63,8 @@ public:
 
     scalar azimuth() const {return center_.y();}
 
+    virtual scalar dr() const = 0;
+
     /**
      * @brief Set the cell center in local polar coordinates z=0
      * 

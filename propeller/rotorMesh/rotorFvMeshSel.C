@@ -6,7 +6,7 @@
 #include "unitConversion.H"
 #include "cellBitSet.H"
 #include "cartesianCS.H"
-#include "delaunayTriangulation.H"
+#include "geometry.H"
 
 namespace Foam
 {

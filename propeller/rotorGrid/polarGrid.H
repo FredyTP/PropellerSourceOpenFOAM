@@ -28,8 +28,6 @@ public:
     );
 
     //polarGrid(List<scalar>& radius, List<scalar> theta);
-
-    void setRotation(const List<scalar>& thetas){}
     void assignFvCells();
 
     gridCell& cell(label i, label j) { return cells_[index(i,j,0)];}

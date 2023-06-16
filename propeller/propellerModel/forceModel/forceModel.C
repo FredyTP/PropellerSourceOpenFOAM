@@ -156,10 +156,9 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     Info<<"Table torque: "<<torque<<endl;
     scalar Ax = AxCoefficient(thrust,minR,maxR);
     scalar Atheta = AthetaCoefficient(torque,minR,maxR);
-    Info<<"integrated: "<<ForceIntergral(Ax,Atheta,minR,maxR,minR,maxR)<<endl;
     PtrList<gridCell>& cells = rotorGrid_->cells();
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
- Info<<"Atheta"<<Atheta<<endl;
+
     forAll(cells,i)
     {
         gridCell& cell = cells[i]; 
@@ -273,7 +272,6 @@ vector forceModel::ForceIntergralFunction(scalar Ax, scalar Atheta, scalar radiu
     scalar r1h = minRadius/maxRadius;
     scalar r1=radius/maxRadius;
     scalar rStar = (r1-r1h)/(1-r1h);
-    scalar sqrtRstar = sqrt(1-rStar);
     
     //Force X
     scalar fx = -2*Ax*(3*rStar+2)*pow(1-rStar,1.5)/15;

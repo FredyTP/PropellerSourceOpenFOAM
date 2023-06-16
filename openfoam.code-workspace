@@ -335,7 +335,9 @@
 			"lduMeshTemplates.C": "cpp",
 			"PstreamGather.C": "cpp",
 			"createShellMesh.C": "cpp",
-			"boundBox.C": "cpp"
+			"boundBox.C": "cpp",
+			"meshGrid.C": "cpp",
+			"meshCell.C": "cpp"
 		}
 	}
 }
