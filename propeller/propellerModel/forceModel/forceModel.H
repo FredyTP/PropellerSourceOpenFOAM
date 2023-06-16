@@ -75,7 +75,8 @@ private:
     autoPtr<RegularInterpolation<scalar,scalar,1>> torqueCoeff_;
 
     static vector ForceDistribution(scalar Ax, scalar Atheta, scalar radius, scalar minRadius, scalar maxRadius);
-
+    static vector ForceIntergralFunction(scalar Ax, scalar Atheta, scalar radius, scalar minRadius, scalar maxRadius);
+    static vector ForceIntergral(scalar Ax, scalar Atheta, scalar radius0, scalar radius1, scalar minRadius, scalar maxRadius);
     static scalar AxCoefficient(scalar thrust,scalar minRadius,scalar maxRadius);
     static scalar AthetaCoefficient(scalar torque,scalar minRadius,scalar maxRadius);
 

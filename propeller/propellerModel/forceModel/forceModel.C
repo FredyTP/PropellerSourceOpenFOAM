@@ -37,15 +37,7 @@ forceModel::forceModel
     read(dict);
 }
 
-scalar forceModel::AxCoefficient(scalar thrust, scalar minRadius, scalar maxRadius)
-{
-    return 105.0/8.0*thrust/(constant::mathematical::pi*(3*minRadius+4*maxRadius)*(maxRadius-minRadius));
-}
 
-scalar forceModel::AthetaCoefficient(scalar torque, scalar minRadius, scalar maxRadius)
-{
-    return 105.0/8.0*torque/(constant::mathematical::pi*maxRadius*(3*minRadius+4*maxRadius)*(maxRadius-minRadius));
-}
 
 void forceModel::updateTensors()
 {
@@ -96,7 +88,7 @@ void forceModel::build(const rotorGeometry &rotorGeometry)
 
 bool forceModel::nextTimeStep(scalar dt)
 {
-    const bladeGrid* bg = dynamic_cast<const bladeGrid*>(rotorGrid_.get());
+    bladeGrid* bg = dynamic_cast<bladeGrid*>(rotorGrid_.get());
     if(bg)
     {
         //Update angle if its a bladeGrid
@@ -119,7 +111,7 @@ bool forceModel::nextTimeStep(scalar dt)
         {
             initialPos[i] = initialPos[i]+psi0_;
         }
-        rotorGrid_->setRotation(initialPos);
+        bg->setRotation(initialPos);
         this->updateTensors();
         return true;
     }    
@@ -162,20 +154,20 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
 
     Info<<"Table thrust: "<<thrust<<endl;
     Info<<"Table torque: "<<torque<<endl;
-
     scalar Ax = AxCoefficient(thrust,minR,maxR);
     scalar Atheta = AthetaCoefficient(torque,minR,maxR);
-
+    Info<<"integrated: "<<ForceIntergral(Ax,Atheta,minR,maxR,minR,maxR)<<endl;
     PtrList<gridCell>& cells = rotorGrid_->cells();
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
-
+ Info<<"Atheta"<<Atheta<<endl;
     forAll(cells,i)
     {
         gridCell& cell = cells[i]; 
         const tensor& localBlade = gridTensor_[i];
-        scalar cellR = cell.center().x();
+        scalar cellR = cell.getCellCenter().x();
 
-        vector forceOverLen = ForceDistribution(Ax,Atheta,cellR,minR,maxR);
+        scalar dr2 = cell.dr()/2;
+        vector forceOverLen = ForceIntergral(Ax,Atheta,cellR-dr2,cellR+dr2,minR,maxR)/(cell.dr());
         // r-theta
         vector cellForce = cell.scaleForce(forceOverLen);
 
@@ -186,8 +178,9 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
         vector localForce = rotorGrid_->geometry().cartesianCS().localVector(globalForce);
         
         result.force += localForce;
-
-        vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
+        vector adimCenter = cell.center();
+        adimCenter.x()=(adimCenter.x()-minR)/(maxR-minR);
+        vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(adimCenter);
         result.torque += localForce.cross(localPos);
         cell.applySource(force,cellVol,globalForce);
         cell.applyField<vector>(fmForce,cellForce);
@@ -228,6 +221,7 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
 
     scalar Ax = AxCoefficient(thrust,minR,maxR);
     scalar Atheta = AthetaCoefficient(torque,minR,maxR);
+        
 
     const PtrList<gridCell>& cells = rotorGrid_->cells();
 
@@ -235,9 +229,9 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     {
         const gridCell& cell = cells[i]; 
         const tensor& localBlade = gridTensor_[i];
-        scalar cellR = cell.center().x();
-
-        vector forceOverLen = ForceDistribution(Ax,Atheta,cellR,minR,maxR);
+        scalar cellR = cell.getCellCenter().x();
+        scalar dr2 = cell.dr()/2;
+        vector forceOverLen = ForceIntergral(Ax,Atheta,cellR-dr2,cellR+dr2,minR,maxR)/(cell.dr());
         // r-theta
         vector cellForce = cell.scaleForce(forceOverLen);
 
@@ -272,6 +266,56 @@ vector forceModel::ForceDistribution(scalar Ax, scalar Atheta, scalar radius, sc
     scalar ftheta = Atheta*rStar*sqrtRstar/(rStar*(1-r1h)+r1h);
 
     return vector(ftheta,0,fx);
+}
+
+vector forceModel::ForceIntergralFunction(scalar Ax, scalar Atheta, scalar radius, scalar minRadius, scalar maxRadius)
+{
+    scalar r1h = minRadius/maxRadius;
+    scalar r1=radius/maxRadius;
+    scalar rStar = (r1-r1h)/(1-r1h);
+    scalar sqrtRstar = sqrt(1-rStar);
+    
+    //Force X
+    scalar fx = -2*Ax*(3*rStar+2)*pow(1-rStar,1.5)/15;
+    
+    //Force theta
+    scalar sqrt1h=sqrt(1-r1h);
+    scalar sqrtr = sqrt(1-rStar);
+
+    scalar a = (2.0*sqrtr*(1-rStar+r1h*(2+rStar))/(3.0*pow(r1h-1,2)));
+    scalar den = pow(sqrt1h,5);
+
+    scalar b = r1h*log((1-sqrt1h*sqrtr)/(1+sqrt1h*sqrtr))/den;
+    scalar ftheta = -Atheta*(a+b);
+
+    return vector(ftheta,0,fx);
+}
+scalar forceModel::AxCoefficient(scalar thrust, scalar minRadius, scalar maxRadius)
+{
+    return thrust*15.0/4.0;
+}
+
+scalar forceModel::AthetaCoefficient(scalar torque, scalar minRadius, scalar maxRadius)
+{
+    scalar h = minRadius/maxRadius;
+    if(h==0.0)
+    {
+        return torque*3/2;
+    }
+    scalar a = (2.0*(-2+9*h+8*pow(h,2))/(15.0*pow(h-1,3)));
+    scalar sqrt1h=sqrt(1-h);
+    scalar den = pow(sqrt1h,7);
+
+    scalar b = pow(h,2)*log((1-sqrt1h)/(1+sqrt1h))/den;
+
+    return torque/(a-b);
+}
+vector forceModel::ForceIntergral(scalar Ax, scalar Atheta, scalar radius0, scalar radius1, scalar minRadius, scalar maxRadius)
+{
+    //radius1 > radius0
+    return 
+        ForceIntergralFunction(Ax,Atheta,radius1,minRadius,maxRadius)-
+        ForceIntergralFunction(Ax,Atheta,radius0,minRadius,maxRadius);
 }
 
 }
