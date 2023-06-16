@@ -326,7 +326,7 @@ vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angu
 bool bladeElementModel::nextTimeStep(scalar dt)
 {
     
-    const bladeGrid* bg = dynamic_cast<const bladeGrid*>(rotorGrid_.get());
+    bladeGrid* bg = dynamic_cast<bladeGrid*>(rotorGrid_.get());
     if(bg)
     {
         //Update angle if its a bladeGrid
@@ -349,7 +349,7 @@ bool bladeElementModel::nextTimeStep(scalar dt)
         {
             initialPos[i] = (control_->getAzimuth(initialPos[i]+psi0_));
         }
-        rotorGrid_->setRotation(initialPos);
+        bg->setRotation(initialPos);
         this->updateTensors();
 
         return true;
