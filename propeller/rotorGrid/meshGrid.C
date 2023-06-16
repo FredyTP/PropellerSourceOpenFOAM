@@ -4,12 +4,26 @@
 #include "geometricOneField.H"
 #include "unitConversion.H"
 #include "rotorGeometry.H"
-#include "delaunayTriangulation.H"
+#include "geometry.H"
 #include <fstream>
 #include "syncTools.H"
+#include "meshCell.H"
 
 namespace Foam
 {
+defineTypeNameAndDebug(meshGrid, 0);
+addToRunTimeSelectionTable(rotorGrid,meshGrid,dictionary);
+
+const Enum
+<
+    meshGrid::discreteMethod
+>
+meshGrid::discreteMethodNames_
+({
+    {meshGrid::discreteMethod::voronoid, "voronoid"},
+    {meshGrid::discreteMethod::intersection, "intersection"},
+    {meshGrid::discreteMethod::proyection, "proyection"}
+});
 
 meshGrid::meshGrid
 (
@@ -21,55 +35,44 @@ meshGrid::meshGrid
 )
  : rotorGrid(dict,geometry,rotorFvMeshSel,nBlades)
 {
-    createVoronoidMesh();
+    this->read(dict);
+    assignFvCells();
+    build();
 }
+
 
 void meshGrid::assignFvCells()
 {
-}
-void meshGrid::createVoronoidMesh()
-{
-
-
+    this->fromMesh();
 }
 
-defineTypeNameAndDebug(rotorDiscrete, 0);
-
-const Enum
-<
-    rotorDiscrete::discreteMethod
->
-rotorDiscrete::discreteMethodNames_
-({
-    {discreteMethod::dmeVoronoid, "voronoid"},
-    {discreteMethod::dmeIntersection, "intersection"}
-});
-
-
-
-void rotorDiscrete::writeArea(word propName, const fvMesh &mesh) const
+void meshGrid::writeArea(word propName) const
 {
-    volScalarField areainfo(
+    volScalarField areainfo
+    (
         IOobject(
             propName + ":diskArea",
-            mesh.time().timeName(),
-            mesh),
-        mesh,
-        dimensionedScalar(dimArea, Zero));
-    forAll(rotorCells_, i)
+            meshSel_.mesh().time().timeName(),
+            meshSel_.mesh()),
+        meshSel_.mesh(),
+        dimensionedScalar(dimArea, Zero)
+    );
+
+    forAll(cells_, i)
     {
-        areainfo[rotorCells_[i].celli()] = rotorCells_[i].area();
+        //areainfo[cells_[i].cellis()[0]] = cells_[i].area();
     }
 
     areainfo.write();
 }
-void rotorDiscrete::createMeshOld()
+void meshGrid::createProyection()
 {
     vector axis = rotorGeometry_.direction();
-
+    
     const auto& mesh_ = meshSel_.mesh(); 
-    const auto& cells_ = meshSel_.cells();
-    scalarField area_(cells_.size(),1.0);
+    const auto& cells = meshSel_.cells();
+    scalarField area(cells.size(),1.0);
+    cells_.resize(cells.size());
 
     static const scalar tol = 0.8;
 
@@ -82,7 +85,7 @@ void rotorDiscrete::createMeshOld()
 
     // Calculate cell addressing for selected cells
     labelList cellAddr(mesh_.nCells(), -1);
-    labelUIndList(cellAddr, cells_) = identity(cells_.size());
+    labelUIndList(cellAddr, cells) = identity(cells.size());
     labelList nbrFaceCellAddr(mesh_.nBoundaryFaces(), -1);
     forAll(pbm, patchi)
     {
@@ -118,7 +121,7 @@ void rotorDiscrete::createMeshOld()
 
             if ((nf & axis) > tol)
             {
-                area_[own] += magSf[facei];
+                area[own] += magSf[facei];
                 n += Sf[facei];
             }
         }
@@ -128,15 +131,14 @@ void rotorDiscrete::createMeshOld()
 
             if ((-nf & axis) > tol)
             {
-                area_[nbr] += magSf[facei];
+                area[nbr] += magSf[facei];
                 n -= Sf[facei];
             }
         }
     }
 
-
     // Add boundary contributions
-    /*forAll(pbm, patchi)
+    forAll(pbm, patchi)
     {
         const polyPatch& pp = pbm[patchi];
         const vectorField& Sfp = mesh_.Sf().boundaryField()[patchi];
@@ -153,7 +155,7 @@ void rotorDiscrete::createMeshOld()
 
                 if ((own != -1) && (nbr == -1) && ((nf & axis) > tol))
                 {
-                    area_[own] += magSfp[j];
+                    area[own] += magSfp[j];
                     n += Sfp[j];
                 }
             }
@@ -168,12 +170,29 @@ void rotorDiscrete::createMeshOld()
 
                 if ((own != -1) && ((nf & axis) > tol))
                 {
-                    area_[own] += magSfp[j];
+                    area[own] += magSfp[j];
                     n += Sfp[j];
                 }
             }
         }
-    }*/
+    }
+
+
+    //Create cells
+    label goodIdx = 0;
+    const vectorField& meshCentroid = mesh_.C();
+    forAll(area,i)
+    {
+        if(area[i]>SMALL)
+        {
+            vector cellCenter = meshCentroid[cells[i]];
+            cellCenter = rotorGeometry_.cartesianCS().localPosition(cellCenter);
+            meshCell* newcell = new meshCell(rotorGeometry_,cells[i],nBlades_,area[i],cellCenter);
+            cells_.set(goodIdx,newcell);
+            ++goodIdx;
+        }
+
+    }
 
     volScalarField areaIO
     (
@@ -188,7 +207,7 @@ void rotorDiscrete::createMeshOld()
         mesh_,
         dimensionedScalar(dimArea, Zero)
     );
-    UIndirectList<scalar>(areaIO.primitiveField(), cells_) = area_;
+    UIndirectList<scalar>(areaIO.primitiveField(), cells) = area;
 
     Info<< " writing field " << areaIO.name()
         << endl;
@@ -197,7 +216,7 @@ void rotorDiscrete::createMeshOld()
     
 }
 
-void rotorDiscrete::createMeshIntersect
+void meshGrid::createMeshIntersect
 (
     List<point> &vertex, 
     List<label>& cellidx, 
@@ -266,7 +285,7 @@ void rotorDiscrete::createMeshIntersect
     cellidx=validCells;
 }
 
-void rotorDiscrete::selectInnerCells(List<label> &cellidx)
+void meshGrid::selectInnerCells(List<label> &cellidx)
 {
     List<label> cellSel = meshSel_.cells();
     // Selected rotor radius (real used, no from mesh)
@@ -277,7 +296,7 @@ void rotorDiscrete::selectInnerCells(List<label> &cellidx)
 
     cellidx.resize(cellSel.size());
     label nCell = 0;
-    auto isInsideRotor = delaunayTriangulation::circularRegion(radius);
+    auto isInsideRotor = util::geometry::circularRegion(radius);
     
     forAll(cellSel,i)
     {
@@ -316,7 +335,7 @@ void rotorDiscrete::selectInnerCells(List<label> &cellidx)
     cellidx.resize(nCell); //nCell <= cellSel.size()
 }
 
-bool rotorDiscrete::cutWithCircle
+bool meshGrid::cutWithCircle
     (
         List<point> &vertex,
         List<label> &cell,
@@ -385,7 +404,7 @@ bool rotorDiscrete::cutWithCircle
                     findIntersection(vertex[poli[o1]], p1, int1, true);
                     findIntersection(vertex[poli[o1]], p2, int2, true);
 
-                    delaunayTriangulation::refineBorder(vertex, insidePoli, int1, int2, refinementLevel_, isInRegion, findIntersection);
+                    util::geometry::refineBorder(vertex, insidePoli, int1, int2, refinementLevel_, isInRegion, findIntersection);
                 }
                 else
                 {
@@ -395,7 +414,7 @@ bool rotorDiscrete::cutWithCircle
                     findIntersection(pout1, p1, int1, true);
                     findIntersection(pout2, p2, int2, true);
 
-                    delaunayTriangulation::refineBorder(vertex, insidePoli, int1, int2, refinementLevel_, isInRegion, findIntersection);
+                    util::geometry::refineBorder(vertex, insidePoli, int1, int2, refinementLevel_, isInRegion, findIntersection);
                 }
             }
         }
@@ -408,23 +427,22 @@ bool rotorDiscrete::cutWithCircle
     return true;
 }
 
-void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> &centers,const List<label>& cellidx, List<List<label>> &cells)
+void meshGrid::createFromData(List<point> &vertex, const List<point> &centers, const List<label>& cellidx, List<List<label>> &cells)
 {    
     // Selected rotor radius (real used, no from mesh)
     const scalar radius = rotorGeometry_.radius();
-
-    auto isInsideRotor = delaunayTriangulation::circularRegion(radius);
-    auto intersectRotor = delaunayTriangulation::intersectCircle(radius);
-    area_ = 0.0;
     label goodIdx = 0;
     labelList layOut;
+
+    auto isInsideRotor = util::geometry::circularRegion(radius);
+    auto intersectRotor = util::geometry::intersectCircle(radius);
 
     cells_.resize(cells.size());
     // add cell centers to rotor points and create cells
     forAll(cellidx, i)
     {
         label celli = cellidx[i]; // Now indexing is from cellis (used cells)
-        delaunayTriangulation::sortCounterClockwise(vertex,cells[i]);
+        util::geometry::sortCounterClockwise(vertex,cells[i]);
         if(!cutWithCircle(vertex,cells[i],isInsideRotor,intersectRotor))
         {
             continue;
@@ -434,20 +452,20 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
         // Centers the cell_center in the middle of the cell
         if (correctCenters_)
         {
-            delaunayTriangulation::correctCenter(vertex,cells[i],c);
+            util::geometry::correctCenter(vertex,cells[i],c);
         }
         // Keeps the original cell_center
         else
         {
             //Correct only the centers outside the cell
-            if(!delaunayTriangulation::isInsideCell(vertex,cells[i],centers[i]))
+            if(!util::geometry::isInsideCell(vertex,cells[i],centers[i]))
             {
                 layOut.append(cells[i]);
                 
-                delaunayTriangulation::correctCenter(carPoints_,cells[i],c);
-                if(!delaunayTriangulation::isInsideCell(carPoints_,cells[i],c))
+                util::geometry::correctCenter(vertex,cells[i],c);
+                if(!util::geometry::isInsideCell(vertex,cells[i],c))
                 { 
-                    if(!delaunayTriangulation::isConvex(carPoints_,cells[i]))
+                    if(!util::geometry::isConvex(vertex,cells[i]))
                     {
                         Warning<<"Poligon is not convex"<<endl;
                     }
@@ -463,16 +481,9 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
                 c = centers[i];
             }
         }
-        List<point> localPoints(cells[i].size());
-
-        forAll(localPoints,j)
-        {
-            localPoints[i]=vertex[cells[i][j]];
-        }
-
-        meshCell* newcell = new meshCell(rotorGeometry_,nBlades_,localPoints,&c);
+        meshCell* newcell = new meshCell(rotorGeometry_,celli, nBlades_,vertex,cells[i],&c);
         cells_.set(goodIdx,newcell);
-
+        area_+=newcell->area();
         goodIdx++;
     }
     cells_.resize(goodIdx);
@@ -489,22 +500,28 @@ void rotorDiscrete::createFromData(const List<point> &vertex, const List<point> 
             <<endl;
     }
 }
-void rotorDiscrete::writePythonPlotter(word process)
+void meshGrid::writePythonPlotter()
 {
+    /*word procName="";
+    if(Pstream::parRun())
+    {
+        procName = std::to_string(Pstream::myProcNo());
+    }   
+    
     std::string x_string = "x = [";
     std::string y_string = "y = [";
     std::string xc_string = "xc = [";
     std::string yc_string = "yc = [";
 
-    for (label i = 0; i < rotorCells_.size(); i++)
+    for (label i = 0; i < cells_.size(); i++)
     {
-
-        vector center = rotorCells_[i].centerPosition();
+        vector center = cells_[i].center();
+        center = rotorGeometry_.cartesianToCylindrical().globalPosition(center);
         xc_string += std::to_string(center.x());
 
         yc_string += std::to_string(center.y());
 
-        if (i != rotorCells_.size() - 1)
+        if (i != cells_.size() - 1)
         {
             xc_string += ",";
             yc_string += ",";
@@ -514,13 +531,13 @@ void rotorDiscrete::writePythonPlotter(word process)
     xc_string += "]";
     yc_string += "]";
 
-    for (label i = 0; i < carPoints_.size(); i++)
+    for (label i = 0; i < cells_.size(); i++)
     {
-        x_string += std::to_string(carPoints_[i].x());
+        x_string += std::to_string(cells_[i].x());
 
-        y_string += std::to_string(carPoints_[i].y());
+        y_string += std::to_string(cells_[i].y());
 
-        if (i != carPoints_.size() - 1)
+        if (i != cells_.size() - 1)
         {
             x_string += ",";
             y_string += ",";
@@ -572,11 +589,11 @@ void rotorDiscrete::writePythonPlotter(word process)
     pyplot += "\n";
     pyplot += "plot.plot(xc,yc,marker='o',linewidth = 0)\n";
     pyplot += "plot.show()\n";
-    std::ofstream file("triangulation" + std::to_string(Pstream::myProcNo()) + ".py", std::ios::out);
+    std::ofstream file("triangulation" + procName + ".py", std::ios::out);
     file << pyplot;
-    file.close();
+    file.close();*/
 }
-void rotorDiscrete::fromMesh()
+void meshGrid::fromMesh()
 {
     Info<<endl;
     Info << "Building rotor Discrete from mesh:" << endl;
@@ -597,10 +614,12 @@ void rotorDiscrete::fromMesh()
 
     selectInnerCells(cellis);
 
+    Info<<"Inner cells selected"<<endl;
+
     List<List<label>> cellPoints;
     List<point> vertex;
 
-    if(discreteMethod_==discreteMethod::dmeVoronoid)
+    if(discreteMethod_==discreteMethod::voronoid)
     {
         //Get cell centers
         centers.resize(cellis.size());
@@ -654,7 +673,7 @@ void rotorDiscrete::fromMesh()
 }
 
 
-void rotorDiscrete::createMeshVoronoid
+void meshGrid::createMeshVoronoid
     (
         List<point> &vertex, 
         List<point> &centers,
@@ -693,13 +712,13 @@ void rotorDiscrete::createMeshVoronoid
     scalar radius = rotorGeometry_.radius();
 
     // Create voronoid diagram of proyected centers for 2D meshing
-    delaunayTriangulation::Voronoid(
+    util::geometry::Voronoid(
         allCenter,
         vertex,
         voroCells,
         refinementLevel_,
-        delaunayTriangulation::circularRegion(radius),
-        delaunayTriangulation::intersectCircle(radius)
+        util::geometry::circularRegion(radius),
+        util::geometry::intersectCircle(radius)
     );
 
     // Add vertex points
@@ -714,10 +733,10 @@ void rotorDiscrete::createMeshVoronoid
 
 bool meshGrid::read(const dictionary &dict)
 {
-    discreteMethod_ = discreteMethodNames_.getOrDefault("discreteMethod",dict,discreteMethod::dmeVoronoid);
+    discreteMethod_ = discreteMethodNames_.getOrDefault("discreteMethod",dict,discreteMethod::voronoid);
 
     //For voronoid method vertex cells are not needed, but for intersection is recommended
-    bool defaultVertex = discreteMethod_ == discreteMethod::dmeIntersection;
+    bool defaultVertex = discreteMethod_ == discreteMethod::intersection;
     includeVertex_ = dict.getOrDefault<bool>("includeIfVertex",defaultVertex);
 
     refinementLevel_ = dict.getOrDefault<label>("borderRefinement",0);
@@ -727,11 +746,10 @@ bool meshGrid::read(const dictionary &dict)
     Info<<endl;    
     Info << "Reading rotorGrid dict:" << endl;
     Info.stream().incrIndent();
-    indent(Info)<<"- Discrete method: "<<rotorDiscrete::discreteMethodNames_.get(discreteMethod_)<<endl;
+    indent(Info)<<"- Discrete method: "<<discreteMethodNames_.get(discreteMethod_)<<endl;
     indent(Info)<<"- Border refinement: "<<refinementLevel_<<endl;
     indent(Info)<<"- Correct centers: "<<correctCenters_<<endl;
-    indent(Info)<<"- Integration mode: "<<rotorCell::integrationModeNames_.get(integrationMode_)<<endl;
-    indent(Info)<<"- Include if vertex: "<<includeVertex_<<endl;
+    indent(Info)<<"- Include if vertex inside: "<<includeVertex_<<endl;
     Info.stream().decrIndent();
 
     return true;
