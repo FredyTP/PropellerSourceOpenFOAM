@@ -62,7 +62,8 @@ public:
     scalar radius() const {return center_.x();}
 
     scalar azimuth() const {return center_.y();}
-
+    
+    scalar area() const {return area_;}
     virtual scalar dr() const = 0;
 
     /**
@@ -115,6 +116,7 @@ protected:
     List<label> cellis_;
     List<scalar> weights_;
     label interpolatingCell_=-1;
+    scalar area_ = 0.0;
 
 };
 

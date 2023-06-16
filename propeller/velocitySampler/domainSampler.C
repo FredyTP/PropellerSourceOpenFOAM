@@ -123,7 +123,6 @@ const Field<fType>& domainSampler<fType>::sampleField(const GeometricField<fType
         }      
     }
     reduce(this->sampledField_,sumOp<Field<fType>>());
-
     return this->sampledField_;
 }
 template<class fType>

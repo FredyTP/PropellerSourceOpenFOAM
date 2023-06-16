@@ -25,9 +25,11 @@ propeller/rotorMesh/rotorFvMeshSel.C
 propeller/rotorGrid/rotorGrid.C
 propeller/rotorGrid/polarGrid.C
 propeller/rotorGrid/bladeGrid.C
+propeller/rotorGrid/meshGrid.C
 propeller/rotorGrid/cell/gridCell.C
 propeller/rotorGrid/cell/bladeCell.C
 propeller/rotorGrid/cell/polarCell.C
+propeller/rotorGrid/cell/meshCell.C
 
 propeller/rotorControl/rotorControl.C
 propeller/rotorControl/bemControl/bemControl.C
