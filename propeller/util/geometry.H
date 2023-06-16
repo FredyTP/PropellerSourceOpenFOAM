@@ -10,11 +10,36 @@
 namespace Foam
 {
 
-class delaunayTriangulation
+namespace util
+{
+
+
+class geometry
 {
 public:
    typedef FixedList<label,3> ITRIANGLE;
    typedef FixedList<label,2> IEDGE;
+
+
+/**
+ * @brief Compute area of a polygon 2D with counter-clockwise sorted vertex
+ * 
+ * source : https://es.wikipedia.org/wiki/F%C3%B3rmula_del_%C3%A1rea_de_Gauss
+ * @param points 
+ * @return scalar 
+ */
+static scalar poligonArea(const List<point>& points)
+{
+   scalar area = 0.0;
+
+   label j = points.size() - 1;
+   for (label i = 0; i < points.size(); i++)
+   {
+      area += (points[j].x() + points[i].x()) * (points[j].y() - points[i].y());
+      j = i;
+   }
+   return std::abs(area/ 2.0);
+}
 
 
 /**
@@ -35,8 +60,8 @@ static bool Voronoid
 {
    List<point> nodeP = points;
    List<ITRIANGLE> triangles;
-   delaunayTriangulation::Triangulate(nodeP,triangles,isInRegion,true);
-   delaunayTriangulation::VoronoidFromTri(nodeP,triangles,vertex,cells,refinementLevel,isInRegion,intersectRegion);
+   geometry::Triangulate(nodeP,triangles,isInRegion,true);
+   geometry::VoronoidFromTri(nodeP,triangles,vertex,cells,refinementLevel,isInRegion,intersectRegion);
    return true;
 }
 static bool isConvex(const List<point>& points, const List<label>& cell)
@@ -106,6 +131,30 @@ static void correctCenter(const List<point>& points, const List<label>& cell, po
    }
    center /= cell.size();
 }
+
+/**
+ * @brief Sort list of points in a counter-clockwise direction
+ * 
+ * @param points 
+ */
+static void sortCounterClockwise(List<point>& points)
+{
+   List<label> idx(points.size());
+   std::iota(idx.begin(), idx.end(), 0);
+   sortCounterClockwise(points,idx);
+   List<point> tmpPoints = points;
+   forAll(points,i)
+   {  
+      points[i]=tmpPoints[idx[i]];
+   }
+}
+
+/**
+ * @brief Sort list of points INDEX in a counter-clockwise direction
+ * 
+ * @param points 
+ * @param poli sorted poligon points indices
+ */
 static List<label> sortCounterClockwise(const List<point>& points, List<label>& poli)
 {
    if(poli.size()<3)
@@ -131,12 +180,12 @@ static List<label> sortCounterClockwise(const List<point>& points, List<label>& 
    //Sort index based on angles
    std::sort(idx.begin(),idx.end(),[angles](label a,label b)
    {
-         return angles[a]<angles[b];
+      return angles[a]<angles[b];
    });
 
    for(label j = 0; j<poli.size();j++)
    {
-       poli[j]=policopy[idx[j]];
+      poli[j]=policopy[idx[j]];
    }
    return idx;
 }
@@ -283,7 +332,7 @@ static int VoronoidFromTri
       x3 = nucli[tri[i][2]].x();
       y3 = nucli[tri[i][2]].y();
 
-      delaunayTriangulation::CircumCircle(0,0,x1,y1,x2,y2,x3,y3,&xc,&yc,&r);
+      geometry::CircumCircle(0,0,x1,y1,x2,y2,x3,y3,&xc,&yc,&r);
 
       //list of triangle ortocenters
       orto[i]= point{xc,yc,0};
@@ -660,7 +709,7 @@ static int Triangulate(List<point>& points,List<ITRIANGLE>& v,std::function<bool
    //points = pxyz;
   if(!keepSuperTri)
   {
-      delaunayTriangulation::removeSuperTri(v,nv);
+      geometry::removeSuperTri(v,nv);
       //points.resize(nv);
   }
   else
@@ -738,7 +787,7 @@ static int CircumCircle(double xp,double yp,
 
 };
 
-
+}
 }
 
 #endif /* PROPELLER_UTIL_DELAUNAY_TRIANGULATION */
