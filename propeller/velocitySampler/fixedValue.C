@@ -25,24 +25,43 @@ template<class fType>
 bool fixedValue<fType>::read(const dictionary &dict)
 {
     Info.stream().incrIndent();
+    bool ok =false;
+    ok &=dict.readEntry("value",fieldValue_);
+  
+    indent(Info)<< "- Rotor input value: "<<fieldValue_<<endl;
+
+    forAll(this->sampledField_,i)
+    {
+        this->sampledField_[i]=fieldValue_;
+    }
+
+    Info.stream().decrIndent();
+    return ok;
+    
+}
+
+template<>
+bool fixedValue<vector>::read(const dictionary &dict)
+{
+    Info.stream().incrIndent();
 
     bool normal = dict.getOrDefault<bool>("normal","false");
     bool ok=true;
     
     if(normal)
     {
-        scalar speed;
-        ok &=dict.readEntry("value",speed);
+        scalar value;
+        ok &=dict.readEntry("value",value);
         //Positive speed towards the disk
-        //fieldValue_ = - speed * this->rGrid_->geometry().direction().get();
-        indent(Info)<< "- Normal to rotor speed: "<<speed<<endl;
+        fieldValue_ = - value * this->rGrid_->geometry().direction().get();
+        indent(Info)<< "- Normal to rotor value: "<<value<<endl;
     }
     else
     {
         ok &=dict.readEntry("value",fieldValue_);
     }
 
-    indent(Info)<< "- Rotor input velocity: "<<fieldValue_<<endl;
+    indent(Info)<< "- Rotor input value: "<<fieldValue_<<endl;
 
     forAll(this->sampledField_,i)
     {
