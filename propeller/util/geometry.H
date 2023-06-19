@@ -1,5 +1,5 @@
-#ifndef PROPELLER_UTIL_DELAUNAY_TRIANGULATION
-#define PROPELLER_UTIL_DELAUNAY_TRIANGULATION
+#ifndef PROPELLER_UTIL_GEOMETRY
+#define PROPELLER_UTIL_GEOMETRY
 
 #define EPSILON VSMALL
 
@@ -198,6 +198,17 @@ static std::function<bool (point)> circularRegion(scalar radius)
    });
    return inCircle;
 }
+static std::function<bool (point)> coronaRegion(scalar maxRadius,scalar minRadius)
+{
+   std::function<bool (point)> inCircle(
+   [maxRadius,minRadius](point p1)
+   {
+      scalar magSqrP = magSqr(p1);
+      return (magSqrP <= sqr(maxRadius)) && (magSqrP>=sqr(minRadius));
+   });
+   return inCircle;
+}
+
 static std::function<void (point,point,point&,bool)> intersectCircle(scalar radius)
 {
 
@@ -790,7 +801,7 @@ static int CircumCircle(double xp,double yp,
 }
 }
 
-#endif /* PROPELLER_UTIL_DELAUNAY_TRIANGULATION */
+#endif /* PROPELLER_UTIL_GEOMETRY */
 
 
 
