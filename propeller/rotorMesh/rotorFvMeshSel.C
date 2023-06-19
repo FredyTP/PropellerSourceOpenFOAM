@@ -311,7 +311,6 @@ void rotorFvMeshSel::syncCellData()
     indent(Info)<<"- Total selected cells: "<<allCoreCells<<". In each core: "<<parNcells<<endl;
 
     //Get cell list for each core
-    List<List<label>> coreCells;
     parCells.resize(Pstream::nProcs());
     forAll(parCells,i)
     {
