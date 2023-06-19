@@ -337,7 +337,10 @@
 			"createShellMesh.C": "cpp",
 			"boundBox.C": "cpp",
 			"meshGrid.C": "cpp",
-			"meshCell.C": "cpp"
+			"meshCell.C": "cpp",
+			"lagrangianFieldDecomposerCache.C": "cpp",
+			"HashTable.C": "cpp",
+			"primitiveMeshCellPoints.C": "cpp"
 		}
 	}
 }

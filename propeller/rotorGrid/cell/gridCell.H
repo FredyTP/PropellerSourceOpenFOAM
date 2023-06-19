@@ -129,9 +129,9 @@ inline void gridCell::applySource(GeometricField<type, fvPatchField, volMesh> &d
 template <class type>
 inline void gridCell::applySource(Field<type> &source, const scalarField &cellVol, const type &scaledSource) const
 {
-    forAll(cellis_,k)
+    forAll(cellis_,i)
     {
-        source[cellis_[k]] =  -(weights_[k] * scaledSource/cellVol[cellis_[k]]);
+        source[cellis_[i]] =  -(weights_[i] * scaledSource/cellVol[cellis_[i]]);
     }
 }
 template <class type>
@@ -147,7 +147,7 @@ template <class type>
 inline void gridCell::applyField(Field<type> &field, const List<type> &values) const
 {
     forAll(cellis_,i)
-    {
+    {        
         field[cellis_[i]]=values[i];
     }
 }
