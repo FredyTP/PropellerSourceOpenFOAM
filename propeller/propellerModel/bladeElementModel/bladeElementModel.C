@@ -173,9 +173,7 @@ propellerResult bladeElementModel::calculate(const vectorField& U, const scalarF
         bemDebugData data;
         scalar rho = rhoField?(*rhoField)[i]:rhoRef_;
         vector forceOverLen = this->calculatePoint(U[i],rho,angularVelocity,cell,localBlade,data);
-
         vector cellforce = cell.scaleForce(forceOverLen);
-
         vector localForce = rotorGrid_->geometry().cartesianCS().localVector(cellforce);
         result.force += localForce;
         vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
@@ -187,19 +185,6 @@ propellerResult bladeElementModel::calculate(const vectorField& U, const scalarF
         cell.applyField<scalar>(aoa,data.aoa);
         if(data.aoa>aoaMax) aoaMax=data.aoa;
         if(data.aoa<aoaMin) aoaMin=data.aoa;
-
-        if(std::abs(data.aoa) <= 0.005)
-        {
-            Info<<"AOA 0"<<endl;
-            Info<<data.aoa<<endl;
-            Info<<data.phi<<endl;
-            Info<<U[i]<<endl;
-            Info<<cell.center().x()<<endl;
-            Info<<cell.center().y()<<endl;
-            scalar chord,twist,sweep;
-            bladeModel_.geometryAtRadius(cell.center().x()/rotorGrid_->geometry().radius(),chord,twist,sweep);
-            Info<<twist<<endl;
-        }
 
     }
 
@@ -259,8 +244,6 @@ vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angu
     interpolatedAirfoil airfoil;
     if(!bladeModel_.sectionAtRadius(radius/maxRadius,chord,twist,sweep,airfoil))
     {
-        Info<<"Section outside"<<endl;
-        Info<<"Radius: "<<radius<<endl;
         return Zero;
     }       
 
