@@ -62,6 +62,7 @@ void Foam::rotorGrid::updateCenters()
     }
     else if(samplingMode() == spClosestCell)
     {
+        Info<<"Creating from closest cell"<<endl;
         setCenterFromClosestCell();
     }
 
@@ -102,7 +103,25 @@ tensor rotorGrid::bladeLocalFromPoint(const coordSystem::cylindrical &cylCS, con
 
     return rotTensor;
 }
+void rotorGrid::writeArea(word propName) const
+{
+    volScalarField areainfo
+    (
+        IOobject(
+            propName + ":diskArea",
+            meshSel_.mesh().time().timeName(),
+            meshSel_.mesh()),
+        meshSel_.mesh(),
+        dimensionedScalar(dimArea, Zero)
+    );
 
+    forAll(cells_, i)
+    {
+        cells_[i].applyField<scalar>(areainfo,cells_[i].area());
+    }
+
+    areainfo.write();
+}
 autoPtr<rotorGrid> Foam::rotorGrid::New(const dictionary &dict, const rotorGeometry &geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS* bladeModel, scalar nBlades)
 {
      //Get model Type name (Ex: simpleAirfoil) 

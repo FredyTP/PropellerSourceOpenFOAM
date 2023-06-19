@@ -51,6 +51,7 @@ public:
 
     void build();
 
+    void writeArea(word propName) const;
     void setCenterFromClosestCell();
     void updateCenters();
     const PtrList<gridCell>& cells() const { return cells_;}

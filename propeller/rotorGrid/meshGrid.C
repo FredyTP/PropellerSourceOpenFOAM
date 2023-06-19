@@ -8,7 +8,7 @@
 #include <fstream>
 #include "syncTools.H"
 #include "meshCell.H"
-
+#include "GatherList.H"
 namespace Foam
 {
 defineTypeNameAndDebug(meshGrid, 0);
@@ -46,32 +46,13 @@ void meshGrid::assignFvCells()
     this->fromMesh();
 }
 
-void meshGrid::writeArea(word propName) const
-{
-    volScalarField areainfo
-    (
-        IOobject(
-            propName + ":diskArea",
-            meshSel_.mesh().time().timeName(),
-            meshSel_.mesh()),
-        meshSel_.mesh(),
-        dimensionedScalar(dimArea, Zero)
-    );
 
-    forAll(cells_, i)
-    {
-        //areainfo[cells_[i].cellis()[0]] = cells_[i].area();
-    }
-
-    areainfo.write();
-}
-void meshGrid::createProyection()
+void meshGrid::createProyection(const List<label>& cells)
 {
     vector axis = rotorGeometry_.direction();
     
     const auto& mesh_ = meshSel_.mesh(); 
-    const auto& cells = meshSel_.cells();
-    scalarField area(cells.size(),1.0);
+    scalarField area(cells.size(),0.0);
     cells_.resize(cells.size());
 
     static const scalar tol = 0.8;
@@ -177,50 +158,103 @@ void meshGrid::createProyection()
         }
     }
 
-
     //Create cells
     label goodIdx = 0;
     const vectorField& meshCentroid = mesh_.C();
+
+
+    //keep only the valid cells
+    List<label> goodCell(area.size());
+    List<scalar> goodArea(area.size());
+    List<vector> goodCenter(area.size());
+    
+    const scalar radius = rotorGeometry_.radius();
+    const scalar minradius = rotorGeometry_.innerRadius();
+    auto isInsideCorona = util::geometry::coronaRegion(radius,minradius);
+
+
     forAll(area,i)
     {
-        if(area[i]>SMALL)
+        vector cellCenter = meshCentroid[cells[i]];
+        cellCenter = rotorGeometry_.cylindricalCS().localPosition(cellCenter);
+        cellCenter.z()=0;
+        cellCenter = rotorGeometry_.cartesianToCylindrical().globalPosition(cellCenter);
+
+        if(area[i]>SMALL && isInsideCorona(cellCenter))
         {
-            vector cellCenter = meshCentroid[cells[i]];
-            cellCenter = rotorGeometry_.cartesianCS().localPosition(cellCenter);
-            meshCell* newcell = new meshCell(rotorGeometry_,cells[i],nBlades_,area[i],cellCenter);
-            cells_.set(goodIdx,newcell);
+            goodCenter[goodIdx] = cellCenter;
+            
+            goodCell[goodIdx]=cells[i];
+            goodArea[goodIdx]=area[i];
             ++goodIdx;
         }
+    }
+    goodCell.resize(goodIdx);
+    goodArea.resize(goodIdx);
+    goodCenter.resize(goodIdx);
 
+
+    //Gather par Data
+    label totalCell = goodIdx;
+    reduce(totalCell,sumOp<label>());
+
+    List<label> cellSize(Pstream::nProcs(),0);
+    cellSize[Pstream::myProcNo()]=goodIdx;
+    reduce(cellSize,sumOp<labelList>());
+
+    List<List<label>> parCells(Pstream::nProcs());
+    List<List<scalar>> parArea(Pstream::nProcs());
+    List<List<vector>> parCenter(Pstream::nProcs());
+
+    forAll(parCells,i)
+    {
+        parCells[i].resize(cellSize[i],0);
+        parArea[i].resize(cellSize[i],0);
+        parCenter[i].resize(cellSize[i],Zero);
+    }
+    parCells[Pstream::myProcNo()]=goodCell;
+    parArea[Pstream::myProcNo()]=goodArea;
+    parCenter[Pstream::myProcNo()]=goodCenter;
+   
+    forAll(parCells,i)
+    {
+        reduce(parCells[i],sumOp<labelList>());
+        reduce(parArea[i],sumOp<scalarList>());
+        reduce(parCenter[i],sumOp<vectorList>());
     }
 
-    volScalarField areaIO
-    (
-        IOobject
-        (
-            "oldArea",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh_,
-        dimensionedScalar(dimArea, Zero)
-    );
-    UIndirectList<scalar>(areaIO.primitiveField(), cells) = area;
+    cells_.resize(totalCell);
+    label cellCount = 0;
+    forAll(parCells,i)
+    {
+        auto& localCell = parCells[i];
+        auto& localArea = parArea[i];
+        auto& localCenter = parCenter[i];
+        forAll(localCell,j)
+        {
+            label cellidx = localCell[j];
+            scalar cellArea = localArea[j];
+            if(Pstream::myProcNo()!=i)
+            {
+                //No index in this core
+                cellidx=-1;
+            }
+            area_+=cellArea;
+            meshCell* newcell = new meshCell(rotorGeometry_,cellidx,nBlades_,cellArea,localCenter[j]);
+            cells_.set(cellCount,newcell);
+            ++cellCount;
+        }
+    }
+    cells_.resize(cellCount);
 
-    Info<< " writing field " << areaIO.name()
-        << endl;
-
-    areaIO.write();
-    
 }
 
 void meshGrid::createMeshIntersect
 (
     List<point> &vertex, 
     List<label>& cellidx, 
-    List<List<label>> &cellPoints
+    List<List<label>> &cellPoints,
+    List<bool> &isThisCore
 )
 {
     // List ref.
@@ -283,6 +317,27 @@ void meshGrid::createMeshIntersect
     cellPoints.resize(nValid);
     validCells.resize(nValid);
     cellidx=validCells;
+
+    List<label> vertexIdx;
+    vertex = util::GatherList(vertex,vertexIdx);
+
+    forAll(cellPoints,i)
+    {
+        forAll(cellPoints[i],j)
+        {
+            cellPoints[i][j]+=vertexIdx[Pstream::myProcNo()];
+        }
+    }
+
+    List<label> cellPointsIdx;
+    cellPoints = util::GatherListList<label>(cellPoints,cellPointsIdx);
+
+    isThisCore.resize(cellPoints.size(),false);
+    forAll(validCells,i)
+    {
+        label idx = i + cellPointsIdx[Pstream::myProcNo()];
+        isThisCore[idx]=true;
+    }
 }
 
 void meshGrid::selectInnerCells(List<label> &cellidx)
@@ -305,10 +360,10 @@ void meshGrid::selectInnerCells(List<label> &cellidx)
         {
             //Include cell if the centroid proyects inside the rotor
             vector cellCentroid = meshSel_.mesh().C()[celli];
-            vector localPos = rotorGeometry_.cartesianCS().localPosition(cellCentroid);
+            vector localPos = rotorGeometry_.cylindricalCS().localPosition(cellCentroid);
             localPos.z()=0; //set on rotor plane 
-
-            if( isInsideRotor(localPos))
+            localPos = rotorGeometry_.cartesianToCylindrical().globalPosition(localPos);
+            if(isInsideRotor(localPos))
             {
                 cellidx[nCell]=celli;
                 nCell++;
@@ -320,8 +375,9 @@ void meshGrid::selectInnerCells(List<label> &cellidx)
             forAll(cellVertex[celli],j)
             {
                 vector point = meshPoints[cellVertex[celli][j]];
-                vector localPos = rotorGeometry_.cartesianCS().localPosition(point);
+                vector localPos = rotorGeometry_.cylindricalCS().localPosition(point);
                 localPos.z()=0; //set on rotor plane 
+                localPos = rotorGeometry_.cartesianToCylindrical().globalPosition(localPos);
 
                 if(isInsideRotor(localPos))
                 {
@@ -427,21 +483,30 @@ bool meshGrid::cutWithCircle
     return true;
 }
 
-void meshGrid::createFromData(List<point> &vertex, const List<point> &centers, const List<label>& cellidx, List<List<label>> &cells)
+void meshGrid::createFromData
+(
+    List<point> &vertex,
+    const List<point> &centers,
+    const List<label>& cellidx,
+    List<List<label>> &cells,
+    List<bool>& isThisCore
+)
 {    
     // Selected rotor radius (real used, no from mesh)
     const scalar radius = rotorGeometry_.radius();
+    const scalar minradius = rotorGeometry_.innerRadius();
     label goodIdx = 0;
-    labelList layOut;
+    label coreCount = 0;
+    label layOut = 0;
 
     auto isInsideRotor = util::geometry::circularRegion(radius);
     auto intersectRotor = util::geometry::intersectCircle(radius);
-
+    auto isInsideCorona = util::geometry::coronaRegion(radius,minradius);
     cells_.resize(cells.size());
     // add cell centers to rotor points and create cells
-    forAll(cellidx, i)
+    forAll(cells, i)
     {
-        label celli = cellidx[i]; // Now indexing is from cellis (used cells)
+
         util::geometry::sortCounterClockwise(vertex,cells[i]);
         if(!cutWithCircle(vertex,cells[i],isInsideRotor,intersectRotor))
         {
@@ -460,7 +525,7 @@ void meshGrid::createFromData(List<point> &vertex, const List<point> &centers, c
             //Correct only the centers outside the cell
             if(!util::geometry::isInsideCell(vertex,cells[i],centers[i]))
             {
-                layOut.append(cells[i]);
+                layOut++;
                 
                 util::geometry::correctCenter(vertex,cells[i],c);
                 if(!util::geometry::isInsideCell(vertex,cells[i],c))
@@ -481,6 +546,22 @@ void meshGrid::createFromData(List<point> &vertex, const List<point> &centers, c
                 c = centers[i];
             }
         }
+
+
+        label celli;
+        if(isThisCore[i])
+        {
+            celli = cellidx[coreCount]; // Now indexing is from cellis (used cells)
+            ++coreCount;
+        }
+        else
+        {
+            celli=-1;
+        }
+        if(!isInsideCorona(c))
+        {
+            continue;
+        }
         meshCell* newcell = new meshCell(rotorGeometry_,celli, nBlades_,vertex,cells[i],&c);
         cells_.set(goodIdx,newcell);
         area_+=newcell->area();
@@ -488,15 +569,10 @@ void meshGrid::createFromData(List<point> &vertex, const List<point> &centers, c
     }
     cells_.resize(goodIdx);
 
-
-    //Compute area
-
-    totalArea_ = area_;
-    reduce(totalArea_, sumOp<scalar>());
-    if(layOut.size()>0)
+    if(layOut>0)
     {
         Warning
-            <<layOut.size()<<" cells centers lay outsid rotorCell and have been corrected"
+            <<layOut<<" cells centers lay outsid rotorCell and have been corrected"
             <<endl;
     }
 }
@@ -601,75 +677,71 @@ void meshGrid::fromMesh()
 
     // Selected rotor radius (real used, no from mesh)
     const scalar radius = rotorGeometry_.radius();
-    const scalar sqrRadius = radius * radius;
-    const scalar idealArea = constant::mathematical::pi * sqrRadius;
+    const scalar minradius = rotorGeometry_.innerRadius();
 
-    //this->createMeshOld(meshSel_);
-    //
-    // List ref.
-    const vectorField &cellCenter = meshSel_.mesh().C();
+    const scalar sqrRadius = radius * radius;
+    const scalar sqrMinradius = minradius * minradius;
+
+    const scalar idealArea = constant::mathematical::pi * (sqrRadius-sqrMinradius);
 
     List<point> centers;
     List<label> cellis;
 
     selectInnerCells(cellis);
 
-    Info<<"Inner cells selected"<<endl;
-
-    List<List<label>> cellPoints;
-    List<point> vertex;
-
-    if(discreteMethod_==discreteMethod::voronoid)
+    if(discreteMethod_ == discreteMethod::proyection)
     {
-        //Get cell centers
-        centers.resize(cellis.size());
-        forAll(centers,i)
-        {
-            centers[i]=rotorGeometry_.cartesianCS().localPosition(cellCenter[cellis[i]]);
-            centers[i].z()=0;
-        }
-        this->createMeshVoronoid(vertex,centers,cellPoints);
+        createProyection(cellis);
     }
     else
     {
-        this->createMeshIntersect(vertex,cellis,cellPoints);
+        const vectorField &cellCenter = meshSel_.mesh().C();
 
-        centers.resize(cellis.size());
-        forAll(centers,i)
+        List<point> vertex;
+        List<List<label>> cellPoints;
+        List<bool> isThisCore;
+
+        if(discreteMethod_==discreteMethod::voronoid)
         {
-            centers[i]=rotorGeometry_.cartesianCS().localPosition(cellCenter[cellis[i]]);
-            centers[i].z()=0;
+            //Get cell centers
+            centers.resize(cellis.size());
+            forAll(centers,i)
+            {
+                centers[i]=rotorGeometry_.cylindricalCS().localPosition(cellCenter[cellis[i]]);
+                centers[i].z()=0;
+                centers[i]=rotorGeometry_.cartesianToCylindrical().globalPosition(centers[i]);
+            }
+            this->createMeshVoronoid(vertex,centers,cellPoints,isThisCore);
         }
-        
+        else
+        {
+            this->createMeshIntersect(vertex,cellis,cellPoints,isThisCore);
+
+            centers.resize(cellis.size());
+            forAll(centers,i)
+            {
+                centers[i]=rotorGeometry_.cylindricalCS().localPosition(cellCenter[cellis[i]]);
+                centers[i].z()=0;
+                centers[i]=rotorGeometry_.cartesianToCylindrical().globalPosition(centers[i]);
+            }
+            labelList centIdx;
+            centers = util::GatherList<vector>(centers,centIdx);
+            
+        }
+
+        this->createFromData(vertex,centers,cellis,cellPoints,isThisCore);
     }
 
-    this->createFromData(vertex,centers,cellis,cellPoints);
 
-    //Join all core cell number
-    label allCoreCells = cells_.size();
-    reduce(allCoreCells,sumOp<label>());
-
-    //Obtain number of cells for each core
-    labelList parNcells(Pstream::nProcs(),0);
-    parNcells[Pstream::myProcNo()]=cells_.size();
-
-    reduce(parNcells,sumOp<labelList>());
-     //Out total number of cells
-    indent(Info)<<"- Total created rotorCells: "<<allCoreCells<<endl;
-    indent(Info)<<"    - In each core: "<<parNcells<<endl;
-
-    scalarList eachArea(Pstream::nProcs(),0);
-    eachArea[Pstream::myProcNo()]=area_;
-    reduce(eachArea,sumOp<scalarList>());
-
-    indent(Info) << "- Total disk area: " << totalArea_ << endl;
-    indent(Info) << "    - In each core: " << eachArea << endl;
-    indent(Info) << "- Ideal disk area: " << idealArea << endl;
-    indent(Info) << "- Area error = " << (idealArea - totalArea_) / idealArea * 100.0 << "%" << endl;
+    //Compute area
+    indent(Info) << "- Total disk area: " << area_ << endl;
+    indent(Info) << "- Area error = " << (idealArea - area_) / idealArea * 100.0 << "%" << endl;
 
     Info.stream().decrIndent();
 
     this->writePythonPlotter();
+
+    this->writeArea("propeller1:");
 }
 
 
@@ -677,58 +749,37 @@ void meshGrid::createMeshVoronoid
     (
         List<point> &vertex, 
         List<point> &centers,
-        List<List<label>> &cells
+        List<List<label>> &cells,
+        List<bool>& isThisCore
     )
 {
 
-     // Gather ncell information
-    List<label> ncellis(Pstream::nProcs(), 0);
-    ncellis[Pstream::myProcNo()] = centers.size();
-    reduce(ncellis, sumOp<labelList>());
-    label totalCells = sum(ncellis);
-
-    List<label> coreIdx(ncellis.size());
-    label sum = 0;
-    forAll(coreIdx, i)
-    {
-        coreIdx[i] = sum;
-        sum += ncellis[i];
-    }
-
-    List<point> allCenter(totalCells, vector(0, 0, 0));
-
-    auto it = centers.begin();
-    auto dstIt = allCenter.begin() + coreIdx[Pstream::myProcNo()];
-    while (it != centers.end())
-    {
-        (*dstIt) = (*it);
-        it++;
-        dstIt++;
-    }
-    reduce(allCenter, sumOp<vectorList>());
-
-    List<List<label>> voroCells;
+    // Gather ncell information
+    List<label> coreIdx;
+    List<vector> allCenter = util::GatherList<vector>(centers,coreIdx);
 
     scalar radius = rotorGeometry_.radius();
-
     // Create voronoid diagram of proyected centers for 2D meshing
     util::geometry::Voronoid(
         allCenter,
         vertex,
-        voroCells,
+        cells,
         refinementLevel_,
         util::geometry::circularRegion(radius),
         util::geometry::intersectCircle(radius)
     );
 
     // Add vertex points
-    cells.resize(centers.size());
+    isThisCore.resize(0);
+    isThisCore.resize(cells.size(),false);
 
-    forAll(cells, i)
+    //Set the core cells
+    forAll(centers, i)
     {
         label globalIdx = i + coreIdx[Pstream::myProcNo()];
-        cells[i]=voroCells[globalIdx];
+        isThisCore[globalIdx]=true;
     }
+    centers=allCenter;
 }
 
 bool meshGrid::read(const dictionary &dict)
