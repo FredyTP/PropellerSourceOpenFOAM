@@ -126,8 +126,6 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
                     propellerModel_->grid().get(), 
                     &rotorFvMeshSel_);
         
-        /*----CREATE ROTOR DYNAMICS----*/
-
         decrIndent(Info);
         return true;
     }
