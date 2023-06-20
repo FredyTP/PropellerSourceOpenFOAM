@@ -75,6 +75,11 @@ public:
     void setValues(const FixedList<fieldType,N>& values, const List<label>& cells);
 
 
+    /**
+     * @brief Force to write active fields
+     * 
+     */
+    void write();
     
 private:
     word ownerName_;
@@ -207,6 +212,17 @@ inline void outputFields<fieldType, enumType, N>::setValues(const FixedList<fiel
             {
                 fields_[i].ref(false)[cells[i]]=values[i];
             }
+        }
+    }
+}
+template <class fieldType, class enumType, label N>
+inline void outputFields<fieldType, enumType, N>::write()
+{
+    forAll(active_,i)
+    {
+        if(active_[i])
+        {
+            fields_[i].write();
         }
     }
 }
