@@ -16,8 +16,8 @@ fmTargetValue::fmTargetValue(const dictionary& dict,const forceModel& fmModel)
     control_(),
     usedControl_(1,controlVar::omega),
     nIter_(50),
-    tol_(1e-8),
     relax_(1.0),
+    tol_(1e-8),
     dx_(1,0.1)
 {
     read(dict);

@@ -34,8 +34,6 @@ Interpolated<typeIn, typeOu> InverseDistance<typeIn, typeOu, dim>::interpolate(
     List<Tuple2<scalar,label>> dists(inputs.size());
     List<label> indexes;
 
-    
-    scalar minDistanceSq = 1e300;
     label minIndex = -1;
 
     // TODO: extract this to a function of findClosest

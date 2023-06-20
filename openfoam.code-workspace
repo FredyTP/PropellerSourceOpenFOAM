@@ -340,7 +340,9 @@
 			"meshCell.C": "cpp",
 			"lagrangianFieldDecomposerCache.C": "cpp",
 			"HashTable.C": "cpp",
-			"primitiveMeshCellPoints.C": "cpp"
+			"primitiveMeshCellPoints.C": "cpp",
+			"bemFixedControl.C": "cpp",
+			"fmFixedControl.C": "cpp"
 		}
 	}
 }

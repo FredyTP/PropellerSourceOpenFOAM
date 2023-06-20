@@ -14,7 +14,7 @@ class fmTargetValue : public fmControl
 {
 public:
 
-    TypeName("fmTargetValue");
+    TypeName("targetValue");
 
     fmTargetValue(const dictionary& dict, const forceModel& fmModel);
 

@@ -33,10 +33,10 @@ propeller/rotorGrid/cell/meshCell.C
 
 propeller/rotorControl/rotorControl.C
 propeller/rotorControl/bemControl/bemControl.C
-propeller/rotorControl/bemControl/bemFixedValue.C
+propeller/rotorControl/bemControl/bemFixedControl.C
 propeller/rotorControl/bemControl/bemTargetValue.C
 propeller/rotorControl/fmControl/fmControl.C
-propeller/rotorControl/fmControl/fmFixedValue.C
+propeller/rotorControl/fmControl/fmFixedControl.C
 propeller/rotorControl/fmControl/fmTargetValue.C
 
 propeller/util/readHelper.C

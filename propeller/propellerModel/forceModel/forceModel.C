@@ -76,8 +76,9 @@ void forceModel::read(const dictionary &dict)
     rhoRef_ = dict.get<scalar>("rhoRef");
     control_ = fmControl::New(dict.subDict("control"),*this);
 
-    thrustCoeff_ = util::NewInterpolationFromDict(dict,"J","CT");
-    torqueCoeff_ = util::NewInterpolationFromDict(dict,"J","CQ");
+    const dictionary& curvesDict = dict.subDict("curves");
+    thrustCoeff_ = util::NewInterpolationFromDict(curvesDict,"J","CT");
+    torqueCoeff_ = util::NewInterpolationFromDict(curvesDict,"J","CQ");
 }
 
 void forceModel::build(const rotorGeometry &rotorGeometry)

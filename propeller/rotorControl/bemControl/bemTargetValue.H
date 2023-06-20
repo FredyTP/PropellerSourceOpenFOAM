@@ -13,7 +13,7 @@ class bemTargetValue : public bemControl
 {
 public:
 
-    TypeName("bemTargetValue");
+    TypeName("targetValue");
 
     bemTargetValue(const dictionary& dict, const bladeElementModel& bem);
 
