@@ -66,7 +66,6 @@ autoPtr<InterpolationTable<typeIn,typeOu,dim>> NewInterpolationFromRaw
         autoPtr<baseType> ptr(autoPtr<linearType>::New());
         if(ptr->setRawData(xList,yList))
         {
-            Info<<"Linear"<<endl;
             return ptr;
         }
         
@@ -85,7 +84,6 @@ autoPtr<InterpolationTable<typeIn,typeOu,dim>> NewInterpolationFromRaw
         autoPtr<baseType> ptr(autoPtr<inverseType>::New());
         if(ptr->setRawData(xList,yList))
         {
-            Info<<"Inverse distance "<<endl;
             return ptr;
         }
 
@@ -102,7 +100,6 @@ autoPtr<InterpolationTable<typeIn,typeOu,dim>> NewInterpolationFromRaw
         autoPtr<baseType> ptr(autoPtr<closestType>::New());
         if(ptr->setRawData(xList,yList))
         {
-            Info<<"Closest neighbor"<<endl;
             return ptr;
         }
         FatalErrorInFunction
