@@ -38,7 +38,9 @@ public:
     //- Construct from components
     forceModel
     (
-        const dictionary& dict
+        word sourceName,
+        const dictionary& dict,
+        const fvMesh& mesh
     );
 
     //- No copy construct

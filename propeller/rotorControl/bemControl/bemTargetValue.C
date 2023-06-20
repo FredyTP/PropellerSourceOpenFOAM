@@ -68,7 +68,6 @@ void bemTargetValue::correctControl(const vectorField &U, const scalarField *rho
         Info<< type() << ":" << nl
             << "    solving for target trim " << calcType << nl;
 
-        const scalar rhoRef = bem_.rhoRef();
         scalarField x0;
         control_.get(x0,usedControl_);
   

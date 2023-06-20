@@ -4,6 +4,7 @@
 #include "cubicSplineInterpolation.H"
 #include "bladeGrid.H"
 #include "bemControl.H"
+#include "dimensionSets.H"
 
 namespace Foam
 {
@@ -38,14 +39,52 @@ bladeElementModel::outputVarNames_
 
 bladeElementModel::bladeElementModel
 (
-    const dictionary& dict
+    word sourceName,
+    const dictionary& dict,
+    const fvMesh& mesh
 ) : 
-    propellerModel(dict,typeName),
+    propellerModel(sourceName,dict,mesh),
     airfoils_(dict.subDict("airfoils")),
     bladeModel_(airfoils_,dict.subDict("bladeModel")),
     gridDictionary(dict.subDict("rotorGrid")),
+    polarCorrection_(dict),
+    scalarFields_
+    (
+        this->sourceName(),
+        dict,
+        this->mesh(),
+        {
+            {aoaField, "aoa"},
+            {clField, "cl"},
+            {cdField, "cd"},
+        },
+        {
+            {aoaField, dimless},
+            {clField, dimless},
+            {cdField, dimless},
+        }
+    ),
+    vectorFields_
+    (
+        this->sourceName(),
+        dict,
+        this->mesh(),
+        {
+            {bemForceField, "bemForce"},
+            {bemMomentField, "bemMoment"},
+            {bladeVelocityField, "bladeVelocity"},
+            {inflowVelocityField, "inflowVelocity"},
+            {relativeVelocityField, "relativeVelocity"}
 
-    polarCorrection_(dict)
+        },
+        {
+            {bemForceField, dimForce},
+            {bemMomentField, dimForce*dimLength},
+            {bladeVelocityField, dimVelocity},
+            {inflowVelocityField, dimVelocity},
+            {relativeVelocityField, dimVelocity}
+        }
+    )
 {    
     dict.readEntry("nBlades",nBlades_);
     tipFactor_ = dict.getOrDefault<scalar>("tipFactor",1);
@@ -113,55 +152,6 @@ propellerResult bladeElementModel::calculate(const vectorField& U, const scalarF
 
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
 
-    volScalarField weights(
-        IOobject
-        (
-            "weights",
-            mesh().time().timeName(),
-            mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh(),
-        dimensionedScalar(dimless, Zero)
-    );
-    volVectorField bemForce(
-        IOobject
-        (
-            "bemForce",
-            mesh().time().timeName(),
-            mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh(),
-        dimensionedVector(dimless, Zero)
-    );
-    volVectorField bladeLocalVel(
-        IOobject
-        (
-            "bladeLocalVel",
-            mesh().time().timeName(),
-            mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh(),
-        dimensionedVector(dimVelocity, Zero)
-    );
-    volScalarField aoa(
-        IOobject
-        (
-            "aoa",
-            mesh().time().timeName(),
-            mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh(),
-        dimensionedScalar(dimless, Zero)
-    );
-    
     control_->correctControl(U,rhoField);
 
     scalar angularVelocity = control_->getAngularVelocity();
@@ -172,17 +162,19 @@ propellerResult bladeElementModel::calculate(const vectorField& U, const scalarF
         const tensor& localBlade = gridTensor_[i];
         bemDebugData data;
         scalar rho = rhoField?(*rhoField)[i]:rhoRef_;
-        vector forceOverLen = this->calculatePoint(U[i],rho,angularVelocity,cell,localBlade,data);
+        vector forceOverLen = this->calculatePoint(U[i],rho,angularVelocity,cell,localBlade,data,true);
         vector cellforce = cell.scaleForce(forceOverLen);
+
         vector localForce = rotorGrid_->geometry().cartesianCS().localVector(cellforce);
         result.force += localForce;
         vector localPos = rotorGrid_->geometry().cartesianToCylindrical().globalPosition(cell.center());
-        result.torque += localForce.cross(localPos);
+        vector localTorque = localForce.cross(localPos);
+        result.torque += localTorque;
         cell.applySource(force,cellVol,cellforce);
-        cell.applyField<scalar>(weights,cell.weights());
-        cell.applyField<vector>(bemForce,cellforce);
-        cell.applyField<vector>(bladeLocalVel,transform(localBlade,control_->getBladeLocalVel(cell.azimuth(),cell.radius())));
-        cell.applyField<scalar>(aoa,data.aoa);
+
+        vectorFields_.setValue(bemForceField,cellforce,cell.cellis());
+        vectorFields_.setValue(bemMomentField,localTorque,cell.cellis());
+
         if(data.aoa>aoaMax) aoaMax=data.aoa;
         if(data.aoa<aoaMin) aoaMin=data.aoa;
 
@@ -192,14 +184,6 @@ propellerResult bladeElementModel::calculate(const vectorField& U, const scalarF
     
     Info<< "- Max AoA: "<<aoaMax * 180/constant::mathematical::pi <<"º"<<endl;
     Info<< "- Min AoA: "<<aoaMin * 180/constant::mathematical::pi <<"º"<<endl;
-
-    if(mesh().time().writeTime())
-    {
-        weights.write();
-        bemForce.write();
-        bladeLocalVel.write();
-        aoa.write();
-    }
 
     return result;
 }
@@ -234,7 +218,7 @@ propellerResult bladeElementModel::calculate(const vectorField &U, const scalarF
     return result;
 }
 
-vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angularVelocity, const gridCell &cell, const tensor& bladeTensor, bemDebugData& data) const
+vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angularVelocity, const gridCell &cell, const tensor& bladeTensor, bemDebugData& data, bool saveFields) const
 {
     //---GET INTERPOLATED SECTION---//
     scalar radius = cell.radius();
@@ -292,10 +276,26 @@ vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angu
     //from wind axis to blade axis
     //Project over normal components
     vector localForce(lift*sin(phi) + drag * cos(phi),0,lift * cos(phi) - drag * sin(phi));
-    
-    
+
     //Back to global ref frame
     vector globalForceOverLenght = transform(bladeTensor,localForce);
+
+    if(saveFields)
+    {
+        scalarFields_.setValue(aoaField,AoA,cell.cellis());
+        scalarFields_.setValue(clField,cl,cell.cellis());
+        scalarFields_.setValue(cdField,cd,cell.cellis());
+        
+        vector bladeVel = control_->getBladeLocalVel(azimuth,radius);
+        bladeVel = transform(bladeTensor,bladeVel);
+        bladeVel = rotorGrid_->geometry().cartesianCS().localVector(bladeVel);
+
+        vector inflowVel = rotorGrid_->geometry().cartesianCS().localVector(U);
+
+        vectorFields_.setValue(bladeVelocityField,bladeVel,cell.cellis());
+        vectorFields_.setValue(inflowVelocityField,inflowVel,cell.cellis());
+        vectorFields_.setValue(relativeVelocityField,relativeVel,cell.cellis());
+    }
 
     data.cl = cl;
     data.cd = cd;
@@ -335,6 +335,9 @@ bool bladeElementModel::nextTimeStep(scalar dt)
         bg->setRotation(initialPos);
         this->updateTensors();
 
+        //Reset fiels if its temporal accurate
+        scalarFields_.resetFields();
+        vectorFields_.resetFields();
         return true;
     }
     return false;

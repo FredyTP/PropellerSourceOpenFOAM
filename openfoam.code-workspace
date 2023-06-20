@@ -342,7 +342,11 @@
 			"HashTable.C": "cpp",
 			"primitiveMeshCellPoints.C": "cpp",
 			"bemFixedControl.C": "cpp",
-			"fmFixedControl.C": "cpp"
+			"fmFixedControl.C": "cpp",
+			"rodas34.C": "cpp",
+			"dimensionSet.C": "cpp",
+			"fvMeshDistributeTemplates.C": "cpp",
+			"simpleObjectRegistry.C": "cpp"
 		}
 	}
 }

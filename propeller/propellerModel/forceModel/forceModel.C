@@ -30,8 +30,11 @@ forceModel::outputVarNames_
 
 forceModel::forceModel
 (
-    const dictionary& dict
-) : propellerModel(dict,typeName),
+    word sourceName,
+    const dictionary& dict,
+    const fvMesh& mesh
+)  : 
+    propellerModel(sourceName,dict,mesh),
     gridDictionary_(dict.subDict("rotorGrid"))
 {
     read(dict);

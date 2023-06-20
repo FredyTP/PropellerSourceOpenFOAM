@@ -75,7 +75,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
 
         /*----------READ USER DESIRED ROTOR MODEL(BEMT ...)---------------*/
         //- Read propeller Model
-        propellerModel_ = propellerModel::New(coeffs_.subDict("propellerModel"));
+        propellerModel_ = propellerModel::New(fv::option::name(),coeffs_.subDict("propellerModel"),mesh_);
 
         /*----------READ FV ROTOR MESH CONFIG---------------*/
         rotorFvMeshSel_.read(coeffs_.subDict("rotorMesh"));

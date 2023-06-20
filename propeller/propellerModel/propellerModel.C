@@ -15,9 +15,12 @@ namespace Foam
 
 propellerModel::propellerModel
 (
+    word sourceName,
     const dictionary& dict,
-    const word& name
-)
+    const fvMesh& mesh
+) : 
+    sourceName_(sourceName),
+    mesh_(mesh)
 {
 
 

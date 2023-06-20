@@ -1,11 +1,12 @@
 #ifndef PROPELLER_PROPELLER_MODEL_BLADE_ELEMENT_MODEL_BLADE_ELEMENT_MODEL
 #define PROPELLER_PROPELLER_MODEL_BLADE_ELEMENT_MODEL_BLADE_ELEMENT_MODEL
+
 #include "propellerModel.H"
 #include "airfoilModelList.H"
 #include "bladeModelS.H"
 #include "rotorGrid.H"
 #include "polarCorrection.H"
-
+#include "outputFields.H"
 
 namespace Foam
 {
@@ -20,29 +21,31 @@ class bladeElementModel
 :
     public propellerModel
 {
-protected:
 
-    airfoilModelList airfoils_;
-    bladeModelS bladeModel_;
-    autoPtr<rotorGrid> rotorGrid_;
-    List<tensor> gridTensor_; //(x: LE->TE) (y: radial) (z: "up")
-    scalar nBlades_; 
-    scalar tipFactor_;
-
-    scalar rhoRef_;
-    scalar speedRef_;
-    scalar nuRef_;
-    scalar soundSpeedRef_;
-
-    //- Reference frame rotation for time-accurate blades
-    scalar psi0_ = 0;
-
-    dictionary gridDictionary;
-    autoPtr<bemControl> control_;
-    effects3D::polarCorrection polarCorrection_;
 public:
-    //Defines the runtime name of this class (IOpurposes?)
-    TypeName("bladeElementModel");
+    /**PUBLIC ENUMERATIONS AND ENUM CLASS*/
+
+    //- availabe scalar fiels
+    enum outputScalarFields
+    {
+        aoaField=0,
+        clField,
+        cdField,
+    };
+
+    typedef util::outputFields<scalar,outputScalarFields,3> outputScalarType;
+    //- available vector fields
+    enum outputVectorFields
+    {
+        bemForceField,
+        bemMomentField,
+        bladeVelocityField,
+        inflowVelocityField,
+        relativeVelocityField
+    };
+    
+    typedef util::outputFields<vector,outputVectorFields,5> outputVectorType;
+
 
     enum class controlVar
     {
@@ -66,12 +69,43 @@ public:
     
     static const label N_control = 4;
     static const label N_output = 7;
+protected:
+
+    airfoilModelList airfoils_;
+    bladeModelS bladeModel_;
+    autoPtr<rotorGrid> rotorGrid_;
+    List<tensor> gridTensor_; //(x: LE->TE) (y: radial) (z: "up")
+    scalar nBlades_; 
+    scalar tipFactor_;
+
+    scalar rhoRef_;
+    scalar speedRef_;
+    scalar nuRef_;
+    scalar soundSpeedRef_;
+
+    //- Reference frame rotation for time-accurate blades
+    scalar psi0_ = 0;
+
+    dictionary gridDictionary;
+    autoPtr<bemControl> control_;
+    effects3D::polarCorrection polarCorrection_;
+
+    mutable outputScalarType scalarFields_;
+    mutable outputVectorType vectorFields_;
+
+public:
+    //Defines the runtime name of this class (IOpurposes?)
+    TypeName("bladeElementModel");
+
+    
     // Constructors
 
         //- Construct from components
         bladeElementModel
         (
-            const dictionary& dict
+            word sourceName,
+            const dictionary& dict,
+            const fvMesh& mesh
         );
 
             //- No copy construct
@@ -113,7 +147,7 @@ public:
 
     virtual const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
 
-    vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, const tensor& bladeTensor, bemDebugData& data) const;
+    vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, const tensor& bladeTensor, bemDebugData& data, bool saveFields = false) const;
 
     virtual bool nextTimeStep(scalar dt);
     

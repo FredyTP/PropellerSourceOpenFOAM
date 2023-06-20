@@ -9,6 +9,8 @@
 #include "rotorGrid.H"
 #include "propellerResult.H"
 #include "rotorControl.H"
+#include "outputFields.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -36,9 +38,11 @@ public:
             propellerModel,
             dictionary,
             (
-                const dictionary& dict
+                word sourceName,
+                const dictionary& dict,
+                const fvMesh& mesh
             ),
-            (dict)
+            (sourceName,dict,mesh)
         );
 
     // Constructors
@@ -46,8 +50,9 @@ public:
         //- Construct from components
         propellerModel
         (
+            word sourceName,
             const dictionary& dict,
-            const word& name
+            const fvMesh& mesh
         );
 
     
@@ -58,7 +63,9 @@ public:
         //- from run time selection tables
         static autoPtr<propellerModel> New
         (
-            const dictionary& dict
+            word sourceName,
+            const dictionary& dict,
+            const fvMesh& mesh
         );
 
     //Destructor
@@ -75,10 +82,14 @@ public:
 
     virtual const autoPtr<rotorGrid>& grid() const = 0;
     
-    const fvMesh& mesh() const { return rotorFvMeshSel_->mesh();}
+    const fvMesh& mesh() const { return mesh_;}
+    const word& sourceName() const {return sourceName_;}
     
     static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);
 
+protected:
+    const word sourceName_;
+    const fvMesh& mesh_;
 };
 
 }
