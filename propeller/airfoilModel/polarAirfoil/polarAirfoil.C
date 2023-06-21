@@ -30,7 +30,7 @@ polarAirfoil::polarAirfoil(word name, const dictionary& dict)
 bool polarAirfoil::read(const dictionary& dict)
 {
     //Extrapolation mode: none, viterna, symmetry ... (?)
-    word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
+    word extrapolation = dict.getOrDefault<word>("extrapolation","viterna");
 
     isRadian_ = dict.getOrDefault<bool>("isRadian",false);
     logRe_ = dict.getOrDefault<bool>("logReynolds",true);
@@ -73,11 +73,6 @@ bool polarAirfoil::read(const dictionary& dict)
     }
 
     polarInterpolated = util::NewInterpolationFromRaw<scalar,polar*,2>(dict,ReMa,polarList);
-    //Info<<"Created polars"<<endl;
-    //Info<<"is good ? "<<polarInterpolated.good()<<endl;
-    //polarInterpolated->interpolate({1,1});
-    //polarInterpolated = autoPtr<InterpolationTable<scalar,polar*,2>>::NewFrom<LinearInterpolation<scalar,polar*,2>>();
-    //polarInterpolated->setRawData(ReMa,polarList);
 
     return true;
 }
