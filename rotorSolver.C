@@ -68,6 +68,8 @@ Description
 #include "turbulentTransportModel.H"
 #include "simpleControl.H"
 #include "fvOptions.H"
+#include "functionSolver.H"
+#include <functional>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -1,11 +1,14 @@
 rotorSolver.C
 
 propeller/propellerSource/propellerSource.C
-propeller/rotorDiscrete/rotorDiscrete.C
+
 propeller/propellerModel/propellerModel.C
 propeller/propellerModel/propellerModelNew.C
-propeller/propellerModel/froudeModel/froudeModel.C
+propeller/propellerModel/forceModel/forceModel.C
 propeller/propellerModel/bladeElementModel/bladeElementModel.C
+propeller/propellerModel/bladeElementModel/effects3D/polarCorrection.C
+
+
 propeller/airfoilModel/airfoilModel.C
 propeller/airfoilModel/simpleAirfoil/simpleAirfoil.C
 propeller/airfoilModel/interpolatedAirfoil/interpolatedAirfoil.C
@@ -14,17 +17,29 @@ propeller/airfoilModel/polarAirfoil/polar/polar.C
 propeller/airfoilModel/polarAirfoil/polar/viterna.C
 propeller/airfoilModel/polarAirfoil/polarAirfoil.C
 propeller/airfoilModel/airfoilModelList.C
-propeller/bladeModel/bladeModelDev.C
+
 propeller/bladeModel/bladeModelS.C
+
 propeller/rotorMesh/rotorFvMeshSel.C
-propeller/rotorDynamics/rotorDynamics.C
-propeller/rotorDynamics/fixedPower.C
-propeller/rotorDynamics/fixedSpeed.C
-propeller/rotorDiscrete/rotorCell/rotorCellNew.C
 
-propeller/velocitySampler/velocitySampler.C
-propeller/velocitySampler/fixedVelocity.C
-propeller/velocitySampler/offsetSampler.C
+propeller/rotorGrid/rotorGrid.C
+propeller/rotorGrid/polarGrid.C
+propeller/rotorGrid/bladeGrid.C
+propeller/rotorGrid/meshGrid.C
+propeller/rotorGrid/cell/gridCell.C
+propeller/rotorGrid/cell/bladeCell.C
+propeller/rotorGrid/cell/polarCell.C
+propeller/rotorGrid/cell/meshCell.C
 
-EXE = $(FOAM_USER_APPBIN)/rotorSolver
+propeller/rotorControl/rotorControl.C
+propeller/rotorControl/bemControl/bemControl.C
+propeller/rotorControl/bemControl/bemFixedControl.C
+propeller/rotorControl/bemControl/bemTargetValue.C
+propeller/rotorControl/fmControl/fmControl.C
+propeller/rotorControl/fmControl/fmFixedControl.C
+propeller/rotorControl/fmControl/fmTargetValue.C
+
+propeller/util/readHelper.C
+
+EXE = $(FOAM_USER_APPBIN)/rotorSolverGrid
 //LIB = $(FOAM_USER_LIBBIN)/rotorSolver

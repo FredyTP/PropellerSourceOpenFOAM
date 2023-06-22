@@ -1,5 +1,5 @@
 #include "airfoilModelList.H"
-
+#include "interpolatedAirfoil.H"
 
 
 Foam::airfoilModelList::airfoilModelList(const dictionary& dict)
@@ -20,6 +20,17 @@ Foam::airfoilModelList::airfoilModelList(const dictionary& dict)
                 i,
                 airfoilModel::New(airfoilName, dict.subDict(airfoilName))
             );
+        }
+
+        //Build interpolated airfoils and export marked airfoils
+        forAll(airfoilNames,i)
+        {
+            interpolatedAirfoil* iAirfoil = dynamic_cast<interpolatedAirfoil*>(this->get(i));
+            if(iAirfoil!=nullptr)
+            {
+                iAirfoil->build(*this);
+            }
+            this->get(i)->exportAirfoil();
         }
     }
 

@@ -2,7 +2,7 @@
 #define PROPELLER_AIRFOIL_MODEL_POLAR_AIRFOIL_POLAR
 
 #include <string>
-#include "regularInterpolation.H"
+#include "RegularInterpolation.H"
 #include "autoPtr.H"
 #include "dictionary.H"
 #include "scalar.H"
@@ -22,7 +22,7 @@ public:
         polar,
         dictionary,
         (
-            const word interpolation,
+            bool cubicSpline,
             List<scalar>& alpha,
             List<scalar>& cl,
             List<scalar>& cd,
@@ -30,12 +30,12 @@ public:
             scalar Ma,
             bool isRadian
         ),
-        (interpolation, alpha,cl,cd, Re, Ma, isRadian)
+        (cubicSpline, alpha,cl,cd, Re, Ma, isRadian)
     );
 
-    polar(const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
+    polar(bool cubicSpline, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
 
-    polar(const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian);
+    polar(bool cubicSpline, const fileName filename, scalar Re, scalar Ma, bool isRadian);
 
     virtual scalar cl(scalar alpha) const;
     virtual scalar cd(scalar alpha) const;
@@ -47,8 +47,8 @@ public:
 
     virtual ~polar() = default;
     
-    static autoPtr<Foam::polar> New(const word modelType,const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian);
-    static autoPtr<Foam::polar> New(const word modelType,const word interpolation, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
+    static autoPtr<Foam::polar> New(const word modelType,bool cubicSpline, const fileName filename, scalar Re, scalar Ma, bool isRadian);
+    static autoPtr<Foam::polar> New(const word modelType,bool cubicSpline, List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd, scalar Re,scalar Ma, bool isRadian);
 protected:
 
     void processData(List<scalar>& alpha, List<scalar>& cl, List<scalar>& cd);
@@ -60,8 +60,8 @@ protected:
     scalar cd_alpha_max;
     scalar cd_alpha_min;
 private:
-    autoPtr<regularInterpolation<scalar,scalar,1>> cl_alpha;
-    autoPtr<regularInterpolation<scalar,scalar,1>> cd_alpha;
+    autoPtr<RegularInterpolation<scalar,scalar,1>> cl_alpha;
+    autoPtr<RegularInterpolation<scalar,scalar,1>> cd_alpha;
     scalar reynolds_;
     scalar mach_;
 };

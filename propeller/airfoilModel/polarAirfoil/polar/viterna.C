@@ -13,14 +13,14 @@ namespace Foam
     addToRunTimeSelectionTable(polar,viterna,dictionary);
 
 
-viterna::viterna(const word interpolation, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re, scalar Ma, bool isRadian)
- : polar(interpolation,alpha,cl,cd,Re,Ma,isRadian)
+viterna::viterna(bool cubicSpline, List<scalar> alpha, List<scalar> cl, List<scalar> cd, scalar Re, scalar Ma, bool isRadian)
+ : polar(cubicSpline,alpha,cl,cd,Re,Ma,isRadian)
 {
     setParameters();
 }
 
-viterna::viterna(const word interpolation, const fileName filename, scalar Re, scalar Ma, bool isRadian)
-: polar(interpolation,filename,Re,Ma,isRadian)
+viterna::viterna(bool cubicSpline, const fileName filename, scalar Re, scalar Ma, bool isRadian)
+: polar(cubicSpline,filename,Re,Ma,isRadian)
 {
     setParameters();
 }
@@ -39,7 +39,7 @@ scalar viterna::cl(scalar alpha) const
     }
     else if((alpha>piByTwo && alpha<=pi) || (alpha>=-pi && alpha<-piByTwo)) // [90 , 180] o [-180, -90]
     {
-        return flat_plate_cl(data_.cl_stall_pos,alpha);
+        return flat_plate_cl(data_.cd_max,alpha);
     }
     else // [-90, negative stall]
     {
@@ -100,11 +100,11 @@ scalar viterna::viterna_cd(scalar B1, scalar B2, scalar alpha) const
 
 scalar viterna::flat_plate_cl(scalar cl_max_flat_plate, scalar alpha) const
 {
-    return 2*abs(cl_max_flat_plate)*sin(alpha)*cos(alpha);
+    return 2*std::abs(cl_max_flat_plate)*sin(alpha)*cos(alpha);
 }
 scalar viterna::flat_plate_cd(scalar cd_max_flat_plate, scalar alpha) const
 {
-    return 2*cd_max_flat_plate * pow(sin(alpha),2);
+    return cd_max_flat_plate * pow(sin(alpha),2);
 }
 void viterna::setParameters()
 {
@@ -123,14 +123,14 @@ void viterna::setParameters()
     A1_p = calcA1(data_.cd_max);
     A1_n = calcA1(data_.cd_max);
 
-    A2_p = calcA2(data_.cd_max,abs(data_.cl_stall_pos),abs(data_.alpha_stall_pos));
-    A2_n = calcA2(data_.cd_max,abs(data_.cl_stall_neg),abs(data_.alpha_stall_neg));
+    A2_p = calcA2(data_.cd_max,std::abs(data_.cl_stall_pos),std::abs(data_.alpha_stall_pos));
+    A2_n = calcA2(data_.cd_max,std::abs(data_.cl_stall_neg),std::abs(data_.alpha_stall_neg));
 
     B1_p = calcB1(data_.cd_max);
     B1_n = calcB1(data_.cd_max);
 
-    B2_p = calcB2(data_.cd_max,abs(data_.cd_stall_pos),abs(data_.alpha_stall_pos));
-    B2_n = calcB2(data_.cd_max,abs(data_.cd_stall_neg),abs(data_.alpha_stall_neg));
+    B2_p = calcB2(data_.cd_max,std::abs(data_.cd_stall_pos),std::abs(data_.alpha_stall_pos));
+    B2_n = calcB2(data_.cd_max,std::abs(data_.cd_stall_neg),std::abs(data_.alpha_stall_neg));
 }
 
 bool viterna::valid()

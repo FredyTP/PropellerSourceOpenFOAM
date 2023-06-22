@@ -10,13 +10,16 @@ EXE_INC = \
     -I$(FOAM_SRC)/surfMesh/lnInclude \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerSource \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDiscrete/rotorCell \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/bladeElementModel \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/bladeElementModel/effects3D \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/forceModel \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorGrid \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorGrid/cell \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/regular \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular/closestNeighbor \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/irregular/inverseDistance \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Irregular \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Regular \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Irregular/ClosestNeighbor \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Irregular/InverseDistance \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/simpleAirfoil \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/interpolatedAirfoil \
@@ -26,7 +29,9 @@ EXE_INC = \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/bladeModel \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorMesh \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/util \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorDynamics \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl/bemControl \
+    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl/fmControl \
     -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/velocitySampler
     
 

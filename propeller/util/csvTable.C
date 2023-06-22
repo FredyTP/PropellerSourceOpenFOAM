@@ -23,15 +23,12 @@ void csvTable<dataType, headerType>::processLine(std::string &line)
         //Empty line is okey but dont add it
         return;
     }
-    if(row.size()!=nColumn && nColumn>0)
+    if(row.size()!=columns.size() && columns.size()>0)
     {   
         throw (std::runtime_error("invalid row: '"+value+"'"));
     }
-    table->push_back(row);
-    if(nColumn==0)
-    {
-        nColumn = row.size();
-    }
+ 
+    this->addRow(row);
 }
 
 template <class dataType, class headerType>
@@ -45,25 +42,71 @@ void csvTable<dataType, headerType>::processHeader(std::string &line)
     while(getline(ss,value,','))
     {
         headerType cell = convertHeader(value);
-        header->push_back(cell);
+        header.append(cell);
     }
-    if(nColumn==0)
+    if(columns.size()==0)
     {
-        nColumn = header->size();
+        columns.resize(header.size());
     }
     
 }
 
 template <class dataType, class headerType>
-label csvTable<dataType, headerType>::nCol()
+void csvTable<dataType, headerType>::addRow(List<dataType> &row)
 {
-    if(!table.good())
+    //Check sizes 
+    if(columns.size()==0)
     {
-        return 0;
+        columns.resize(row.size());
     }
-    if(this->nRow()>0)
+    if(columns.size() != row.size())
     {
-        return (*table)[0].size();
+        throw(std::runtime_error("Invalid row size : "+row.size()));
+    }
+
+    for(label i = 0; i < columns.size(); i++)
+    {
+        columns[i].append(row[i]);
+    }
+}
+
+template <class dataType, class headerType>
+void csvTable<dataType, headerType>::setHeader(List<headerType> &newHeader)
+{
+    if(hasHeader && (columns.size()==header.size() || columns.size()==0))
+    {
+        header=newHeader;
+    }
+}
+
+template <class dataType, class headerType>
+void csvTable<dataType, headerType>::addCol(List<dataType> &col, headerType headerName)
+{
+    if(columns.size()==0)
+    {
+        if(headerName!="" && hasHeader)
+        {
+            header.append(headerName);
+        }
+        columns.append(col);
+    }
+    else if(col.size() == this->nRow())
+    {
+        if(headerName!="" && hasHeader)
+        {
+            header.append(headerName);
+        }
+        
+        columns.append(col);
+    }
+}
+
+template <class dataType, class headerType>
+label csvTable<dataType, headerType>::nRow() const
+{
+    if(this->nCol()>0)
+    {
+        return columns[0].size();
     }
     else
     {
@@ -72,27 +115,23 @@ label csvTable<dataType, headerType>::nCol()
 }
 
 template <class dataType, class headerType>
-label csvTable<dataType, headerType>::nRow()
+label csvTable<dataType, headerType>::nCol() const
 {
-    return table.good()? table->size() : 0;
+    return columns.size();
 }
 
 template <class dataType, class headerType>
-label csvTable<dataType, headerType>::index(headerType headerName)
+label csvTable<dataType, headerType>::index(headerType headerName) const
 {
-    if(!header.good())
-    {
-        return -1;
-    }
-    return header->find(headerName);
+    return header.find(headerName);
 }
 
 template <class dataType, class headerType>
-bool csvTable<dataType, headerType>::readFile(fileName path)
+bool csvTable<dataType, headerType>::readFile(fileName path) 
 {
     using namespace std;
 
-    table = autoPtr<List<List<dataType>>>::New();
+    columns.clear();
     string line;
     ifstream fileStream(path);
     if(!fileStream.is_open())
@@ -129,33 +168,40 @@ bool csvTable<dataType, headerType>::readFile(fileName path)
 }
 
 template <class dataType, class headerType>
-List<dataType> csvTable<dataType, headerType>::col(label coli)
+List<dataType> csvTable<dataType, headerType>::col(label coli) const
 {
-    List<dataType> column(0);
     if(coli < 0 || coli > this->nCol() -1)
     {
         //Index out of bound return empty column
-        return column;
+        return List<dataType>();
     }
-
-    // Build column from rows
-    column.resize(table->size());
-    for(label i = 0 ; i < table->size(); i++)
-    {
-        column[i] = (*table)[i][coli];
-    }
-
-    return column;
+    return columns[coli];
 }
 
 template <class dataType, class headerType>
-List<dataType> csvTable<dataType, headerType>::col(headerType headerName)
+List<dataType> csvTable<dataType, headerType>::col(headerType headerName) const
 {
     return this->col(index(headerName));
 }
 
 template <class dataType, class headerType>
-List<List<dataType>> csvTable<dataType, headerType>::col2(label coli)
+List<dataType> csvTable<dataType, headerType>::row(label rowi) const
+{
+    if(rowi < 0 || rowi > this->nRow() -1)
+    {
+        //Index out of bound return empty column
+        return List<dataType>();
+    }
+    List<dataType> trow(this->nCol());
+    for(label i = 0; i<trow.size();i++)
+    {
+        trow[i]=columns[i][rowi];
+    }
+    return trow;
+}
+
+template <class dataType, class headerType>
+List<List<dataType>> csvTable<dataType, headerType>::col2(label coli) const
 {
     List<List<dataType>> column(0);
     if(coli < 0 || coli > this->nCol() -1)
@@ -164,18 +210,18 @@ List<List<dataType>> csvTable<dataType, headerType>::col2(label coli)
         return column;
     }
 
-    column.resize(table->size());
-    for(label i = 0 ; i < table->size(); i++)
+    column.resize(this->nRow());
+    for(label i = 0 ; i < this->nRow(); i++)
     {
         column[i].resize(1);
-        column[i][0] = (*table)[i][coli];
+        column[i][0] = (columns)[coli][i];
     }
 
     return column;
 }
 
 template <class dataType, class headerType>
-List<List<dataType>> csvTable<dataType, headerType>::col2(headerType headerName)
+List<List<dataType>> csvTable<dataType, headerType>::col2(headerType headerName) const
 {
     return this->col2(index(headerName));
 }
@@ -214,6 +260,16 @@ csvTable<dataType, headerType>::csvTable(bool hasHeader_,label skipLines_)
 }
 
 template <class dataType, class headerType>
+csvTable<dataType, headerType>::csvTable(const dictionary& dict)
+{
+    hasHeader = dict.getOrDefault<bool>("header",true);
+    skipLines = dict.getOrDefault<label>("skipLines",0);
+
+    fileName csvPath = dict.get<fileName>("csv");
+    this->readFile(csvPath);
+}
+
+template <class dataType, class headerType>
 csvTable<dataType, headerType>::~csvTable()
 {
     
@@ -221,23 +277,23 @@ csvTable<dataType, headerType>::~csvTable()
 template<class A, class B>
 Ostream& operator<<(Ostream& os, const csvTable<A, B> &table)
 {
-    if(table.header.good())
+    if(table.header.size()>0)
     {
-        for(label i = 0; i < table.header->size(); i++)
+        for(label i = 0; i < table.header.size(); i++)
         {
             if(i!=0)
             {
                 os<<", ";
             }
-            os<<(*table.header)[i];
+            os<<table.header[i];
         }
         os<<endl;
     }
-    if(table.table.good())
+    if(table.columns.size()>0)
     {
-        for(label i = 0; i< table.table->size();i++)
+        for(label i = 0; i< table.nRow();i++)
         {
-            const List<A>& row = (*table.table)[i];
+            const List<A> row = table.row(i);
             for(label j =0; j< row.size();j++)
             {
                 if(j!=0)

@@ -19,8 +19,8 @@ public:
     TypeName("simpleAirfoil");
 
 
-    simpleAirfoil(const word name, scalar cl0,scalar cl_alfa,scalar K,scalar cd0);
-    simpleAirfoil(const word name, const dictionary& dict);
+    simpleAirfoil(word name, scalar cl0,scalar cl_alfa,scalar K,scalar cd0);
+    simpleAirfoil(word name, const dictionary& dict);
 
     virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const;
     virtual scalar cd(scalar alfaRad, scalar reynolds, scalar mach) const;

@@ -16,8 +16,8 @@ template<class dataType, class headerType>
 class csvTable
 {
 private:
-    autoPtr<List<List<dataType>>> table;
-    autoPtr<List<headerType>> header;
+    List<List<dataType>> columns;
+    List<headerType> header;
     label nColumn=0;
 
     bool hasHeader = false;
@@ -31,22 +31,32 @@ private:
     headerType convertHeader(std::string& val);
 public:
 
-    label nCol();
-    label nRow();
-    label index(headerType headerName);
+
+    /*INSERT*/
+
+    void addRow(List<dataType>& row);
+    void setHeader(List<headerType>& newHeader);
+    void addCol(List<dataType>& col, headerType headerName = "");
+
+    label nCol() const;
+    label nRow() const;
+    label index(headerType headerName) const;
     
     bool readFile(fileName path);   
 
-    List<dataType> col(label coli);
-    List<dataType> col(headerType headerName);
+    List<dataType> col(label coli) const ;
+    List<dataType> col(headerType headerName) const;
+
+    List<dataType> row(label rowi) const;
 
     /**
      * Returns a column as list of list for compatibility
     */
-    List<List<dataType>> col2(label coli);
-    List<List<dataType>> col2(headerType headerName);
+    List<List<dataType>> col2(label coli) const;
+    List<List<dataType>> col2(headerType headerName) const;
 
     csvTable(bool hasHeader_=false,label skipLines_ = 0);
+    csvTable(const dictionary& dict);
     ~csvTable();
 
     template<class A, class B>

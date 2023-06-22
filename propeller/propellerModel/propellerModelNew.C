@@ -4,7 +4,9 @@
 
 Foam::autoPtr<Foam::propellerModel> Foam::propellerModel::New
 (
-    const dictionary& dict
+    word sourceName,
+    const dictionary& dict,
+    const fvMesh& mesh
 )
 {
     //Get model Type name (Ex: froudeModel) 
@@ -27,7 +29,7 @@ Foam::autoPtr<Foam::propellerModel> Foam::propellerModel::New
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<Foam::propellerModel>(ctorPtr(dict));
+    return autoPtr<Foam::propellerModel>(ctorPtr(sourceName,dict,mesh));
 }
 
 

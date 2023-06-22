@@ -1,8 +1,9 @@
 #include "polarAirfoil.H"
 #include "addToRunTimeSelectionTable.H"
 #include "IFstream.H"
-#include "linearInterpolation.H"
+#include "LinearInterpolation.H"
 #include "csvTable.H"
+#include "readHelper.H"
 
 namespace Foam
 {
@@ -14,8 +15,8 @@ namespace Foam
 
     addToRunTimeSelectionTable(airfoilModel,polarAirfoil,dictionary);
 
-polarAirfoil::polarAirfoil(const word name, const dictionary& dict)
-:   airfoilModel(name)
+polarAirfoil::polarAirfoil(word name, const dictionary& dict)
+:   airfoilModel(name,dict)
 {
     if(!this->read(dict))
     {
@@ -25,39 +26,20 @@ polarAirfoil::polarAirfoil(const word name, const dictionary& dict)
     }
 }
 
-/*
-bool polarAirfoil::readTable(const dictionary& dict)
-{
-    Info<<"Reading polar airfoil data for: " << this->airfoilName() << endl;
-    bool ok=true;
-    ok &= dict.readEntry("file",file_);
-    word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
-    //Read airfoil data
-    if(!file_.empty())
-    {
-        Info<<"Reading polar data from: "<<file_<<endl;
-        csvTable<scalar,word> csv(true);
-        csv.readFile(file_);
-
-        auto Re = csv.col2("Re");
-        auto cl = csv.col("Cl");
-        auto cd = csv.col("Cd");
-        auto aoa = csv.col("AoA")
-        
-    }
-}*/
 
 bool polarAirfoil::read(const dictionary& dict)
 {
     //Extrapolation mode: none, viterna, symmetry ... (?)
-    word extrapolation = dict.getOrDefault<word>("extrapolation","polar");
+    word extrapolation = dict.getOrDefault<word>("extrapolation","viterna");
 
     isRadian_ = dict.getOrDefault<bool>("isRadian",false);
+    logRe_ = dict.getOrDefault<bool>("logReynolds",true);
+    bool cubicSpline = dict.getOrDefault("cubicSpline",false);
     bool ok;
     ok = dict.readIfPresent("polars",file_);
     if(ok)
     {   
-        ok= this->readFromPolars(extrapolation);
+        ok= this->readFromPolars(cubicSpline, extrapolation);
     }
     else
     {
@@ -72,7 +54,7 @@ bool polarAirfoil::read(const dictionary& dict)
                 colNames[i]=columnNames[i];
             }
         }
-        ok = this->readFromCSV(extrapolation);
+        ok = this->readFromCSV(cubicSpline, extrapolation);
     }
     
     if(!ok)
@@ -86,16 +68,15 @@ bool polarAirfoil::read(const dictionary& dict)
     {
         polarList[i]=polars_[i].get();
         ReMa[i].setSize(2);
-        ReMa[i][0]=polars_[i]->reynolds();
+        ReMa[i][0]=convertInternalRe(polars_[i]->reynolds());
         ReMa[i][1]=polars_[i]->mach();
     }
 
-    polarInterpolated = autoPtr<interpolationTable<scalar,polar*,2>>::NewFrom<linearInterpolation<scalar,polar*,2>>();
-    polarInterpolated->setRawData(ReMa,polarList);
+    polarInterpolated = util::NewInterpolationFromRaw<scalar,polar*,2>(dict,ReMa,polarList);
 
     return true;
 }
-bool polarAirfoil::readFromPolars(word extrapolation)
+bool polarAirfoil::readFromPolars(bool cubicSpline, word extrapolation)
 {
     // Filename  - ( Re - Ma)
     List<Tuple2<word,FixedList<scalar,2>>> polarFiles;
@@ -117,15 +98,13 @@ bool polarAirfoil::readFromPolars(word extrapolation)
         fileName polarpath = file_;
         polarpath.replace_name(polarfile);
     
-        auto ptrPolar = polar::New(extrapolation,"lineal",polarpath,Re,Ma,isRadian_);
+        auto ptrPolar = polar::New(extrapolation,cubicSpline,polarpath,Re,Ma,isRadian_);
         polars_[i].reset(ptrPolar.release());
     }
 
-    
-
     return true;
 }
-bool polarAirfoil::readFromCSV(word extrapolation)
+bool polarAirfoil::readFromCSV(bool cubicSpline, word extrapolation)
 {
     csvTable<scalar,word> csvReader(true);
     csvReader.readFile(file_);
@@ -165,15 +144,12 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     //If neither mach or reynolds, set both to 0s and read as single polar
     else
     {
-        auto ptrPolar = polar::New(extrapolation,"lineal",file_,0,0,isRadian_);
+        auto ptrPolar = polar::New(extrapolation,cubicSpline,file_,0,0,isRadian_);
         polars_.resize(1);
         polars_[0].reset(ptrPolar.release());
         return true;
     }
-
-    List<scalar> aoaPolar;
-    List<scalar> clPolar;
-    List<scalar> cdPolar;
+    
     scalar maPolar = -1;//ma[0];
     scalar rePolar = -1;//re[0];
 
@@ -186,7 +162,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     label maxSize = 0;
     for(label i = 0; i<aoa.size();i++)
     {   
-        if(ma[i] != maPolar || re[i] != rePolar)
+        if(ma[i] != maPolar || re[i] != rePolar || i==0)
         {
             rePolar = re[i];
             maPolar = ma[i];
@@ -213,7 +189,7 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     for(label i = 0;i<aoas.size();i++)
     {
         //Create polar
-        auto ptrPolar = polar::New(extrapolation,"lineal",aoas[i],cls[i],cds[i],reMa[i].first(),reMa[i].second(),isRadian_);
+        auto ptrPolar = polar::New(extrapolation,cubicSpline,aoas[i],cls[i],cds[i],reMa[i].first(),reMa[i].second(),isRadian_);
         if(ptrPolar->valid())
         {
             //Increment size by 1
@@ -223,50 +199,11 @@ bool polarAirfoil::readFromCSV(word extrapolation)
         }
         else
         {
-            Info<<"PolarAirfoil: "<<this->name_
-            <<" in Polar (Re = "<<rePolar<<", Ma = "<<maPolar
+            Info<<"PolarAirfoil: "<<this->airfoilName()
+            <<" in Polar (Re = "<<reMa[i].first()<<", Ma = "<<reMa[i].second()
             <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
         }
     }
-
-    /*for(label i = 0; i<aoa.size();i++)
-    {
-        if(i == aoa.size()-1)
-        {
-            aoaPolar.append(aoa[i]);
-            clPolar.append(cl[i]);
-            cdPolar.append(cd[i]);
-        }
-        if(ma[i] != maPolar || re[i] != rePolar || i == aoa.size()-1)
-        {
-
-            //Create polar
-            auto ptrPolar = polar::New(extrapolation,"lineal",aoaPolar,clPolar,cdPolar,rePolar,maPolar,isRadian_);
-            if(ptrPolar->valid())
-            {
-                //Increment size by 1
-                polars_.resize(polars_.size()+1);
-                polars_[polars_.size()-1].reset(ptrPolar.release());
-
-            }
-            else
-            {
-                Info<<"PolarAirfoil: "<<this->name_
-                <<" in Polar (Re = "<<rePolar<<", Ma = "<<maPolar
-                <<") from file: "<<file_<< " - is invalid, descarting ..."<<endl;
-            }
-
-            maPolar = ma[i];
-            rePolar = re[i];
-
-            aoaPolar.clear();
-            clPolar.clear();
-            cdPolar.clear();
-        }
-        aoaPolar.append(aoa[i]);
-        clPolar.append(cl[i]);
-        cdPolar.append(cd[i]);
-    }*/
 
     if(polars_.size()>0)
     {
@@ -274,13 +211,21 @@ bool polarAirfoil::readFromCSV(word extrapolation)
     }
     return false;
 }
+scalar polarAirfoil::convertInternalRe(scalar externalRe) const
+{
+    return logRe_ ? log(externalRe+VSMALL) : externalRe;
+}
+scalar polarAirfoil::convertExternalRe(scalar internalRe) const
+{
+    return logRe_ ? exp(internalRe) : internalRe;
+}
 scalar polarAirfoil::cl(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return polarInterpolated->interpolate({reynolds,mach}).value([=](scalar val,polar* p){return val*p->cl(alfaRad);});
+    return polarInterpolated->interpolate({convertInternalRe(reynolds),mach}).value<scalar>([=](scalar val,polar* p){return val*p->cl(alfaRad);});
 }
 scalar polarAirfoil::cd(scalar alfaRad, scalar reynolds, scalar mach) const
 {
-    return polarInterpolated->interpolate({reynolds,mach}).value([=](scalar val,polar* p){return val*p->cd(alfaRad);});
+    return polarInterpolated->interpolate({convertInternalRe(reynolds),mach}).value<scalar>([=](scalar val,polar* p){return val*p->cd(alfaRad);});
 }
 
 

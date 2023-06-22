@@ -6,8 +6,11 @@
 #include "dictionary.H"
 #include "runTimeSelectionTables.H"
 #include "rotorFvMeshSel.H"
-#include "rotorDiscrete.H"
+#include "rotorGrid.H"
 #include "propellerResult.H"
+#include "rotorControl.H"
+#include "outputFields.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -23,8 +26,7 @@ class propellerModel
 
 protected:
     const rotorFvMeshSel* rotorFvMeshSel_;
-    scalar refV=1; //Refence velocity for adimensional
-    scalar refRho=1; //Reference density 
+
 public:
     TypeName("propellerModel");
 
@@ -36,9 +38,11 @@ public:
             propellerModel,
             dictionary,
             (
-                const dictionary& dict
+                word sourceName,
+                const dictionary& dict,
+                const fvMesh& mesh
             ),
-            (dict)
+            (sourceName,dict,mesh)
         );
 
     // Constructors
@@ -46,8 +50,9 @@ public:
         //- Construct from components
         propellerModel
         (
+            word sourceName,
             const dictionary& dict,
-            const word& name
+            const fvMesh& mesh
         );
 
     
@@ -58,26 +63,33 @@ public:
         //- from run time selection tables
         static autoPtr<propellerModel> New
         (
-            const dictionary& dict
+            word sourceName,
+            const dictionary& dict,
+            const fvMesh& mesh
         );
 
     //Destructor
 
         virtual ~propellerModel() = default;
 
-    // Abstract functions
-        virtual scalar radius() const = 0;
 
     void setRotorMesh(const rotorFvMeshSel* rotorFvMeshSel){ rotorFvMeshSel_ = rotorFvMeshSel;}
 
     virtual void build(const rotorGeometry& rotorGeometry){}
+    virtual bool nextTimeStep(scalar dt){return false;}
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force){return propellerResult();}
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const {return propellerResult();}
 
-    virtual propellerResult calculate(const vectorField& U,scalar angularVelocity, volVectorField& force){return propellerResult();}
+    virtual const autoPtr<rotorGrid>& grid() const = 0;
+    
+    const fvMesh& mesh() const { return mesh_;}
+    const word& sourceName() const {return sourceName_;}
+    
+    static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);
 
-    virtual const rotorDiscrete& rDiscrete() = 0;
-
-    void setRefV(scalar v){refV=v;}
-    void setRefRho(scalar rho){refRho = rho;}
+protected:
+    const word sourceName_;
+    const fvMesh& mesh_;
 };
 
 }

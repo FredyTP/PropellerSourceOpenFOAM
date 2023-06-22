@@ -14,12 +14,10 @@
 #include "airfoilModel.H"
 #include "airfoilModelList.H"
 
-#include "bladeModelDev.H"
 #include "rotorFvMeshSel.H"
 #include "rotorGeometry.H"
 
-#include "velocitySampler.H"
-#include "rotorDynamics.H"
+#include "diskSamplerInclude.H"
 
 namespace Foam
 {
@@ -53,10 +51,8 @@ protected:
     rotorGeometry rotorGeometry_;
 
     //Velocity sampler for model
-    autoPtr<velocitySampler> velSampler_;
-
-    //Rotor dynamics control
-    autoPtr<rotorDynamics> dynamics_;
+    autoPtr<diskSampler<vector>> velSampler_;
+    autoPtr<diskSampler<scalar>> densitySampler_;
 
     volVectorField force;
 
@@ -93,7 +89,6 @@ public:
     //IO
         //- Read source dictionary
         virtual bool read(const dictionary& dict);
-        void writeData(Ostream& os) const;
 
     // Source term addition
 
@@ -104,20 +99,13 @@ public:
             const label fieldi
         );
 
-        //- Add explicit contribution to scalar equations <- "i guess"
-        virtual void addSup
-        (
-            fvMatrix<scalar>& eqn,
-            const label fieldi
-        );
-
         //- Add explicit contribution to compressible momentum equation
-        /*virtual void addSup
+        virtual void addSup
         (
             const volScalarField& rho,
             fvMatrix<vector>& eqn,
             const label fieldi
-        );*/
+        );
 
 };
 

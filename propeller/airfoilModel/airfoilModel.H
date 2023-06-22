@@ -4,7 +4,7 @@
 #include "dictionary.H"
 #include "scalar.H"
 #include "autoPtr.H"
-#include "interpolated.H"
+#include "Interpolated.H"
 namespace Foam
 {
 
@@ -20,14 +20,15 @@ public:
             airfoilModel,
             dictionary,
             (
-                const word name,
+                word name,
                 const dictionary& dict
             ),
             (name, dict)
         );
 
     airfoilModel();
-    airfoilModel(const word name);
+    airfoilModel(word name);
+    airfoilModel(word name, const dictionary& dict);
     
     virtual ~airfoilModel() = default;
     
@@ -38,10 +39,23 @@ public:
 
     static Foam::autoPtr<Foam::airfoilModel> New(const word name, const dictionary& dict);
 
-    //virtual scalar cm(scalar alfaRad, scalar reynolds, scalar mach);
-protected:
+    void exportAirfoil();
+    void writeAirfoil(fileName path, scalar alfaBegin, scalar alfaEnd, label nAlfa, const List<scalar>& Reyn, const List<scalar>& Mach);
 
-    const word name_;
+    //virtual scalar cm(scalar alfaRad, scalar reynolds, scalar mach);
+private:
+
+    word name_;
+
+    //Export properties
+    bool export_;
+    bool join_;
+    fileName path_;
+    scalar aoaBegin_;
+    scalar aoaEnd_;
+    label nAoa_;
+    List<scalar> Re_;
+    List<scalar> Ma_;
 
 };
 
