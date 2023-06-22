@@ -39,7 +39,7 @@ scalar viterna::cl(scalar alpha) const
     }
     else if((alpha>piByTwo && alpha<=pi) || (alpha>=-pi && alpha<-piByTwo)) // [90 , 180] o [-180, -90]
     {
-        return flat_plate_cl(data_.cl_stall_pos,alpha);
+        return flat_plate_cl(data_.cd_max,alpha);
     }
     else // [-90, negative stall]
     {

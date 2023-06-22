@@ -1,12 +1,13 @@
 import numpy as np;
+import matplotlib as mpl;
+import matplotlib.cm as cm;
 import matplotlib.pyplot as plot;
 import csv
 
 
 
-AR=20
-alpha_stall = 15 *np.pi/180
-alphas=np.linspace(-180,180,300)
+AR=10
+alphas=np.linspace(-180,180,360)
 
 alpha_stall_n = -15
 alpha_stall_p = 15
@@ -38,6 +39,7 @@ B2_n = (CD_stall- CDmax*np.sin(alpha_stall)**2)/(np.cos(alpha_stall))
 cl=np.zeros(len(alphas))
 cd=np.zeros(len(alphas))
 
+
 for i in range(len(alphas)):
     alpha = alphas[i]
     #check alpha between (-180 , 180]
@@ -56,8 +58,8 @@ for i in range(len(alphas)):
     elif(alpha>90 and alpha<=180) or (alpha>=-180 and alpha<-90):
         #flat plate
         alpha = alpha * np.pi/180
-        cl[i]=2*np.abs(CL_stall_n)*np.sin(alpha)*np.cos(alpha)
-        cd[i]= B1_n*np.sin(alpha)**2 + B2_n*np.cos(alpha)
+        cl[i]= np.abs(CDmax)*np.sin(alpha)*np.cos(alpha)
+        cd[i]= CDmax*np.sin(alpha)**2
     else:
         #viterna negative
         alpha = -alpha
@@ -66,12 +68,45 @@ for i in range(len(alphas)):
         cd[i] = B1_n*np.sin(alpha)**2 + B2_n*np.cos(alpha)
 
 
-plot.plot(alphas,cl*np.cos(alphas* np.pi/180)+cd*np.sin(alphas* np.pi/180))
-plot.plot(alphas,cd*np.cos(alphas* np.pi/180)-cl*np.sin(alphas* np.pi/180))
+
+
+
+alpha_lineal = alphas[180+alpha_stall_n-1:180+alpha_stall_p+1]
+cl_lineal=cl[180+alpha_stall_n-1:180+alpha_stall_p+1]
+cd_lineal=cd[180+alpha_stall_n-1:180+alpha_stall_p+1]
+
+alpha_viterna=alphas[180-90:180+alpha_stall_n]
+cl_viterna=cl[180-90:180+alpha_stall_n]
+cd_viterna=cd[180-90:180+alpha_stall_n]
+
+alpha_viterna_pos=alphas[180+alpha_stall_p:180+90]
+cl_viterna_pos=cl[180+alpha_stall_p:180+90]
+cd_viterna_pos=cd[180+alpha_stall_p:180+90]
+
+alpha_plate_neg = alphas[0:91]
+cl_plate_neg = cl[0:91]
+cd_plate_neg = cd[0:91]
+
+alpha_plate_pos = alphas[180+89:360]
+cl_plate_pos = cl[180+89:360]
+cd_plate_pos = cd[180+89:360]
+
+
+colormap = mpl.colormaps['inferno']
+
+plot.plot(alpha_lineal,cl_lineal,color=colormap(1/4),linewidth = 2)
+plot.plot(alpha_viterna,cl_viterna,color=colormap(2/4),linewidth = 2)
+plot.plot(alpha_plate_neg,cl_plate_neg,color=colormap(3/4),linewidth = 2)
+plot.plot(alpha_viterna_pos,cl_viterna_pos,color=colormap(2/4),linewidth = 2)
+plot.plot(alpha_plate_pos,cl_plate_pos,color=colormap(3/4),linewidth = 2)
+
+plot.legend(["datos","viterna","placa plana"])
+plot.title("Extrapolación Viterna + placa plana")
+plot.xlabel(r'$\alpha$ [º]')
+plot.ylabel(r'$cl$ [-]')
 plot.grid()
-plot.show()
-
-
+plot.savefig("extrapolacion_viterna_flatplate.pdf", format="pdf", bbox_inches="tight")
+#plot.show()
 
 
 #cl=(CL_stall+0.2)*(alpha)/(alpha_stall)
