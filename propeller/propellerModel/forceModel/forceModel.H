@@ -17,6 +17,14 @@ public:
     //Defines the runtime name of this class (IOpurposes?)
     TypeName("forceModel");
 
+    enum outputVectorFields
+    {
+        fmForceField,
+        fmMomentField,
+    };
+    
+    typedef util::outputFields<vector,outputVectorFields,5> outputVectorType;
+
     enum class controlVar
     {
         omega=0
@@ -75,6 +83,8 @@ private:
 
     autoPtr<RegularInterpolation<scalar,scalar,1>> thrustCoeff_;
     autoPtr<RegularInterpolation<scalar,scalar,1>> torqueCoeff_;
+
+    mutable outputVectorType vectorFields_;
 
     static vector ForceDistribution(scalar Ax, scalar Atheta, scalar radius, scalar minRadius, scalar maxRadius);
     static vector ForceIntergralFunction(scalar Ax, scalar Atheta, scalar radius, scalar minRadius, scalar maxRadius);

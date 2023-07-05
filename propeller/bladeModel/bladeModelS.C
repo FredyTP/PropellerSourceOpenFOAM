@@ -48,6 +48,20 @@ void Foam::bladeModelS::checkBlade()
     checkRadiusList(chord_->getInputs()[0]);
     checkRadiusList(twistAngle_->getInputs()[0]);
     checkRadiusList(sweepAngle_->getInputs()[0]);
+
+    //Check sweep
+    const List<scalar>& sweeps = sweepAngle_->getOutputs();
+    forAll(sweeps,i)
+    {
+        if(sweep[i]>pi/2 || sweep[i]<pi/2)
+        {
+            FatalErrorInFunction
+                <<"Sweep angle  should be between -pi/2 and pi/2"
+                <<endl
+                <<radiuslist
+                <<exit(FatalError);
+        }
+    }
     checkRadiusList(airfoils_.getInputs()[0]);
 }
 

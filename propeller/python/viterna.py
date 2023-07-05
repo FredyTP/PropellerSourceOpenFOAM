@@ -2,13 +2,16 @@ import numpy as np;
 import matplotlib as mpl;
 import matplotlib.cm as cm;
 import matplotlib.pyplot as plot;
+from matplotlib.collections import LineCollection
+from matplotlib.colors import BoundaryNorm
 import csv
 
 
 
-AR=10
-alphas=np.linspace(-180,180,360)
+factor=3
+alphas=np.linspace(-180,180,int(3600/factor))
 
+AR=10
 alpha_stall_n = -15
 alpha_stall_p = 15
 CL_stall_n = -0.7
@@ -69,59 +72,79 @@ for i in range(len(alphas)):
 
 
 
+lim_inf = 1800+alpha_stall_n*10
+lim_sup=1800+alpha_stall_p*10
+lim_inf=int(lim_inf/factor)
+lim_sup=int(lim_sup/factor)
+alpha_lineal = alphas[lim_inf:lim_sup]
+cl_lineal=cl[lim_inf:lim_sup]
+cd_lineal=cd[lim_inf:lim_sup]
 
+lim_inf=1800-900
+lim_sup=1800+alpha_stall_n*10
+lim_inf=int(lim_inf/factor)
+lim_sup=int(lim_sup/factor)
+alpha_viterna=alphas[lim_inf:lim_sup]
+cl_viterna=cl[lim_inf:lim_sup]
+cd_viterna=cd[lim_inf:lim_sup]
 
-alpha_lineal = alphas[180+alpha_stall_n-1:180+alpha_stall_p+1]
-cl_lineal=cl[180+alpha_stall_n-1:180+alpha_stall_p+1]
-cd_lineal=cd[180+alpha_stall_n-1:180+alpha_stall_p+1]
+lim_inf=1800+alpha_stall_p*10
+lim_sup=1800+900
+lim_inf=int(lim_inf/factor)
+lim_sup=int(lim_sup/factor)
+alpha_viterna_pos=alphas[lim_inf:lim_sup]
+cl_viterna_pos=cl[lim_inf:lim_sup]
+cd_viterna_pos=cd[lim_inf:lim_sup]
 
-alpha_viterna=alphas[180-90:180+alpha_stall_n]
-cl_viterna=cl[180-90:180+alpha_stall_n]
-cd_viterna=cd[180-90:180+alpha_stall_n]
+lim_inf=0
+lim_sup=900
+lim_inf=int(lim_inf/factor)
+lim_sup=int(lim_sup/factor)
+alpha_plate_neg = alphas[lim_inf:lim_sup]
+cl_plate_neg = cl[lim_inf:lim_sup]
+cd_plate_neg = cd[lim_inf:lim_sup]
 
-alpha_viterna_pos=alphas[180+alpha_stall_p:180+90]
-cl_viterna_pos=cl[180+alpha_stall_p:180+90]
-cd_viterna_pos=cd[180+alpha_stall_p:180+90]
-
-alpha_plate_neg = alphas[0:91]
-cl_plate_neg = cl[0:91]
-cd_plate_neg = cd[0:91]
-
-alpha_plate_pos = alphas[180+89:360]
-cl_plate_pos = cl[180+89:360]
-cd_plate_pos = cd[180+89:360]
+lim_inf=1800+900
+lim_sup=3600
+lim_inf=int(lim_inf/factor)
+lim_sup=int(lim_sup/factor)
+alpha_plate_pos = alphas[lim_inf:lim_sup]
+cl_plate_pos = cl[lim_inf:lim_sup]
+cd_plate_pos = cd[lim_inf:lim_sup]
 
 
 colormap = mpl.colormaps['inferno']
+mpl.rc('axes', labelsize=12)
 
-plot.plot(alpha_lineal,cl_lineal,color=colormap(1/4),linewidth = 2)
-plot.plot(alpha_viterna,cl_viterna,color=colormap(2/4),linewidth = 2)
-plot.plot(alpha_plate_neg,cl_plate_neg,color=colormap(3/4),linewidth = 2)
-plot.plot(alpha_viterna_pos,cl_viterna_pos,color=colormap(2/4),linewidth = 2)
-plot.plot(alpha_plate_pos,cl_plate_pos,color=colormap(3/4),linewidth = 2)
+
+
+plot.plot(alpha_lineal,cl_lineal,color=colormap(1/4),linewidth = 3)
+plot.plot(alpha_viterna,cl_viterna,color=colormap(2/4),linewidth = 3)
+plot.plot(alpha_plate_neg,cl_plate_neg,color=colormap(3/4),linewidth = 3)
+plot.plot(alpha_viterna_pos,cl_viterna_pos,color=colormap(2/4),linewidth = 3)
+plot.plot(alpha_plate_pos,cl_plate_pos,color=colormap(3/4),linewidth = 3)
 
 plot.legend(["datos","viterna","placa plana"])
-plot.title("Extrapolación Viterna + placa plana")
-plot.xlabel(r'$\alpha$ [º]')
-plot.ylabel(r'$cl$ [-]')
+plot.title(r"Extrapolación $c_L$: Viterna y placa plana")
+plot.xlabel(r'$\alpha$ ['+u"\u00b0" +"]")
+plot.ylabel(r'$c_L$ [-]')
+plot.xticks(np.linspace(-180,180,9))
 plot.grid()
-plot.savefig("extrapolacion_viterna_flatplate.pdf", format="pdf", bbox_inches="tight")
-#plot.show()
+plot.savefig("cl_extrapolacion_viterna_flatplate.pdf", format="pdf", bbox_inches="tight")
+plot.cla()
 
+plot.plot(alpha_lineal,cd_lineal,color=colormap(1/4),linewidth = 3)
+plot.plot(alpha_viterna,cd_viterna,color=colormap(2/4),linewidth = 3)
+plot.plot(alpha_plate_neg,cd_plate_neg,color=colormap(3/4),linewidth = 3)
+plot.plot(alpha_viterna_pos,cd_viterna_pos,color=colormap(2/4),linewidth = 3)
+plot.plot(alpha_plate_pos,cd_plate_pos,color=colormap(3/4),linewidth = 3)
 
-#cl=(CL_stall+0.2)*(alpha)/(alpha_stall)
-#cl[-1]=CL_stall
-#ls = A1*np.sin(2*alpha_s)+A2*(np.cos(alpha_s)**2)/np.sin(alpha_s)
-#ccd =B1*np.sin(alpha)**2 + B2*np.cos(alpha)
-#cds= B1*np.sin(alpha_s)**2 + B2*np.cos(alpha_s)
-#
-#alpha_s2 = 180*np.pi/180 - alpha_s
-#cls2 = -cls
-#cl3 = -cl
-#alpha3 = 180*np.pi/180 - alpha
-#
-#alpha_all = np.concatenate((alpha, alpha_s, np.flip(alpha_s2), np.flip(alpha3)))
-#cl_all = np.concatenate((cl,cls,np.flip(cls2),np.flip(cl3)))
-#cd_all = np.concatenate((cd,cds,np.flip(cds),np.flip(cd)))
-#
-#cn = cl_all*np.cos(alpha_all)+cd_all*np.sin(alpha_all)
+plot.legend(["datos","viterna","placa plana"])
+plot.title(r"Extrapolación $c_D$: Viterna y placa plana")
+plot.xlabel(r'$\alpha$ ['+u"\u00b0" +"]")
+plot.ylabel(r'$c_D$ [-]')
+plot.xticks(np.linspace(-180,180,9))
+
+plot.grid()
+plot.savefig("cd_extrapolacion_viterna_flatplate.pdf", format="pdf", bbox_inches="tight")
+plot.show()

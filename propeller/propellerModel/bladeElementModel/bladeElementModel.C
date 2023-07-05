@@ -243,7 +243,7 @@ vector bladeElementModel::calculatePoint(const vector &U,scalar rho, scalar angu
 
     //y component is radial, thus "doesn't contribute to aerodinamic forces"
     relativeVel.y()=0;
-    scalar relativeSpeed = mag(relativeVel);
+    scalar relativeSpeed = mag(relativeVel)*cos(sweep);
 
     //Airspeed angle (positive when speed is from "below" airfoil)
     scalar phi = bladeElementModel::AngleOfIncidence(relativeVel);

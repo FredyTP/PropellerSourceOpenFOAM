@@ -35,7 +35,21 @@ forceModel::forceModel
     const fvMesh& mesh
 )  : 
     propellerModel(sourceName,dict,mesh),
-    gridDictionary_(dict.subDict("rotorGrid"))
+    gridDictionary_(dict.subDict("rotorGrid")),
+    vectorFields_
+    (
+        this->sourceName(),
+        dict,
+        this->mesh(),
+        {
+            {fmForceField, "fmForce"},
+            {fmMomentField, "fmMoment"},
+        },
+        {
+            {fmForceField, dimForce},
+            {fmMomentField, dimForce*dimLength}
+        }
+    )
 {
     read(dict);
 }
@@ -187,6 +201,11 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
         result.torque += localForce.cross(localPos);
         cell.applySource(force,cellVol,globalForce);
         cell.applyField<vector>(fmForce,cellForce);
+
+        vector moment = Zero;
+        moment.z()=forceOverLen.x()*cellR;
+        vectorFields_.setValue(fmForceField,forceOverLen,cell.cellis());
+        vectorFields_.setValue(fmMomentField,moment,cell.cellis());
 
     }
 
