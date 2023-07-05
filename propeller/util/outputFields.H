@@ -30,7 +30,8 @@ public:
         const dictionary& dict,
         const fvMesh& mesh,
         std::initializer_list<std::pair<enumType, const char*>> enumNames,
-        std::initializer_list<std::pair<label, dimensionSet>> enumDimensions
+        std::initializer_list<std::pair<label, dimensionSet>> enumDimensions,
+        bool autoWrite = true
     );
 
     void read(const dictionary& dict);
@@ -89,6 +90,7 @@ private:
     List<bool> active_;
 
     PtrList<VolumeField<fieldType>> fields_;
+    bool autoWrite_;
 };
 
 template <class fieldType, class enumType, label N>
@@ -98,14 +100,16 @@ inline outputFields<fieldType, enumType, N>::outputFields
     const dictionary& dict,
     const fvMesh& mesh,
     std::initializer_list<std::pair<enumType, const char*>> enumNames,
-    std::initializer_list<std::pair<label, dimensionSet>> enumDimensions
+    std::initializer_list<std::pair<label, dimensionSet>> enumDimensions,
+    bool autoWrite 
 ) : 
     ownerName_(ownerName),
     mesh_(mesh),
     names_(enumNames),
     dimensions_(enumDimensions),
     active_(N,false),
-    fields_(N)
+    fields_(N),
+    autoWrite_(autoWrite)
 {
     this->read(dict);
     this->initFields();
@@ -144,7 +148,7 @@ inline void outputFields<fieldType, enumType, N>::initFields()
                 mesh_.time().timeName(),
                 mesh_,
                 IOobject::NO_READ,
-                IOobject::AUTO_WRITE
+                autoWrite_ ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
             ),
             mesh_,
             dimensioned<fieldType>(dimless, Zero)
