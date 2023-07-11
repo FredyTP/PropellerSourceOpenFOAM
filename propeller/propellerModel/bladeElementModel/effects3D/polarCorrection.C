@@ -54,7 +54,7 @@ void polarCorrection::Snel(scalar &cl3d, scalar cl2d, scalar alpha, scalar chord
         return;
     }
 
-    scalar cl_pot = constant::mathematical::twoPi*alpha;
+    scalar cl_pot = constant::mathematical::twoPi*sin(alpha)*cos(alpha);
     if(cl_pot<cl2d)
     {
         cl3d=cl2d;
@@ -84,7 +84,7 @@ void polarCorrection::SnelPumping(scalar &cl3d, scalar cl2d, scalar alpha, scala
         cl3d=cl2d;
         return;
     }
-    scalar cl_pot = constant::mathematical::twoPi*alpha;
+    scalar cl_pot = constant::mathematical::twoPi*sin(alpha)*cos(alpha);
     if(cl_pot<cl2d)
     {
         cl3d=cl2d;
