@@ -87,6 +87,7 @@ public:
     
     static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);
 
+    virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
 protected:
     const word sourceName_;
     const fvMesh& mesh_;

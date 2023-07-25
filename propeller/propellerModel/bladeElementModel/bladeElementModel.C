@@ -152,8 +152,6 @@ propellerResult bladeElementModel::calculate(const vectorField& U, const scalarF
 
     const scalarField& cellVol = rotorFvMeshSel_->mesh().V();
 
-    control_->correctControl(U,rhoField);
-
     scalar angularVelocity = control_->getAngularVelocity();
     //---CALCULATE VALUE ON INTEGRATION POINTS---//
     forAll(cells, i)
@@ -428,4 +426,8 @@ tensor bladeElementModel::cellBladeTensor(const gridCell &cell) const
     return propellerModel::bladeTensor(rotorGrid_->geometry().cylindricalCS(),center,flapping,sweep);
 }
 
+void bladeElementModel::correctControl(const vectorField &U, const scalarField *rhoField)
+{
+    control_->correctControl(U,rhoField);
+}
 }

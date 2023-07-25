@@ -162,6 +162,7 @@ public:
 
     tensor cellBladeTensor(const gridCell& cell) const;
     
+    void correctControl(const vectorField& U, const scalarField* rhoField);
 };
 
 }

@@ -54,7 +54,7 @@ void Foam::bladeModelS::checkBlade()
     const List<scalar>& sweeps = sweepAngle_->getOutputs();
     forAll(sweeps,i)
     {
-        if(sweeps[i]>pi/2 || sweeps[i]<pi/2)
+        if(sweeps[i]>pi/2 || sweeps[i]<-pi/2)
         {
             FatalErrorInFunction
                 <<"Sweep angle  should be between -pi/2 and pi/2"

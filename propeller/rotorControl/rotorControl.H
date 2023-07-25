@@ -14,6 +14,7 @@ class rotorControl
 {
 public:
     static scalar readAngularVelocity(const dictionary& dict);
+    virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
     virtual ~rotorControl() = default;
 };
 

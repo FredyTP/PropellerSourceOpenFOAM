@@ -81,7 +81,11 @@ scalar forceModel::getReferenceSpeed(const vectorField & U) const
     vector normal = rotorGrid_->geometry().direction();
     return forceModel::getReferenceSpeed(U,normal);
 }
-scalar forceModel::getReferenceSpeed(const vectorField & U, const vector & normal)
+void forceModel::correctControl(const vectorField &U, const scalarField *rhoField)
+{
+    control_->correctControl(U,rhoField);
+}
+scalar forceModel::getReferenceSpeed(const vectorField &U, const vector &normal)
 {
     vector velAvg = average(U);
     return (-normal.inner(velAvg));
@@ -161,7 +165,6 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     scalar minR = rotorGrid_->geometry().innerRadius();
     scalar D = 2 * maxR;
 
-    control_->correctControl(U,rhoField);
     scalar J = control_->getJ();
 
     scalar Kt = thrustCoeff_->interpolate({J}).value();
@@ -170,8 +173,6 @@ propellerResult forceModel::calculate(const vectorField &U, const scalarField *r
     scalar thrust = Kt*rhoRef*pow(speedRef,2)*pow(D,2)/pow(J,2);
     scalar torque = Kq*rhoRef*pow(speedRef,2)*pow(D,3)/pow(J,2);
 
-    Info<<"Table thrust: "<<thrust<<endl;
-    Info<<"Table torque: "<<torque<<endl;
     scalar Ax = AxCoefficient(thrust,minR,maxR);
     scalar Atheta = AthetaCoefficient(torque,minR,maxR);
     PtrList<gridCell>& cells = rotorGrid_->cells();

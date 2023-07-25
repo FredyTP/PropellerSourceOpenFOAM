@@ -30,7 +30,7 @@ public:
     bemControl(const dictionary& dict);
 
 
-    virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
+    
 
     virtual scalar getAzimuth(scalar azimuth0) const = 0;
     virtual scalar getPitch(scalar azimuth) const = 0;

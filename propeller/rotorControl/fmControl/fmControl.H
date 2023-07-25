@@ -28,8 +28,6 @@ public:
 
     fmControl(const dictionary& dict, const forceModel& fmModel);
 
-    virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
-
     virtual scalar getAngularVelocity() const = 0;
 
     virtual scalar getJ() const = 0;

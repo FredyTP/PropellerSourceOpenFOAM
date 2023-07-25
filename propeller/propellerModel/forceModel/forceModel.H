@@ -71,7 +71,7 @@ public:
 
     //virtual rotorControl<forceModel>& control() {return control_.ref();};
     
-    virtual const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
+     virtual const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
 private:
     
     scalar psi0_ = 0;
@@ -101,7 +101,7 @@ public:
     scalar rhoRef() const {return rhoRef_;}
     static scalar getReferenceSpeed(const vectorField& U,const vector& normal);
     scalar getReferenceSpeed(const vectorField& U) const;
-
+    void correctControl(const vectorField& U, const scalarField* rhoField);
 };
 
 }

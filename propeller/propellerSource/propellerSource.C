@@ -165,11 +165,14 @@ void Foam::fv::propellerSource::addSup
         densitySampler_->build();
     }
 
-
+    const vectorField& sampledVel = velSampler_->sampleField(Uin);
+    const scalarField* sampledRho = rho.empty() ? &densitySampler_->sampleField(rho) : nullptr;
+            
+    propellerModel_->correctControl(sampledVel,sampledRho);
     propResult_ = propellerModel_->calculate
         (
-            velSampler_->sampleField(Uin),
-            rho.empty() ? &densitySampler_->sampleField(rho) : nullptr,
+            sampledVel,
+            sampledRho,
             force
         );
     
