@@ -45,6 +45,7 @@ void Foam::bladeModelS::writeBlade(label np, fileName path)
 
 void Foam::bladeModelS::checkBlade()
 {
+    using namespace constant::mathematical;
     checkRadiusList(chord_->getInputs()[0]);
     checkRadiusList(twistAngle_->getInputs()[0]);
     checkRadiusList(sweepAngle_->getInputs()[0]);
@@ -53,12 +54,12 @@ void Foam::bladeModelS::checkBlade()
     const List<scalar>& sweeps = sweepAngle_->getOutputs();
     forAll(sweeps,i)
     {
-        if(sweep[i]>pi/2 || sweep[i]<pi/2)
+        if(sweeps[i]>pi/2 || sweeps[i]<pi/2)
         {
             FatalErrorInFunction
                 <<"Sweep angle  should be between -pi/2 and pi/2"
                 <<endl
-                <<radiuslist
+                <<sweeps[i]
                 <<exit(FatalError);
         }
     }
