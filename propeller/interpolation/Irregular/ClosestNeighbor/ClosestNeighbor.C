@@ -18,7 +18,7 @@ ClosestNeighbor<typeIn, typeOu, dim>::ClosestNeighbor(const List<FixedList<typeI
 template <class typeIn, class typeOu, label dim>
 Interpolated<typeIn, typeOu> ClosestNeighbor<typeIn, typeOu, dim>::interpolate(
 
-    FixedList<typeIn, dim> input) const
+    const FixedList<typeIn, dim>& input) const
 {
     Interpolated<typeIn, typeOu> result;
 

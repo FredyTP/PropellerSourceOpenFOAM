@@ -346,7 +346,8 @@
 			"rodas34.C": "cpp",
 			"dimensionSet.C": "cpp",
 			"fvMeshDistributeTemplates.C": "cpp",
-			"simpleObjectRegistry.C": "cpp"
+			"simpleObjectRegistry.C": "cpp",
+			"quaternion.C": "cpp"
 		}
 	}
 }

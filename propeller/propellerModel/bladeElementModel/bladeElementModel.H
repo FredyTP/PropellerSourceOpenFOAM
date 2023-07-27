@@ -73,9 +73,7 @@ protected:
 
     airfoilModelList airfoils_;
     bladeModelS bladeModel_;
-    autoPtr<rotorGrid> rotorGrid_;
     List<tensor> gridTensor_; //(x: LE->TE) (y: radial) (z: "up")
-    scalar nBlades_; 
     scalar tipFactor_;
 
     scalar rhoRef_;
@@ -145,7 +143,7 @@ public:
      */
     virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const;
 
-    virtual const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
+    
 
     vector calculatePoint(const vector& U, scalar rho, scalar angularVelocity, const gridCell& cell, const tensor& bladeTensor, bemDebugData& data, bool saveFields = false) const;
 

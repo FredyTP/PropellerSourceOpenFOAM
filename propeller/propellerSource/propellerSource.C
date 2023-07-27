@@ -69,13 +69,16 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         fv::option::resetApplied();
         /*-----------------------------------------*/
 
-        /*----------READ USER SPECIFIED ROTOR GEOMETRY---------------*/
-        //- Read geometry data if present
-        rotorGeometry_.readIfPresent(coeffs_.subOrEmptyDict("geometry"));
+       
 
         /*----------READ USER DESIRED ROTOR MODEL(BEMT ...)---------------*/
         //- Read propeller Model
         propellerModel_ = propellerModel::New(fv::option::name(),coeffs_.subDict("propellerModel"),mesh_);
+
+
+         /*----------READ USER SPECIFIED ROTOR GEOMETRY---------------*/
+        //- Read geometry data if present
+        rotorGeometry_.readIfPresent(coeffs_.subOrEmptyDict("geometry"));
 
         /*----------READ FV ROTOR MESH CONFIG---------------*/
         rotorFvMeshSel_.read(coeffs_.subDict("rotorMesh"));
@@ -101,7 +104,7 @@ bool Foam::fv::propellerSource::read(const dictionary& dict)
         /*-----BUILD PROPELLER MODEL AND COORDINATE SYSTEM-----*/
         rotorGeometry_.buildCS();
         propellerModel_->build(rotorGeometry_);
-
+        propellerModel_->grid()->tryExport();
         /*-----CREATE VELOCITY SAMPLING METHOD-----*/
         //Create velocitySampler for specified rotor discrete and mesh
         Info<<endl;

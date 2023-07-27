@@ -73,7 +73,7 @@ public:
 
     }
     
-    Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
+    Interpolated<typeIn,typeOu> interpolate(const FixedList<typeIn, dim>& input) const
     {
         Interpolated<typeIn,typeOu> iReturn;
         auto& coeff = iReturn.coefficients();
@@ -162,10 +162,10 @@ public:
     }    
 
     virtual label size() {
-        label s = 0;
+        label s = 1;
         forAll(this->size_,i)
         {
-            s+=this->size_[i];
+            s*=this->size_[i];
         }
         return s;
     }

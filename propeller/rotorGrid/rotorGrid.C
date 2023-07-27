@@ -28,6 +28,7 @@ rotorGrid::rotorGrid(const dictionary &dict, const rotorGeometry &geometry, cons
     :rotorGeometry_(geometry), meshSel_(rotorFvMeshSel)
 {
     sampleMode_ = sampleModeNames_.getOrDefault("sampleMode",dict,sampleMode::spClosestCell);
+    exportName_ = dict.getOrDefault<word>("exportName","");
     nBlades_ = nBlades;
     minRadius_ = geometry.innerRadius();
     maxRadius_ = geometry.radius();
@@ -147,5 +148,12 @@ autoPtr<rotorGrid> Foam::rotorGrid::New(const dictionary &dict, const rotorGeome
     return autoPtr<rotorGrid>(ctorPtr(dict,geometry,rotorFvMeshSel,bladeModel,nBlades));
 }
 
+void rotorGrid::tryExport()
+{
+    if(exportName_!="")
+    {
+        this->writePythonPlotter(exportName_);
+    }
+}
 }
 

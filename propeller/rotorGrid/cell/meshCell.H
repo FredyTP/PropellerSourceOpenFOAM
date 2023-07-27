@@ -63,6 +63,8 @@ public:
     vector getCellCenter() const;
 
     void setCell(label celli);
+
+    const List<vector>& localCartesianPoints() const { return localPoints_; }
 private:
     List<vector> localPoints_; //Cell base points in local cartesian coordinates, sorted couterclockwise
 

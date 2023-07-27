@@ -8,9 +8,10 @@
 namespace Foam
 {
 
-
-
-
+/**
+ * @brief Implementation of flat plate equations
+ * 
+ */
 class simpleAirfoil
 : public airfoilModel
 {
@@ -19,7 +20,7 @@ public:
     TypeName("simpleAirfoil");
 
 
-    simpleAirfoil(word name, scalar cl0,scalar cl_alfa,scalar K,scalar cd0);
+    simpleAirfoil(word name, scalar cl0,scalar cl_max,scalar cd_max,scalar cd0);
     simpleAirfoil(word name, const dictionary& dict);
 
     virtual scalar cl(scalar alfaRad, scalar reynolds, scalar mach) const;
@@ -29,9 +30,9 @@ public:
 private:
 
     scalar cl0_;
-    scalar dcl_dalfa_;
-    scalar K_;
     scalar cd0_;
+    scalar cd_max_;
+    scalar cl_max_;
 
 };
 

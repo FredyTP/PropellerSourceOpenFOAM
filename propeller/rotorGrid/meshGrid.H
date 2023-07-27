@@ -31,7 +31,7 @@ public:
     );
     void assignFvCells();
     bool read(const dictionary& dict);
-    void writePythonPlotter();
+    void writePythonPlotter(word outputName);
 
 private:
     void createMeshIntersect

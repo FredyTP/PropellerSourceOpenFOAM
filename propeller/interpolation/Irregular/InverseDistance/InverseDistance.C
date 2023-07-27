@@ -23,9 +23,10 @@ InverseDistance<typeIn, typeOu, dim>::InverseDistance(const List<FixedList<typeI
     }
 }
 template <class typeIn, class typeOu, label dim>
-Interpolated<typeIn, typeOu> InverseDistance<typeIn, typeOu, dim>::interpolate(
-
-    FixedList<typeIn, dim> input) const
+Interpolated<typeIn, typeOu> InverseDistance<typeIn, typeOu, dim>::interpolate
+(
+    const FixedList<typeIn, dim>& input
+) const
 {
 
     // THIS ALGORITHM IS NOT OPTIMIZED!! IT CAN BE VERY SLOW IN BIG DATA BASES (O(N^2))

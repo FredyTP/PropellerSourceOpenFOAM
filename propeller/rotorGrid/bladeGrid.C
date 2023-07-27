@@ -37,6 +37,7 @@ bladeGrid::bladeGrid(const dictionary &dict, const rotorGeometry &geometry, cons
     }
 
     setRotation(getInitialAzimuth());
+
 }
 
 void bladeGrid::assignFvCells()
@@ -65,6 +66,95 @@ void bladeGrid::assignFvCells()
             }
         }
     }
+}
+void bladeGrid::writePythonPlotter(word outputName)
+{
+
+    word procName="";
+    if(Pstream::parRun())
+    {
+        procName = std::to_string(Pstream::myProcNo());
+    }   
+    
+
+    /**VERTEX*/
+    std::string x_string = "x = [";
+    std::string y_string = "y = [";
+
+
+    for (label i = 0; i < cells_.size(); i++)
+    {
+        bladeCell* cell = dynamic_cast<bladeCell*>(cells_.get(i));
+
+        const auto& points = cell->actualPoints();
+        x_string+="[";
+        y_string+="[";
+
+        for (label j = 0; j < points.size(); j++)
+        {
+            x_string += std::to_string(points[j].x());
+            y_string += std::to_string(points[j].y());
+
+            x_string += ",";
+            y_string += ",";
+            
+        }
+        x_string += std::to_string(points[0].x());
+        y_string += std::to_string(points[0].y());
+
+        x_string+="]";
+        y_string+="]";
+
+        if (i != cells_.size() - 1)
+        {
+            x_string += ",";
+            y_string += ",";
+        }
+    }
+
+    x_string += "]";
+    y_string += "]";
+
+
+    /**CENTERS*/
+    std::string xc_string = "xc = [";
+    std::string yc_string = "yc = [";
+    for (label i = 0; i < cells_.size(); i++)
+    {
+
+        vector center = cells_[i].center();
+        center = rotorGeometry_.cartesianToCylindrical().globalPosition(center);
+    
+        xc_string += std::to_string(center.x());
+        yc_string += std::to_string(center.y());
+
+        if (i != cells_.size() - 1)
+        {
+            xc_string += ",";
+            yc_string += ",";
+        }
+    }
+
+    xc_string += "]";
+    yc_string += "]";
+
+    std::string pyplot = "import numpy as np;\n";
+    pyplot += "import matplotlib.pyplot as plot;\n";
+    pyplot += "import matplotlib as mp;\n";
+    pyplot += xc_string + "\n";
+    pyplot += yc_string + "\n";
+    pyplot += x_string + "\n";
+    pyplot += y_string + "\n";
+
+    pyplot += "for i in range(len(x)):\n";
+    pyplot += "\tplot.plot(x[i],y[i],'k')\n";
+    pyplot += "\n";
+    pyplot += "plot.plot(xc,yc,marker='o',linewidth = 0)\n";
+    pyplot += "plot.gca().set_aspect('equal')\n";
+    pyplot += "plot.show()\n";
+    std::ofstream file(outputName + procName + ".py", std::ios::out);
+    file << pyplot;
+    file.close();
 }
 void bladeGrid::setRotation(const List<scalar>& thetas)
 {

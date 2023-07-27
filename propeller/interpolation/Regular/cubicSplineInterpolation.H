@@ -73,7 +73,7 @@ public:
     {
 
     }
-    Interpolated<scalar,scalar> interpolate(FixedList<scalar,1> input) const
+    Interpolated<scalar,scalar> interpolate(const FixedList<scalar,1>& input) const
     {
         label i1,i2;
         Interpolated<scalar,scalar> interp;

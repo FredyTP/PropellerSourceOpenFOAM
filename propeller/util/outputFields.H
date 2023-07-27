@@ -151,7 +151,7 @@ inline void outputFields<fieldType, enumType, N>::initFields()
                 autoWrite_ ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
             ),
             mesh_,
-            dimensioned<fieldType>(dimless, Zero)
+            dimensioned<fieldType>(dimensions_.at(i), Zero)
         );
         fields_.set(i,fieldPtr);
     }

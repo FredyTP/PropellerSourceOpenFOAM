@@ -33,7 +33,7 @@ public:
      * 
      * The reconstructed Interpolated value is : coeff_1 * value_1 + coeff_2 * value_2 ...
     */
-    virtual Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input_) const = 0;
+    virtual Interpolated<typeIn,typeOu> interpolate(const FixedList<typeIn, dim>& input_) const = 0;
 
     typeOu getOutput(label idx)
     {
@@ -341,7 +341,7 @@ class ConstantInterpolation : public RegularInterpolation<typeIn,typeOu,dim>
     ConstantInterpolation(const typeOu& value) : value_(value) {}
 
     bool setRawData(List<List<typeIn>>& inputs_, List<typeOu>& outputs_) { return true;}
-    Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const
+    Interpolated<typeIn,typeOu> interpolate(const FixedList<typeIn, dim>& input) const
     {
         return Interpolated<typeIn,typeOu>({1},{value_});
     }

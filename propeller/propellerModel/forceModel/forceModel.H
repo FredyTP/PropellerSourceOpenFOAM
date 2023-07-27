@@ -71,13 +71,12 @@ public:
 
     //virtual rotorControl<forceModel>& control() {return control_.ref();};
     
-     virtual const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
 private:
     
     scalar psi0_ = 0;
     scalar rhoRef_;
     dictionary gridDictionary_;
-    autoPtr<rotorGrid> rotorGrid_;
+    
     List<tensor> gridTensor_;
     autoPtr<fmControl> control_;
 
@@ -95,8 +94,6 @@ private:
     void updateTensors();
     tensor cellBladeTensor(const gridCell& cell) const;
 
-
-    
 public:
     scalar rhoRef() const {return rhoRef_;}
     static scalar getReferenceSpeed(const vectorField& U,const vector& normal);

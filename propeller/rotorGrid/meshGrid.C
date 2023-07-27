@@ -576,25 +576,70 @@ void meshGrid::createFromData
             <<endl;
     }
 }
-void meshGrid::writePythonPlotter()
+void meshGrid::writePythonPlotter(word outputName)
 {
-    /*word procName="";
+
+    if(discreteMethod_==discreteMethod::proyection)
+    {
+        //Not enabled for this one
+        return;
+    }
+    word procName="";
     if(Pstream::parRun())
     {
         procName = std::to_string(Pstream::myProcNo());
     }   
     
+
+    /**VERTEX*/
     std::string x_string = "x = [";
     std::string y_string = "y = [";
-    std::string xc_string = "xc = [";
-    std::string yc_string = "yc = [";
+
 
     for (label i = 0; i < cells_.size(); i++)
     {
+        meshCell* cell = dynamic_cast<meshCell*>(cells_.get(i));
+
+        auto& points = cell->localCartesianPoints();
+        x_string+="[";
+        y_string+="[";
+
+        for (label j = 0; j < points.size(); j++)
+        {
+            x_string += std::to_string(points[j].x());
+            y_string += std::to_string(points[j].y());
+
+            x_string += ",";
+            y_string += ",";
+            
+        }
+        x_string += std::to_string(points[0].x());
+        y_string += std::to_string(points[0].y());
+
+        x_string+="]";
+        y_string+="]";
+
+        if (i != cells_.size() - 1)
+        {
+            x_string += ",";
+            y_string += ",";
+        }
+    }
+
+    x_string += "]";
+    y_string += "]";
+
+
+    /**CENTERS*/
+    std::string xc_string = "xc = [";
+    std::string yc_string = "yc = [";
+    for (label i = 0; i < cells_.size(); i++)
+    {
+
         vector center = cells_[i].center();
         center = rotorGeometry_.cartesianToCylindrical().globalPosition(center);
+    
         xc_string += std::to_string(center.x());
-
         yc_string += std::to_string(center.y());
 
         if (i != cells_.size() - 1)
@@ -607,43 +652,6 @@ void meshGrid::writePythonPlotter()
     xc_string += "]";
     yc_string += "]";
 
-    for (label i = 0; i < cells_.size(); i++)
-    {
-        x_string += std::to_string(cells_[i].x());
-
-        y_string += std::to_string(cells_[i].y());
-
-        if (i != cells_.size() - 1)
-        {
-            x_string += ",";
-            y_string += ",";
-        }
-    }
-
-    x_string += "]";
-    y_string += "]";
-
-    std::string tri_str = "tri = [";
-    for (label i = 0; i < rotorCells_.size(); i++)
-    {
-        const auto& vor = rotorCells_[i].vertex();
-        if (vor.size() == 0)
-            continue;
-        tri_str += "[";
-        for (label j = 0; j < vor.size(); j++)
-        {
-            tri_str += std::to_string(vor[j]);
-            tri_str += ",";
-        }
-        tri_str += std::to_string(vor[0]);
-        tri_str += "]";
-        if (i != rotorCells_.size() - 1)
-        {
-            tri_str += ",";
-        }
-    }
-    tri_str += "]";
-
     std::string pyplot = "import numpy as np;\n";
     pyplot += "import matplotlib.pyplot as plot;\n";
     pyplot += "import matplotlib as mp;\n";
@@ -651,23 +659,16 @@ void meshGrid::writePythonPlotter()
     pyplot += yc_string + "\n";
     pyplot += x_string + "\n";
     pyplot += y_string + "\n";
-    pyplot += tri_str + "\n";
 
-    pyplot += "tris = []\n";
-    pyplot += "for i in range(len(tri)):\n";
-    pyplot += "\txp = np.zeros(len(tri[i]))\n";
-    pyplot += "\typ = np.zeros(len(tri[i]))\n";
-    pyplot += "\tfor j in range(len(tri[i])):\n";
-    pyplot += "\t\txp[j]=x[tri[i][j]]\n";
-    pyplot += "\t\typ[j]=y[tri[i][j]]\n";
-    // pyplot+="\tif(len(tri[i])>2):\n";
-    pyplot += "\tplot.plot(xp,yp)\n";
+    pyplot += "for i in range(len(x)):\n";
+    pyplot += "\tplot.plot(x[i],y[i],'k')\n";
     pyplot += "\n";
     pyplot += "plot.plot(xc,yc,marker='o',linewidth = 0)\n";
+    pyplot += "plot.gca().set_aspect('equal')\n";
     pyplot += "plot.show()\n";
-    std::ofstream file("triangulation" + procName + ".py", std::ios::out);
+    std::ofstream file(outputName + procName + ".py", std::ios::out);
     file << pyplot;
-    file.close();*/
+    file.close();
 }
 void meshGrid::fromMesh()
 {
@@ -738,8 +739,6 @@ void meshGrid::fromMesh()
     indent(Info) << "- Area error = " << (idealArea - area_) / idealArea * 100.0 << "%" << endl;
 
     Info.stream().decrIndent();
-
-    this->writePythonPlotter();
 
     this->writeArea("propeller1:");
 }

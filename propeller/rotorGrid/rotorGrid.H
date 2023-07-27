@@ -62,6 +62,9 @@ public:
     static autoPtr<rotorGrid> New(const dictionary &dict, const rotorGeometry& geometry, const rotorFvMeshSel &rotorFvMeshSel, const bladeModelS* bladeModel, scalar nBlades);
     label nCells() const { return cells_.size();}
     virtual ~rotorGrid() = default;
+
+    virtual void writePythonPlotter(word outputName) {Warning<<"Python plotter not implemented for this grid method"<<endl;}
+    void tryExport();
 protected:
     const rotorGeometry& rotorGeometry_;
     const rotorFvMeshSel& meshSel_;
@@ -71,6 +74,7 @@ protected:
 
     sampleMode sampleMode_;
     PtrList<gridCell> cells_;
+    word exportName_;
 };
 
 }

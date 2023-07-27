@@ -26,7 +26,8 @@ class propellerModel
 
 protected:
     const rotorFvMeshSel* rotorFvMeshSel_;
-
+    autoPtr<rotorGrid> rotorGrid_;
+    label nBlades_;
 public:
     TypeName("propellerModel");
 
@@ -75,12 +76,13 @@ public:
 
     void setRotorMesh(const rotorFvMeshSel* rotorFvMeshSel){ rotorFvMeshSel_ = rotorFvMeshSel;}
 
-    virtual void build(const rotorGeometry& rotorGeometry){}
-    virtual bool nextTimeStep(scalar dt){return false;}
-    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force){return propellerResult();}
-    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const {return propellerResult();}
+    virtual void build(const rotorGeometry& rotorGeometry)=0;
+    virtual bool nextTimeStep(scalar dt) = 0;
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField, volVectorField& force) = 0;
+    virtual propellerResult calculate(const vectorField& U, const scalarField* rhoField) const =0;
 
-    virtual const autoPtr<rotorGrid>& grid() const = 0;
+    const autoPtr<rotorGrid>& grid() const {return rotorGrid_;}
+    autoPtr<rotorGrid>& grid() {return rotorGrid_;}
     
     const fvMesh& mesh() const { return mesh_;}
     const word& sourceName() const {return sourceName_;}

@@ -29,6 +29,7 @@ public:
 
     label ijkIndex(label iBlade, label iRadius, label iChord);
 
+    void writePythonPlotter(word outputName);
     List<scalar> getInitialAzimuth() const;
 private:
 

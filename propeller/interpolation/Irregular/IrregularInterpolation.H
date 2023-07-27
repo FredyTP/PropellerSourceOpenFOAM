@@ -15,7 +15,7 @@ class IrregularInterpolation
 : public InterpolationTable<typeIn,typeOu,dim>
 {
 public:
-    virtual Interpolated<typeIn,typeOu> interpolate(FixedList<typeIn,dim> input) const=0;
+    virtual Interpolated<typeIn,typeOu> interpolate(const FixedList<typeIn,dim>& input) const=0;
 
     virtual ~IrregularInterpolation() = default;
 protected:

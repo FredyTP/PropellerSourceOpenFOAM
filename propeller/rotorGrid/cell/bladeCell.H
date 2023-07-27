@@ -34,7 +34,7 @@ public:
      * 
      * @return List<vector> 
      */
-    List<vector> actualPoints() const { return actualLocation_;}
+    const List<vector>& actualPoints() const { return actualLocation_;}
 
 
     /**

@@ -36,8 +36,7 @@ public:
 
     label nRadial() const {return radius().size()-1;}
     label nAzimutal() const {return theta().size()-1;}
-
-
+    void writePythonPlotter(word outputName);
 private:
     
     List<scalar> radius_;
