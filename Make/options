@@ -8,35 +8,35 @@ EXE_INC = \
     -I$(FOAM_SRC)/transportModels \
     -I$(FOAM_SRC)/transportModels/incompressible/singlePhaseTransportModel \
     -I$(FOAM_SRC)/surfMesh/lnInclude \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerSource \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/bladeElementModel \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/bladeElementModel/effects3D \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/propellerModel/forceModel \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorGrid \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorGrid/cell \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Irregular \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Regular \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Irregular/ClosestNeighbor \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/interpolation/Irregular/InverseDistance \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/simpleAirfoil \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/interpolatedAirfoil \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/cylinderAirfoil \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/polarAirfoil \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/airfoilModel/polarAirfoil/polar \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/bladeModel \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorMesh \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/util \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl/bemControl \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/rotorControl/fmControl \
-    -I$(WM_PROJECT_USER_DIR)/applications/rotorSolver/propeller/velocitySampler
+    -Ipropeller/propellerSource \
+    -Ipropeller/propellerModel \
+    -Ipropeller/propellerModel/bladeElementModel \
+    -Ipropeller/propellerModel/bladeElementModel/effects3D \
+    -Ipropeller/propellerModel/forceModel \
+    -Ipropeller/rotorGrid \
+    -Ipropeller/rotorGrid/cell \
+    -Ipropeller/interpolation \
+    -Ipropeller/interpolation/Irregular \
+    -Ipropeller/interpolation/Regular \
+    -Ipropeller/interpolation/Irregular/ClosestNeighbor \
+    -Ipropeller/interpolation/Irregular/InverseDistance \
+    -Ipropeller/airfoilModel \
+    -Ipropeller/airfoilModel/simpleAirfoil \
+    -Ipropeller/airfoilModel/interpolatedAirfoil \
+    -Ipropeller/airfoilModel/cylinderAirfoil \
+    -Ipropeller/airfoilModel/polarAirfoil \
+    -Ipropeller/airfoilModel/polarAirfoil/polar \
+    -Ipropeller/bladeModel \
+    -Ipropeller/rotorMesh \
+    -Ipropeller/util \
+    -Ipropeller/rotorControl \
+    -Ipropeller/rotorControl/bemControl \
+    -Ipropeller/rotorControl/fmControl \
+    -Ipropeller/velocitySampler
     
 
 
-EXE_LIBS = \
+LIB_LIBS = \
     -lfiniteVolume \
     -lfvOptions \
     -lmeshTools \

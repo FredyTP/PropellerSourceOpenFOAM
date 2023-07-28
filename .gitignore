@@ -33,5 +33,5 @@
 
 # Build dir
 linux*
-
+lnInclude
 openfoam.code-workspace
