@@ -21,6 +21,7 @@ public:
     scalar J{0};          //- Adimensional: refV / (n*D)
     scalar eta{0};        //- Thrust* refV / power
     scalar CT{0};         //- Thrust coefficient T/(rho*n^2*D^4)
+    scalar CQ{0};         //- Torque coefficient Q/(rho*n^2*D^5)
     scalar CP{0};         //- Power coefficient Power/(rho*n^3*D^5)
 
     propellerResult()
@@ -47,6 +48,7 @@ public:
             indent(os) <<"- J (Advance Coefficient):  Vref/(n*D)"<<endl;
             indent(os) <<"- Eta (Efficiency): (T * Vref)/P"<<endl;
             indent(os) <<"- CT (Thrust Coefficient): T/(rho * n^2 * D^4)"<<endl;
+            indent(os) <<"- CQ (Torque Coefficient): Q/(rho * n^2 * D^5)"<<endl;
             indent(os) <<"- CP (Power Coefficient): P/(rho * n^3 * D^5)"<<endl;
             os.decrIndent();
             indent(os) << "Where: "<<endl;
@@ -55,6 +57,7 @@ public:
             indent(os)<< "- n is rotational speed in revolution/second"<<endl;
             indent(os)<< "- D is rotor diameter"<<endl;
             indent(os)<< "- T is rotor thrust"<<endl;
+            indent(os)<< "- Q is rotor torque"<<endl;
             indent(os)<< "- P is rotor power"<<endl;
             indent(os)<< "- rho is reference density"<<endl;
             os.decrIndent();
@@ -71,6 +74,7 @@ public:
         indent(os) <<"- J = "<<pr.J<<endl;
         indent(os) <<"- Eta = "<<pr.eta<<endl;
         indent(os) <<"- CT = "<<pr.CT<<endl;
+        indent(os) <<"- CQ = "<<pr.CQ<<endl;
         indent(os) <<"- CP = "<<pr.CP<<endl; 
         os.decrIndent();
         return os;
@@ -137,6 +141,7 @@ public:
         {
             CP = power/den;
         }
+        CQ = CP/constant::mathematical::twoPi;
     }
 
 private:
@@ -172,6 +177,7 @@ public:
         this->J = result.J;
         this->eta = result.eta;
         this->CT = result.CT;
+        this->CQ = result.CQ;
         this->CP = result.CP;
 
         return *this;
@@ -186,6 +192,7 @@ public:
         os <<"j = "<<this->J<<";"<<endl;
         os <<"eta = "<<this->eta<<";"<<endl;
         os <<"ct = "<<this->CT<<";"<<endl;
+        os <<"cq = "<<this->CQ<<";"<<endl;
         os <<"cp = "<<this->CP<<";"<<endl; 
         
         return true;
