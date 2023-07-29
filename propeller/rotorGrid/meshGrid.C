@@ -20,7 +20,7 @@ const Enum
 >
 meshGrid::discreteMethodNames_
 ({
-    {meshGrid::discreteMethod::voronoid, "voronoid"},
+    {meshGrid::discreteMethod::voronoid, "voronoi"},
     {meshGrid::discreteMethod::intersection, "intersection"},
     {meshGrid::discreteMethod::proyection, "proyection"}
 });

@@ -14,7 +14,7 @@ public:
     TypeName("meshGrid");
     enum class discreteMethod
     {
-        voronoid,
+        voronoi,
         intersection,
         proyection
     };
