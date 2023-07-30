@@ -14,6 +14,10 @@ namespace util
 {
 
 
+/**
+ * @brief Static methods for geometry computations
+ * 
+ */
 class geometry
 {
 public:

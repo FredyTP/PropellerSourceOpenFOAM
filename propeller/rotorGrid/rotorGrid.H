@@ -18,7 +18,10 @@
 namespace Foam
 {
 
-
+/**
+ * @brief Base class containig tools to implement diferent type of rotor mesh for propellerModel
+ * 
+ */
 class rotorGrid
 {
 public:

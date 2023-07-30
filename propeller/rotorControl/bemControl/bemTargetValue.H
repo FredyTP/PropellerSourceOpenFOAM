@@ -8,7 +8,10 @@
 
 namespace Foam
 {
-
+/**
+ * @brief Class for blade element model rotor control of target output values via Newton-Raphson algorithm
+ * 
+ */
 class bemTargetValue : public bemControl
 {
 public:

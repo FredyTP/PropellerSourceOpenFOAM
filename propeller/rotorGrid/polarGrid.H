@@ -10,6 +10,10 @@
 namespace Foam
 {
 
+/**
+ * @brief Polar grid type with r-theta cells
+ * 
+ */
 class polarGrid : public rotorGrid, public ijkAddressing
 {
 public:

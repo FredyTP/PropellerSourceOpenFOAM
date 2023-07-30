@@ -11,6 +11,10 @@ namespace Foam
 {
 
 class forceModel;
+/**
+ * @brief Fixed control class for force model, setting the control variables via dictionary
+ * 
+ */
 class fmFixedControl : public fmControl
 {
 public:

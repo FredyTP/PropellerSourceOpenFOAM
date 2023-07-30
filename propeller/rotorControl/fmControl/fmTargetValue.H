@@ -10,6 +10,11 @@ namespace Foam
 {
 
 class forceModel;
+
+/**
+ * @brief Class for force model rotor control of target output values via Newton-Raphson algorithm
+ * 
+ */
 class fmTargetValue : public fmControl
 {
 public:

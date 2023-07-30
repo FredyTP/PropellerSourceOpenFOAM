@@ -9,7 +9,10 @@
 namespace Foam
 {
 
-
+/**
+ * @brief Base class for blade element model control
+ * 
+ */
 class bemControl : public rotorControlTemplate<bladeElementModel>
 {
 public:

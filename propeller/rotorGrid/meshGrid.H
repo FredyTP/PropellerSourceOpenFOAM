@@ -7,6 +7,10 @@
 namespace Foam
 {
 
+/**
+ * @brief Rotor grid created from fv mesh data
+ * 
+ */
 class meshGrid : public rotorGrid
 {
 public:
