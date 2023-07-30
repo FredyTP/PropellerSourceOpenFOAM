@@ -10,6 +10,10 @@
 namespace Foam
 {
 
+/**
+ * @brief Base abstract class of rotor control with some helper methods and pure virtual method to implement
+ * 
+ */
 class rotorControl
 {
 public:
@@ -18,6 +22,11 @@ public:
     virtual ~rotorControl() = default;
 };
 
+/**
+ * @brief Templated base classs including acount for output and control vars via typedef of template argument
+ * 
+ * @tparam model used to control with the variable definitions
+ */
 template<class model>
 class rotorControlTemplate : public rotorControl
 {

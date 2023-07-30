@@ -9,6 +9,11 @@ namespace Foam
 {
 class fmControl;
 
+
+/**
+ * @brief Implementation of the body force method with goldstein distribution
+ * 
+ */
 class forceModel
 :
     public propellerModel

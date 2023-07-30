@@ -20,7 +20,10 @@ namespace Foam
 /*---------------------------------------------------------------------------*\
                          Class propellerModel Declaration
 \*---------------------------------------------------------------------------*/
-
+/**
+ * @brief Base class for all propellerModels implementations
+ * 
+ */
 class propellerModel
 {
 
@@ -59,9 +62,15 @@ public:
     
     // Selectors
 
-        //- Return a reference to the selected trim model
-        //- automations the construction of propeller models
-        //- from run time selection tables
+        /**
+         * @brief Return a reference to the selected propellerModel
+         * automations the construction of propeller models
+         *   from run time selection tables
+         * @param sourceName 
+         * @param dict 
+         * @param mesh 
+         * @return autoPtr<propellerModel> 
+         */
         static autoPtr<propellerModel> New
         (
             word sourceName,
@@ -89,6 +98,12 @@ public:
     
     static tensor bladeTensor(const coordSystem::cylindrical &cylCS, const point &localPoint, scalar flapping, scalar sweep);
 
+    /**
+     * @brief Correct control values 
+     * 
+     * @param U 
+     * @param rhoField 
+     */
     virtual void correctControl(const vectorField& U, const scalarField* rhoField) = 0;
 protected:
     const word sourceName_;

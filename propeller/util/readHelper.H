@@ -21,6 +21,17 @@ namespace Foam
 namespace util
 {
 
+/**
+ * @brief Creates new scalar 1D interpolation from dictionary
+ * 
+ * @param dict 
+ * @param x_name 
+ * @param y_name 
+ * @param convertToRad 
+ * @param enableCSV 
+ * @param csv 
+ * @return autoPtr<RegularInterpolation<scalar,scalar,1>> 
+ */
 autoPtr<RegularInterpolation<scalar,scalar,1>> NewInterpolationFromDict
 (
     const dictionary& dict,
@@ -41,6 +52,17 @@ enum class interpolationMethod
 extern const Enum<interpolationMethod> interpolationNames;
 
 
+/**
+ * @brief Creates new interpolation instace from specified data and dict
+ * 
+ * @tparam typeIn 
+ * @tparam typeOu 
+ * @tparam dim 
+ * @param dict 
+ * @param xList 
+ * @param yList 
+ * @return autoPtr<InterpolationTable<typeIn,typeOu,dim>> 
+ */
 template<class typeIn, class typeOu, label dim>
 autoPtr<InterpolationTable<typeIn,typeOu,dim>> NewInterpolationFromRaw
 (

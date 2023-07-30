@@ -6,7 +6,7 @@
 namespace Foam
 {
 /**
- * Inverse distance weighting algorithm for interpolating irregular data
+ * @brief Inverse distance weighting algorithm for interpolating irregular data
 */
 template<class typeIn, class typeOu, label dim>
 class InverseDistance

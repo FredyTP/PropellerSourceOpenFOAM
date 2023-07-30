@@ -19,6 +19,10 @@ namespace Foam
  * index = Nx*Ny*i + Nx*j + k; and so on...
  * 
  * the number of coefficients can be "easily" obtained
+ * 
+ * @tparam typeIn type of interpolation nodes (usually scalar)
+ * @tparam typeOu type of interpolated data (Scalar or others)
+ * @tparam dim    number of dimensions used
 */
 template<class typeIn, class typeOu, label dim>
 class RegularInterpolation : public InterpolationTable<typeIn,typeOu,dim>

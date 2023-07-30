@@ -7,7 +7,7 @@ namespace Foam
 {
 
 /**
- * Propeller result integrated data information
+ * @brief result integrated data information
  * Adimensional parameters defined as website : 
  * https://m-selig.ae.illinois.edu/props/propDB.html
  * suggests
@@ -28,6 +28,14 @@ public:
     {
         
     }
+    /**
+     * @brief Updates internal data
+     * 
+     * @param omega 
+     * @param speedRef 
+     * @param rhoRef 
+     * @param radius 
+     */
     void update(scalar omega, scalar speedRef,scalar rhoRef, scalar radius)
     {
         power = torque.z() * omega;
@@ -148,7 +156,10 @@ private:
     static bool definitionShown_;
 };
 
-
+/**
+ * @brief Class enabling auto input-output of propellerResult
+ * 
+ */
 class regIOpropellerResult
     : public propellerResult, public regIOobject
 {

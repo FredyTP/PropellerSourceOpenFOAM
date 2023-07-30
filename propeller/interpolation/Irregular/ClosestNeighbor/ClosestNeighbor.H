@@ -4,6 +4,13 @@
 
 namespace Foam
 {
+/**
+ * @brief Closest neighbor algorithm implementation
+ * 
+ * @tparam typeIn 
+ * @tparam typeOu 
+ * @tparam dim 
+ */
 template<class typeIn, class typeOu, label dim>
 class ClosestNeighbor
 : public IrregularInterpolation<typeIn,typeOu,dim>

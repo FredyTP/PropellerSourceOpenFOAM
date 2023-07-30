@@ -12,7 +12,10 @@ namespace Foam
 
 
 
-
+/**
+ * @brief Simple airfoil with only accounting for CD0
+ * 
+ */
 class cylinderAirfoil
 : public airfoilModel
 {
