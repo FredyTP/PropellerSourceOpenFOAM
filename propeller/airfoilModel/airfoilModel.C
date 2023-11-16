@@ -29,9 +29,9 @@ Foam::airfoilModel::airfoilModel(word name, const dictionary& dict)
     export_ = dict.getOrDefault<bool>("export",false);
     path_ = dict.getOrDefault<fileName>("path","");
     aoaBegin_ = dict.getOrDefault<scalar>("aoaBegin", -constant::mathematical::pi);
-    aoaEnd_ = dict.getOrDefault<scalar>("aoaBegin", constant::mathematical::pi);
+    aoaEnd_ = dict.getOrDefault<scalar>("aoaEnd", constant::mathematical::pi);
     
-    nAoa_ = dict.getOrDefault<scalar>("aoaBegin", 360); //1deg res
+    nAoa_ = dict.getOrDefault<scalar>("nAoa", 360); //1deg res
     Re_ = dict.getOrDefault<List<scalar>>("Reynolds", {0}); 
     Ma_ = dict.getOrDefault<List<scalar>>("Mach", {0}); 
     join_ = dict.getOrDefault<bool>("join", true); 
