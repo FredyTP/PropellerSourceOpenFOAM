@@ -28,6 +28,10 @@ namespace fv
                       Class propellerSource Declaration
 \*---------------------------------------------------------------------------*/
 
+/**
+ * @brief Class for coupling propeller models to the FV solver via actuator disk
+ * 
+ */
 class propellerSource
 :
     public fv::option

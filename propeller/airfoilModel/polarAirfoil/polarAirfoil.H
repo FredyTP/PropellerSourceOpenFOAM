@@ -10,7 +10,11 @@
 namespace Foam
 {
 
-class polarAirfoil
+
+/**
+ * @brief Airfoil made out of an 2D interpolation table of Reynolds and Mach
+ * 
+ */
 : public airfoilModel
 {
 public:

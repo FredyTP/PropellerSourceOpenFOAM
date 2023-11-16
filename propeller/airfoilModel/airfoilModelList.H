@@ -8,6 +8,10 @@ namespace Foam
 {
 
 
+/**
+ * @brief List of airfoil, auto import from dictionary, owning them in a PtrList.
+ * 
+ */
 class airfoilModelList
 : PtrList<airfoilModel>
 {

@@ -9,6 +9,10 @@
 namespace Foam
 {
 
+/**
+ * @brief Base class for force model control
+ * 
+ */
 class fmControl : public rotorControlTemplate<forceModel>
 {
 public:

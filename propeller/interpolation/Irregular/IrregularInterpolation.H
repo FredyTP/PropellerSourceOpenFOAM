@@ -10,6 +10,13 @@
 namespace Foam
 {
 
+/**
+ * @brief Base class for unstructured data
+ * 
+ * @tparam typeIn
+ * @tparam typeOu 
+ * @tparam dim 
+ */
 template<class typeIn, class typeOu, label dim>
 class IrregularInterpolation 
 : public InterpolationTable<typeIn,typeOu,dim>

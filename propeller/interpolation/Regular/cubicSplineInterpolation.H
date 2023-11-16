@@ -11,7 +11,7 @@ namespace Foam
 {
 
 /**
- * @brief Implemented from 
+ * @brief Cubic spline interpolation implemented from 
  * https://medium.com/eatpredlove/natural-cubic-splines-implementation-with-python-edf68feb57aa 
  * equations
  * 

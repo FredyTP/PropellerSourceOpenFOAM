@@ -14,12 +14,13 @@ namespace Foam
  * 
  * Same as offsetSampler but the sampled velocity is from a specified file
  * 
- * Example of dicts provided to this class
+ * @example
  * 
  *   velocitySampler
  *   {
  *   
  *       type            fileSampler;
+ *       file            somefile;
  *       offset          0.2;
  *       atCellCenter    true;
  *   }

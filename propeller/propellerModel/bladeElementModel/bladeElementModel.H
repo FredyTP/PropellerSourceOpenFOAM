@@ -17,6 +17,10 @@ struct bemDebugData
 };
 class bemControl;
 
+/**
+ * @brief implementation of the blade element teory method. Valid for stationary or transient
+ * 
+ */
 class bladeElementModel
 :
     public propellerModel

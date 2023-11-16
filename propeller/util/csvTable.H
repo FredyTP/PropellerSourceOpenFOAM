@@ -10,8 +10,11 @@ namespace Foam
 {
 
 /**
- * ADD ERROR CHECKING 
-*/
+ * @brief Csv table clas for handling communications with csv files
+ * 
+ * @tparam dataType 
+ * @tparam headerType 
+ */
 template<class dataType, class headerType>
 class csvTable
 {

@@ -6,6 +6,11 @@
 namespace Foam
 {
 
+
+/**
+ * @brief Class for fixedc control values of blade element method via dictionary
+ * 
+ */
 class bemFixedControl : public bemControl
 {
 public:

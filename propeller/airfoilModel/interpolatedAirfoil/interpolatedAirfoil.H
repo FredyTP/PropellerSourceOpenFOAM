@@ -10,7 +10,10 @@
 namespace Foam
 {
 
-
+/**
+ * @brief Airfoil class made out of interpolated airfoils
+ * 
+ */
 class interpolatedAirfoil
     :  public Interpolated<scalar,const airfoilModel*>, public airfoilModel
 {

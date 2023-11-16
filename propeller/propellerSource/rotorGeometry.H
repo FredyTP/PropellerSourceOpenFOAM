@@ -8,6 +8,10 @@
 
 namespace Foam
 {
+/**
+ * @brief Contains the definition of the rotor geometry and coordinate systems
+ * 
+ */
 class rotorGeometry
 {
 private:

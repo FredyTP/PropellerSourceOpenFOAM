@@ -9,6 +9,10 @@
 namespace Foam
 {
 
+/**
+ * @brief Blade grid for transient simulations
+ * 
+ */
 class bladeGrid : public rotorGrid, public ijkAddressing
 {
 public:

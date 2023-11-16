@@ -10,6 +10,13 @@ namespace Foam
 {
 
 
+/**
+ * @brief Interpolation class for N-dimensional linear interpolation
+ * 
+ * @tparam typeIn 
+ * @tparam typeOu 
+ * @tparam dim 
+ */
 template<class typeIn, class typeOu, label dim>
 class LinearInterpolation : public RegularInterpolation<typeIn,typeOu,dim>
 {

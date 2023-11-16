@@ -11,6 +11,10 @@
 namespace Foam
 {
 
+/**
+ * @brief Polar class for aerodynamic data of Cl vs aoa and cd vs aoa, implements read from files or csv
+ * 
+ */
 class polar
 {
 public:
